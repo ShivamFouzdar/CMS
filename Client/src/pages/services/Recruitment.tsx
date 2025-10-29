@@ -1,0 +1,776 @@
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
+import { Button } from '@/components/ui/Button';
+import { CallToAction } from '@/components/sections/CallToAction';
+import { 
+  CheckCircle, 
+  Star, 
+  ArrowRight, 
+  Clock, 
+  Shield, 
+  Users, 
+  TrendingUp,
+  ChevronRight,
+  Quote,
+  UserPlus,
+  Mail,
+  MessageSquare,
+  BarChart3,
+  Briefcase,
+  Phone,
+  Database,
+  Settings,
+  Target,
+  Plus,
+  Minus,
+  Globe,
+  Zap,
+  Award,
+  Monitor,
+  Search,
+  FileText,
+  PieChart,
+  Lightbulb,
+  BookOpen,
+  GraduationCap,
+  Microscope,
+  Calculator,
+  TrendingDown,
+  Eye,
+  Filter,
+  Layers,
+  Cpu,
+  Network,
+  GitBranch,
+  Code,
+  Database as DatabaseIcon,
+  Cloud,
+  Lock,
+  Unlock,
+  RefreshCw,
+  Download,
+  Upload,
+  Share2,
+  Copy,
+  Edit,
+  Trash2,
+  Save,
+  Send,
+  CheckSquare,
+  AlertCircle,
+  ThumbsUp,
+  ThumbsDown,
+  Coffee,
+  Moon,
+  Sun,
+  Gavel,
+  FileCheck,
+  Clipboard,
+  PenTool,
+  Archive,
+  FolderOpen,
+  Document,
+  Scroll,
+  Building,
+  UserCheck,
+  AlertTriangle,
+  CheckCircle2,
+  XCircle,
+  Info,
+  HelpCircle,
+  ExternalLink,
+  Calendar,
+  Clock as ClockIcon,
+  Timer,
+  Stopwatch,
+  Hourglass,
+  Calendar as CalendarIcon,
+  MapPin,
+  Phone as PhoneIcon,
+  Mail as MailIcon,
+  MessageCircle,
+  Video,
+  Camera,
+  Mic,
+  Headphones,
+  Volume2,
+  VolumeX,
+  Play,
+  Pause,
+  SkipForward,
+  SkipBack,
+  RotateCcw,
+  RotateCw,
+  Maximize,
+  Minimize,
+  Move,
+  Copy as CopyIcon,
+  Scissors,
+  Clipboard as ClipboardIcon,
+  Bookmark,
+  Tag,
+  Flag,
+  Heart,
+  ShoppingCart,
+  Factory
+} from 'lucide-react';
+
+export default function Recruitment() {
+  const [openFAQ, setOpenFAQ] = useState<number | null>(null);
+
+  const toggleFAQ = (index: number) => {
+    setOpenFAQ(openFAQ === index ? null : index);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      {/* Hero Section */}
+      <section className="relative py-16 md:py-24 overflow-hidden">
+        <div className="absolute inset-0 w-full h-full opacity-10 pointer-events-none">
+          <div className="absolute -top-20 -right-20 w-72 h-72 bg-green-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
+          <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
+        </div>
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <motion.div
+                initial={{ opacity: 0, x: -60 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8 }}
+              >
+                <div className="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium mb-6">
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Talent Acquisition & HR
+                </div>
+                
+                <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+                  Find the Perfect 
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-blue-600">
+                    {" "}Talent for Your Business
+                  </span>
+                </h1>
+                
+                <p className="text-xl text-gray-700 mb-8 leading-relaxed">
+                  Transform your hiring process with our comprehensive recruitment solutions. 
+                  From sourcing top talent to onboarding success, we help you build 
+                  high-performing teams that drive business growth.
+                </p>
+
+                <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                  <Button href="#contact" variant="primary" size="lg" className="flex items-center">
+                    Get Started Today
+                    <ArrowRight className="ml-2 w-5 h-5" />
+                  </Button>
+                  <Button href="#contact" variant="outline" size="lg">
+                    Contact Us
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-3 gap-6">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-green-600 mb-1">1000+</div>
+                    <div className="text-sm text-gray-600">Placements</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-green-600 mb-1">95%</div>
+                    <div className="text-sm text-gray-600">Success Rate</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-green-600 mb-1">30</div>
+                    <div className="text-sm text-gray-600">Days Avg</div>
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: 60 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                className="relative"
+              >
+                <div className="bg-white rounded-2xl shadow-2xl p-8 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-blue-500/10"></div>
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-xl font-semibold text-gray-900">Recruitment Dashboard</h3>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                        <span className="text-sm text-gray-600">Active</span>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                      <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="text-2xl font-bold text-green-600">47</div>
+                            <div className="text-sm text-gray-600">Active Jobs</div>
+                          </div>
+                          <Briefcase className="w-8 h-8 text-green-500" />
+                        </div>
+                      </div>
+                      <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="text-2xl font-bold text-blue-600">234</div>
+                            <div className="text-sm text-gray-600">Candidates</div>
+                          </div>
+                          <Users className="w-8 h-8 text-blue-500" />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                            <CheckCircle className="w-4 h-4 text-green-600" />
+                          </div>
+                          <span className="text-sm font-medium">Screening</span>
+                        </div>
+                        <span className="text-sm text-green-600 font-medium">12 Active</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <Video className="w-4 h-4 text-blue-600" />
+                          </div>
+                          <span className="text-sm font-medium">Interviews</span>
+                        </div>
+                        <span className="text-sm text-blue-600 font-medium">8 Scheduled</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                            <UserCheck className="w-4 h-4 text-purple-600" />
+                          </div>
+                          <span className="text-sm font-medium">Onboarding</span>
+                        </div>
+                        <span className="text-sm text-purple-600 font-medium">5 New</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Recruitment Services Overview */}
+      <section className="py-16 md:py-24">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+                Comprehensive Recruitment Solutions
+              </h2>
+              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+                Our end-to-end recruitment services cover every aspect of talent acquisition, 
+                from initial sourcing to successful placement and retention.
+              </p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[
+                {
+                  icon: <Search className="w-8 h-8 text-green-500" />,
+                  title: "Talent Sourcing",
+                  description: "Advanced sourcing strategies to find the best candidates across multiple channels.",
+                  features: ["Job Board Management", "Social Media Sourcing", "Referral Programs", "Passive Candidate Search", "Database Mining", "AI-Powered Matching"]
+                },
+                {
+                  icon: <Users className="w-8 h-8 text-blue-500" />,
+                  title: "Candidate Screening",
+                  description: "Comprehensive screening and assessment processes to identify top talent.",
+                  features: ["Resume Screening", "Phone Interviews", "Skills Assessment", "Background Checks", "Reference Verification", "Cultural Fit Analysis"]
+                },
+                {
+                  icon: <Video className="w-8 h-8 text-purple-500" />,
+                  title: "Interview Management",
+                  description: "Structured interview processes with expert coordination and evaluation.",
+                  features: ["Interview Scheduling", "Panel Coordination", "Technical Assessments", "Behavioral Interviews", "Video Interviews", "Feedback Collection"]
+                },
+                {
+                  icon: <FileText className="w-8 h-8 text-orange-500" />,
+                  title: "Job Description Writing",
+                  description: "Compelling job descriptions that attract the right candidates.",
+                  features: ["Job Analysis", "Requirements Definition", "Compensation Research", "Market Analysis", "SEO Optimization", "A/B Testing"]
+                },
+                {
+                  icon: <BarChart3 className="w-8 h-8 text-pink-500" />,
+                  title: "Recruitment Analytics",
+                  description: "Data-driven insights to optimize your hiring process and outcomes.",
+                  features: ["Time-to-Hire Tracking", "Source Effectiveness", "Candidate Pipeline", "Cost Analysis", "Quality Metrics", "Predictive Analytics"]
+                },
+                {
+                  icon: <UserCheck className="w-8 h-8 text-indigo-500" />,
+                  title: "Onboarding Support",
+                  description: "Seamless onboarding experience to ensure new hire success and retention.",
+                  features: ["Welcome Programs", "Documentation", "Training Coordination", "Mentor Matching", "Progress Tracking", "Retention Programs"]
+                }
+              ].map((service, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 group"
+                >
+                  <div className="mb-6">
+                    <div className="w-16 h-16 bg-gradient-to-br from-green-50 to-blue-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                      {service.icon}
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-3">{service.title}</h3>
+                    <p className="text-gray-600 mb-4">{service.description}</p>
+                  </div>
+                  
+                  <ul className="space-y-2">
+                    {service.features.map((feature, featureIndex) => (
+                      <li key={featureIndex} className="flex items-center text-sm text-gray-600">
+                        <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Why Choose Us */}
+      <section className="py-16 md:py-24 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+                Why Choose Our Recruitment Services?
+              </h2>
+              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+                We combine industry expertise with cutting-edge technology to deliver 
+                recruitment solutions that consistently exceed expectations.
+              </p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {[
+                {
+                  icon: <GraduationCap className="w-8 h-8 text-green-500" />,
+                  title: "Expert Recruiters",
+                  description: "Certified recruiters with deep industry knowledge and proven track records.",
+                  stat: "50+"
+                },
+                {
+                  icon: <Clock className="w-8 h-8 text-blue-500" />,
+                  title: "Fast Placement",
+                  description: "Average placement time 30% faster than industry standards.",
+                  stat: "30d"
+                },
+                {
+                  icon: <Shield className="w-8 h-8 text-purple-500" />,
+                  title: "Quality Guarantee",
+                  description: "90-day replacement guarantee for all permanent placements.",
+                  stat: "90d"
+                },
+                {
+                  icon: <TrendingUp className="w-8 h-8 text-orange-500" />,
+                  title: "Proven Results",
+                  description: "95% client satisfaction rate with successful placements.",
+                  stat: "95%"
+                }
+              ].map((benefit, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  className="text-center group"
+                >
+                  <div className="w-20 h-20 bg-gradient-to-br from-green-50 to-blue-50 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                    {benefit.icon}
+                  </div>
+                  <div className="text-4xl font-bold text-gray-900 mb-2">{benefit.stat}</div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">{benefit.title}</h3>
+                  <p className="text-gray-600">{benefit.description}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Recruitment Process */}
+      <section className="py-16 md:py-24">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+                Our Recruitment Process
+              </h2>
+              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+                A systematic approach that ensures quality hires and successful placements
+              </p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {[
+                {
+                  step: "01",
+                  title: "Job Analysis & Planning",
+                  description: "We analyze your requirements and create a comprehensive recruitment strategy.",
+                  icon: <Target className="w-6 h-6" />
+                },
+                {
+                  step: "02",
+                  title: "Sourcing & Screening",
+                  description: "Advanced sourcing techniques to find and screen the best candidates.",
+                  icon: <Search className="w-6 h-6" />
+                },
+                {
+                  step: "03",
+                  title: "Interview & Assessment",
+                  description: "Structured interviews and assessments to evaluate candidate fit.",
+                  icon: <Video className="w-6 h-6" />
+                },
+                {
+                  step: "04",
+                  title: "Placement & Onboarding",
+                  description: "Successful placement with comprehensive onboarding support.",
+                  icon: <UserCheck className="w-6 h-6" />
+                }
+              ].map((step, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  className="relative"
+                >
+                  <div className="bg-white rounded-xl shadow-lg p-8 text-center group hover:shadow-xl transition-all duration-300">
+                    <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-6 text-white font-bold text-xl group-hover:scale-110 transition-transform duration-300">
+                      {step.step}
+                    </div>
+                    <div className="w-12 h-12 bg-gradient-to-br from-green-50 to-blue-50 rounded-lg flex items-center justify-center mx-auto mb-4 text-green-600">
+                      {step.icon}
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-4">{step.title}</h3>
+                    <p className="text-gray-600">{step.description}</p>
+                  </div>
+                  {index < 3 && (
+                    <ChevronRight className="hidden lg:block absolute top-1/2 -right-4 w-8 h-8 text-gray-300 transform -translate-y-1/2" />
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Industry Expertise */}
+      <section className="py-16 md:py-24 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+                Industry Expertise
+              </h2>
+              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+                Specialized recruitment across multiple industries and verticals
+              </p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[
+                {
+                  icon: <Code className="w-8 h-8 text-blue-500" />,
+                  title: "Technology",
+                  description: "Software engineers, developers, data scientists, and IT professionals.",
+                  features: ["Software Development", "Data Science", "Cybersecurity", "DevOps", "Product Management", "UI/UX Design"]
+                },
+                {
+                  icon: <Building className="w-8 h-8 text-green-500" />,
+                  title: "Finance & Banking",
+                  description: "Financial analysts, investment bankers, and banking professionals.",
+                  features: ["Investment Banking", "Risk Management", "Financial Analysis", "Compliance", "Trading", "Fintech"]
+                },
+                {
+                  icon: <Heart className="w-8 h-8 text-red-500" />,
+                  title: "Healthcare",
+                  description: "Medical professionals, healthcare administrators, and life sciences experts.",
+                  features: ["Clinical Research", "Medical Devices", "Pharmaceuticals", "Healthcare IT", "Nursing", "Administration"]
+                },
+                {
+                  icon: <ShoppingCart className="w-8 h-8 text-purple-500" />,
+                  title: "Retail & E-commerce",
+                  description: "Retail managers, e-commerce specialists, and supply chain professionals.",
+                  features: ["Retail Management", "E-commerce", "Supply Chain", "Merchandising", "Digital Marketing", "Operations"]
+                },
+                {
+                  icon: <GraduationCap className="w-8 h-8 text-orange-500" />,
+                  title: "Education",
+                  description: "Teachers, administrators, and educational technology professionals.",
+                  features: ["Teaching", "Administration", "EdTech", "Curriculum Development", "Student Services", "Research"]
+                },
+                {
+                  icon: <Factory className="w-8 h-8 text-gray-500" />,
+                  title: "Manufacturing",
+                  description: "Engineers, production managers, and quality assurance professionals.",
+                  features: ["Engineering", "Production", "Quality Control", "Supply Chain", "Maintenance", "Safety"]
+                }
+              ].map((industry, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  className="bg-gray-50 rounded-xl p-8 hover:shadow-lg transition-all duration-300 group"
+                >
+                  <div className="mb-6">
+                    <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                      {industry.icon}
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-3">{industry.title}</h3>
+                    <p className="text-gray-600 mb-4">{industry.description}</p>
+                  </div>
+                  
+                  <ul className="space-y-2">
+                    {industry.features.map((feature, featureIndex) => (
+                      <li key={featureIndex} className="flex items-center text-sm text-gray-600">
+                        <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-16 md:py-24">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+                What Our Clients Say
+              </h2>
+              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+                Real feedback from companies that have transformed their hiring with our services
+              </p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[
+                {
+                  name: "Sarah Johnson",
+                  company: "TechStart Inc.",
+                  role: "HR Director",
+                  rating: 5,
+                  comment: "Outstanding recruitment services that helped us find top-tier developers in record time. Their screening process is incredibly thorough.",
+                  avatar: "SJ"
+                },
+                {
+                  name: "Michael Chen",
+                  company: "Global Finance",
+                  role: "VP of Operations",
+                  rating: 5,
+                  comment: "The quality of candidates they provided was exceptional. We've seen a significant improvement in our team's performance since using their services.",
+                  avatar: "MC"
+                },
+                {
+                  name: "Emily Rodriguez",
+                  company: "HealthTech Solutions",
+                  role: "CEO",
+                  rating: 5,
+                  comment: "Professional, efficient, and results-driven. They understood our culture and found candidates who were a perfect fit for our organization.",
+                  avatar: "ER"
+                }
+              ].map((testimonial, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  className="bg-white rounded-xl shadow-lg p-8"
+                >
+                  <div className="flex items-center mb-4">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                    ))}
+                  </div>
+                  
+                  <Quote className="w-8 h-8 text-green-500 mb-4" />
+                  
+                  <p className="text-gray-700 mb-6 italic">
+                    "{testimonial.comment}"
+                  </p>
+                  
+                  <div className="flex items-center">
+                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold mr-4">
+                      {testimonial.avatar}
+                    </div>
+                    <div>
+                      <div className="font-semibold text-gray-900">{testimonial.name}</div>
+                      <div className="text-sm text-gray-600">{testimonial.role}</div>
+                      <div className="text-sm text-green-600">{testimonial.company}</div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-16 md:py-24 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+                Frequently Asked Questions
+              </h2>
+              <p className="text-lg text-gray-600">
+                Get answers to common questions about our recruitment services
+              </p>
+            </motion.div>
+
+            <div className="space-y-4">
+              {[
+                {
+                  question: "What types of positions do you recruit for?",
+                  answer: "We recruit for a wide range of positions across multiple industries including technology, finance, healthcare, manufacturing, retail, and more. From entry-level to C-suite positions, we have expertise in finding the right talent for any role."
+                },
+                {
+                  question: "How long does the recruitment process typically take?",
+                  answer: "Our average time-to-hire is 30 days, which is 30% faster than industry standards. However, this can vary depending on the role complexity, market conditions, and specific requirements. We provide realistic timelines during our initial consultation."
+                },
+                {
+                  question: "Do you offer guarantees on your placements?",
+                  answer: "Yes, we offer a 90-day replacement guarantee for all permanent placements. If a candidate doesn't work out within this period, we'll find a replacement at no additional cost. This demonstrates our confidence in the quality of our placements."
+                },
+                {
+                  question: "What makes your recruitment process different?",
+                  answer: "Our process combines advanced technology with human expertise. We use AI-powered matching, comprehensive screening, structured interviews, and cultural fit assessment to ensure we find candidates who are not just qualified but also the right fit for your organization."
+                },
+                {
+                  question: "Do you work with both small and large companies?",
+                  answer: "Absolutely! We work with startups, mid-size companies, and large enterprises. Our flexible approach allows us to scale our services to meet the needs of any organization, whether you're hiring one person or building an entire team."
+                },
+                {
+                  question: "What industries do you specialize in?",
+                  answer: "We have deep expertise in technology, finance, healthcare, manufacturing, retail, education, and professional services. Our recruiters are industry specialists who understand the unique requirements and challenges of each sector."
+                },
+                {
+                  question: "How do you ensure candidate quality?",
+                  answer: "We use a multi-stage screening process including resume analysis, phone interviews, skills assessments, reference checks, and cultural fit evaluation. Our recruiters are trained to identify not just technical skills but also soft skills and cultural alignment."
+                },
+                {
+                  question: "What support do you provide after placement?",
+                  answer: "We provide comprehensive onboarding support including welcome programs, documentation assistance, training coordination, and regular check-ins. We also offer retention programs to help ensure long-term success and satisfaction for both the candidate and your organization."
+                }
+              ].map((faq, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  className="bg-gray-50 rounded-xl shadow-lg overflow-hidden"
+                >
+                  <button
+                    onClick={() => toggleFAQ(index)}
+                    className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-inset"
+                  >
+                    <h3 className="text-lg font-semibold text-gray-900 pr-4">
+                      {faq.question}
+                    </h3>
+                    <div className="flex-shrink-0">
+                      {openFAQ === index ? (
+                        <Minus className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <Plus className="w-5 h-5 text-green-600" />
+                      )}
+                    </div>
+                  </button>
+                  
+                  <AnimatePresence>
+                    {openFAQ === index && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3, ease: 'easeInOut' }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-6 pb-4">
+                          <p className="text-gray-600 leading-relaxed">
+                            {faq.answer}
+                          </p>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Contact CTA */}
+      <CallToAction
+        title="Ready to Find Your Next Great Hire?"
+        description="Get started with our comprehensive recruitment services today and build the team that will drive your business forward."
+        buttonText="Get Started Today"
+        buttonHref="#contact"
+      />
+    </div>
+  );
+}
