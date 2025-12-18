@@ -16,8 +16,8 @@ import {
   experienceLevels,
   workModes,
   hearAboutUsOptions,
-  formatFileSize,
 } from '@/lib/validations/jobApplication';
+import { formatFileSize } from '@/lib/form-utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { cn } from '@/lib/utils';
 import { API_ENDPOINTS } from '@/config/api';
@@ -146,11 +146,31 @@ export function JobApplicationForm({
       }, 5000);
     } catch (error) {
       console.error('Form submission error:', error);
-      setSubmitError(
-        error instanceof Error
-          ? error.message
-          : 'An error occurred while submitting the application. Please try again.'
-      );
+      
+      // Extract error message from axios error response
+      let errorMessage = 'An error occurred while submitting the application. Please try again.';
+      
+      if (axios.isAxiosError(error)) {
+        const backendMessage = error.response?.data?.message;
+        const missingFields = error.response?.data?.missingFields;
+        
+        if (backendMessage) {
+          errorMessage = backendMessage;
+          if (missingFields && Array.isArray(missingFields) && missingFields.length > 0) {
+            errorMessage += ` Missing: ${missingFields.join(', ')}`;
+          }
+        } else if (error.response?.status === 400) {
+          errorMessage = 'Invalid form data. Please check all required fields are filled correctly.';
+        } else if (error.response?.status === 413) {
+          errorMessage = 'File size is too large. Please upload a file smaller than 5MB.';
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      setSubmitError(errorMessage);
 
       if (onError) {
         onError(error);

@@ -1,0 +1,5 @@
+# Only exclude these specific files/folders from AI features
+node_modules/
+dist/
+build/
+.env

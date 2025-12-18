@@ -1,12 +1,11 @@
 import { motion } from 'framer-motion';
 import { Contact as ContactSection } from '@/components/sections/Contact';
-import { CallToAction } from '@/components/sections/CallToAction';
 
 export default function ContactPage() {
   return (
     <div className="space-y-0">
       {/* Page Header */}
-      <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-16 sm:py-20 md:py-24 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 pt-16 sm:pt-20 md:pt-24 pb-4 sm:pb-5 md:pb-6 relative overflow-hidden">
         {/* Decorative elements */}
         <div className="absolute inset-0 w-full h-full opacity-20 pointer-events-none">
           <div className="absolute -top-10 -right-10 sm:-top-20 sm:-right-20 w-36 h-36 sm:w-72 sm:h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
@@ -36,7 +35,7 @@ export default function ContactPage() {
       {/* Contact Section - Using the existing Contact component */}
       <ContactSection showHeader={false} />
 
-      {/* Map Section */}
+      {/* Map Section
       <div className="bg-gray-50 py-12 sm:py-16 md:py-20">
         <div className="container mx-auto px-3 sm:px-4 lg:px-6">
           <motion.div
@@ -73,16 +72,16 @@ export default function ContactPage() {
             </div>
           </motion.div>
         </div>
-      </div>
+      </div> */}
 
-      {/* Call to Action */}
+      {/* Call to Action
       <CallToAction 
         title="Ready to get started?"
         description="Contact us today to learn more about how we can help your business thrive."
         buttonText="Get in Touch"
         variant="centered"
         className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50"
-      />
+      /> */}
     </div>
   );
 }

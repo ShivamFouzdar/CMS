@@ -119,7 +119,7 @@ export const createIndexes = async (): Promise<void> => {
  */
 export const seedDatabase = async (): Promise<void> => {
   try {
-    const { Service, Review } = await import('@/models');
+    const { Service, Review, Settings } = await import('@/models');
     const { seedAdminUser, seedTestUsers } = await import('@/utils/seedAdmin');
     
     // Check if reviews already exist
@@ -205,7 +205,7 @@ export const seedDatabase = async (): Promise<void> => {
           content: 'The market research insights provided by CareerMap were invaluable for our expansion strategy. Data-driven and actionable recommendations.',
           rating: 5,
           image: '/images/avatar-7.jpg',
-          category: 'Market Research',
+          category: 'KPO Services',
           isVerified: true,
           isPublished: true,
           isFeatured: false
@@ -217,7 +217,7 @@ export const seedDatabase = async (): Promise<void> => {
           content: 'Exceptional data analytics services. They helped us uncover hidden patterns in our customer data that led to significant revenue growth.',
           rating: 5,
           image: '/images/avatar-8.jpg',
-          category: 'Data Analytics',
+          category: 'KPO Services',
           isVerified: true,
           isPublished: true,
           isFeatured: false
@@ -229,7 +229,7 @@ export const seedDatabase = async (): Promise<void> => {
           content: 'Their process optimization services streamlined our workflows and reduced costs by 30%. Highly professional team with great attention to detail.',
           rating: 4,
           image: '/images/avatar-9.jpg',
-          category: 'Process Optimization',
+          category: 'BPO Services',
           isVerified: true,
           isPublished: true,
           isFeatured: false
@@ -241,7 +241,7 @@ export const seedDatabase = async (): Promise<void> => {
           content: 'CareerMap provided comprehensive business consulting that helped us scale from startup to mid-size company. Their strategic guidance was invaluable.',
           rating: 5,
           image: '/images/avatar-10.jpg',
-          category: 'Business Consulting',
+          category: 'General',
           isVerified: true,
           isPublished: true,
           isFeatured: true
@@ -376,6 +376,13 @@ export const seedDatabase = async (): Promise<void> => {
     // Seed test users in development
     if (process.env['NODE_ENV'] === 'development') {
       await seedTestUsers();
+    }
+    
+    // Initialize default settings if they don't exist
+    const existingSettings = await Settings.countDocuments();
+    if (existingSettings === 0) {
+      await Settings.create({});
+      console.log('✅ Default settings initialized');
     }
     
     // silence seeding completion logs

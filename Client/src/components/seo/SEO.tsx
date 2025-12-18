@@ -1,5 +1,6 @@
 import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
+import { APP_BASE_URL } from '@/config/api';
 
 interface SEOProps {
   title?: string;
@@ -41,7 +42,7 @@ export function SEO({
   tags = []
 }: SEOProps) {
   const { pathname } = useLocation();
-  const siteUrl = import.meta.env.VITE_APP_BASE_URL || 'https://careermapsolutions.com';
+  const siteUrl = APP_BASE_URL;
   const siteTitle = title 
     ? `${title} | CareerMap Solutions` 
     : 'CareerMap Solutions | Expert Business Solutions';

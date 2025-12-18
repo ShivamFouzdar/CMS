@@ -10,13 +10,17 @@ import ContactPage from './pages/Contact';
 import { Reviews } from './pages/Reviews';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
+import CaseStudies from './pages/CaseStudies';
 import BPOServices from './pages/services/BPOServices';
 import KPOServices from './pages/services/KPOServices';
 import LegalServices from './pages/services/LegalServices';
 import Recruitment from './pages/services/Recruitment';
 import ITServices from './pages/services/ITServices';
+import BrandPromotion from './pages/services/BrandPromotion';
 import JobApplicants from './pages/admin/JobApplicants';
 import AdminReviews from './pages/admin/Reviews';
+import Leads from './pages/admin/ContactSubmissions';
+import Settings from './pages/admin/Settings';
 import LoginPage from './pages/auth/Login';
 import RegisterPage from './pages/auth/Register';
 import AdminDashboard from './pages/admin/Dashboard';
@@ -71,6 +75,7 @@ function App() {
                     <Route path="/services" element={<ServicesPage />} />
                     <Route path="/contact" element={<ContactPage />} />
                     <Route path="/reviews" element={<Reviews />} />
+                    <Route path="/case-studies" element={<CaseStudies />} />
                     <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                     <Route path="/terms-of-service" element={<TermsOfService />} />
                     <Route path="/services/bpo" element={<BPOServices />} />
@@ -78,6 +83,7 @@ function App() {
                     <Route path="/services/legal" element={<LegalServices />} />
                     <Route path="/services/recruitment" element={<Recruitment />} />
                     <Route path="/services/it" element={<ITServices />} />
+                    <Route path="/services/brand-promotion" element={<BrandPromotion />} />
                   </Routes>
                 </Layout>
               }
@@ -109,9 +115,7 @@ function App() {
               path="/admin/job-applicants"
               element={
                 <ProtectedRoute>
-                  <Layout>
-                    <JobApplicants />
-                  </Layout>
+                  <JobApplicants />
                 </ProtectedRoute>
               }
             />
@@ -119,9 +123,23 @@ function App() {
               path="/admin/reviews"
               element={
                 <ProtectedRoute>
-                  <Layout>
-                    <AdminReviews />
-                  </Layout>
+                  <AdminReviews />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/leads"
+              element={
+                <ProtectedRoute>
+                  <Leads />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/settings"
+              element={
+                <ProtectedRoute>
+                  <Settings />
                 </ProtectedRoute>
               }
             />

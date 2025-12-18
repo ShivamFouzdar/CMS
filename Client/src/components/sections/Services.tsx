@@ -1,13 +1,14 @@
 "use client"
 
-import { Briefcase, Scale, BarChart3, ArrowRight, Check, Code, UserPlus } from "lucide-react"
+import { Briefcase, Scale, BarChart3, ArrowRight, Check, Code, UserPlus, Megaphone, Sparkles } from "lucide-react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/Button"
 import { fadeIn } from "@/lib/utils"
+import Ballpit from "@/components/ui/Ballpit"
 
 const services = [
   {
-    icon: <Briefcase className="w-8 h-8 text-purple-400" />,
+    icon: <Briefcase className="w-6 h-6 text-white" />,
     title: "BPO Services",
     description: "Comprehensive business process outsourcing solutions to streamline your operations and reduce costs.",
     features: [
@@ -17,10 +18,11 @@ const services = [
       "Backend Operations Management",
     ],
     href: "/services/bpo",
+    gradient: "from-blue-500 to-cyan-500",
+    bgGradient: "from-blue-50 to-cyan-50",
   },
-
   {
-    icon: <BarChart3 className="w-8 h-8 text-purple-400" />,
+    icon: <BarChart3 className="w-6 h-6 text-white" />,
     title: "KPO Services",
     description: "Knowledge process outsourcing for research, analysis, and intellectual property solutions.",
     features: [
@@ -30,9 +32,11 @@ const services = [
       "Content & Documentation",
     ],
     href: "/services/kpo",
+    gradient: "from-purple-500 to-pink-500",
+    bgGradient: "from-purple-50 to-pink-50",
   },
   {
-    icon: <Scale className="w-8 h-8 text-purple-400" />,
+    icon: <Scale className="w-6 h-6 text-white" />,
     title: "Legal Services",
     description: "Expert legal support and documentation services for businesses of all sizes.",
     features: [
@@ -42,9 +46,11 @@ const services = [
       "Legal Research",
     ],
     href: "/services/legal",
+    gradient: "from-indigo-500 to-purple-500",
+    bgGradient: "from-indigo-50 to-purple-50",
   },
   {
-    icon: <UserPlus className="w-8 h-8 text-purple-400" />,
+    icon: <UserPlus className="w-6 h-6 text-white" />,
     title: "Recruitment",
     description: "Comprehensive talent acquisition and HR solutions to build high-performing teams.",
     features: [
@@ -54,9 +60,11 @@ const services = [
       "Onboarding Support",
     ],
     href: "/services/recruitment",
+    gradient: "from-emerald-500 to-teal-500",
+    bgGradient: "from-emerald-50 to-teal-50",
   },
   {
-    icon: <Code className="w-8 h-8 text-purple-400" />,
+    icon: <Code className="w-6 h-6 text-white" />,
     title: "IT Services",
     description: "Full-stack MERN development services for modern web applications and digital solutions.",
     features: [
@@ -66,6 +74,22 @@ const services = [
       "Full-Stack Integration",
     ],
     href: "/services/it",
+    gradient: "from-violet-500 to-purple-500",
+    bgGradient: "from-violet-50 to-purple-50",
+  },
+  {
+    icon: <Megaphone className="w-6 h-6 text-white" />,
+    title: "Brand Promotion & Marketing",
+    description: "Build a strong professional identity with comprehensive branding and marketing solutions.",
+    features: [
+      "Personal Branding",
+      "Digital Marketing",
+      "Social Media Management",
+      "Creative Visual Branding",
+    ],
+    href: "/services/brand-promotion",
+    gradient: "from-orange-500 to-pink-500",
+    bgGradient: "from-orange-50 to-pink-50",
   },
 ]
 
@@ -77,95 +101,111 @@ export function Services({ showAll = false }: ServicesProps) {
   return (
     <section
       id="services"
-      className="pt-2 pb-12 sm:pt-3 sm:pb-16 md:pt-4 md:pb-20 lg:pt-6 lg:pb-24 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden"
+      className="relative py-16 sm:py-20 md:py-24 lg:py-32 overflow-hidden bg-gradient-to-b from-white via-blue-50/30 to-purple-50/50"
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(120,119,198,0.1),transparent_50%)] pointer-events-none" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(147,51,234,0.08),transparent_50%)] pointer-events-none" />
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-purple-200/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-purple-100/10 to-blue-100/10 rounded-full blur-3xl"></div>
+      </div>
 
-      <div className="container mx-auto px-3 sm:px-4 lg:px-6 relative">
-        {/* Section Header - Only show when not showing all services */}
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        {/* Modern Section Header */}
         {!showAll && (
-          <div className="text-center max-w-4xl mx-auto mb-8 sm:mb-12 lg:mb-16">
-            <motion.span
-              className="text-purple-600 font-semibold text-xs sm:text-sm uppercase tracking-wider mb-2 sm:mb-3 block"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
+          <motion.div
+            className="text-center max-w-4xl mx-auto mb-12 sm:mb-16 lg:mb-20"
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            variants={{
+              hidden: {},
+              show: {
+                transition: {
+                  staggerChildren: 0.1
+                }
+              }
+            }}
+          >
+            <motion.div
+              variants={fadeIn('up', 0.2)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-100 to-blue-100 border border-purple-200/50 mb-6"
             >
-              Our Services
-            </motion.span>
+              <Sparkles className="w-4 h-4 text-purple-600" />
+              <span className="text-sm font-semibold text-purple-700 uppercase tracking-wider">Our Services</span>
+            </motion.div>
+            
             <motion.h2
-              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-blue-900 mb-3 sm:mb-4 lg:mb-6 text-balance"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
+              variants={fadeIn('up', 0.3)}
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6 bg-gradient-to-r from-gray-900 via-purple-900 to-gray-900 bg-clip-text text-transparent leading-tight"
             >
               Comprehensive Business Solutions
             </motion.h2>
+            
             <motion.p
-              className="text-sm sm:text-base md:text-lg text-blue-800/80 max-w-3xl mx-auto leading-relaxed text-pretty"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.2 }}
+              variants={fadeIn('up', 0.4)}
+              className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed"
             >
-              Comprehensive solutions to empower your career and business growth in today's dynamic market.
+              Empower your business with cutting-edge solutions designed to drive growth and innovation
             </motion.p>
-          </div>
+          </motion.div>
         )}
 
-        {/* Services Grid */}
-         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 justify-items-center">
-           {services.slice(0, showAll ? services.length : 3).map((service, index) => (
-             <motion.div
-               key={service.title}
-               className="bg-white/95 backdrop-blur-sm rounded-2xl border border-blue-100/60 hover:border-purple-200/80 transition-all duration-500 flex flex-col hover:shadow-2xl hover:shadow-purple-500/10 overflow-hidden group relative w-full max-w-sm"
-               initial="hidden"
-               whileInView="show"
-               viewport={{ once: true }}
-               variants={fadeIn("up", 0.1 * index)}
-               whileHover={{ y: -8, transition: { duration: 0.3, ease: "easeOut" } }}
-             >
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-transparent to-purple-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        {/* Modern Services Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-12">
+          {services.slice(0, showAll ? services.length : 3).map((service, index) => (
+            <motion.div
+              key={service.title}
+              className="group relative"
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: "-50px" }}
+              variants={fadeIn("up", 0.1 * index)}
+            >
+              {/* Card with modern design */}
+              <div className="relative h-full bg-white rounded-3xl p-8 border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden">
+                {/* Gradient Background on Hover */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${service.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
+                
+                {/* Icon with Gradient Background */}
+                <div className={`relative mb-6 w-16 h-16 rounded-2xl bg-gradient-to-br ${service.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
+                  {service.icon}
+                  <div className="absolute inset-0 rounded-2xl bg-white/20 blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                </div>
 
-               <div className="p-5 sm:p-6 flex flex-col h-full relative z-10">
-                 <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                   <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 rounded-lg flex items-center justify-center text-purple-600 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg shadow-purple-500/20 flex-shrink-0">
-                     {service.icon}
-                   </div>
-                   <h3 className="text-base sm:text-lg font-bold text-blue-900 line-clamp-2 group-hover:text-purple-800 transition-colors duration-300 flex-1">
-                     {service.title}
-                   </h3>
-                 </div>
-                <p className="text-xs sm:text-sm text-blue-800/90 mb-4 sm:mb-6 flex-grow line-clamp-3 leading-relaxed">
-                  {service.description}
-                </p>
+                {/* Content */}
+                <div className="relative z-10">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-blue-600 transition-all duration-300">
+                    {service.title}
+                  </h3>
+                  
+                  <p className="text-gray-600 mb-6 leading-relaxed line-clamp-3">
+                    {service.description}
+                  </p>
 
-                <ul className="space-y-2 sm:space-y-3 mb-6 sm:mb-8">
-                  {service.features.map((feature, i) => (
-                    <li key={i} className="flex items-start group/item">
-                      <div className="w-4 h-4 sm:w-5 sm:h-5 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mt-0.5 mr-2 flex-shrink-0 group-hover/item:scale-110 transition-transform duration-300">
-                        <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" />
-                      </div>
-                      <span className="text-xs sm:text-sm text-blue-800/90 line-clamp-2 font-medium">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
+                  {/* Features List */}
+                  <ul className="space-y-3 mb-8">
+                    {service.features.slice(0, 3).map((feature, i) => (
+                      <li key={i} className="flex items-center gap-3">
+                        <div className={`flex-shrink-0 w-6 h-6 rounded-lg bg-gradient-to-br ${service.gradient} flex items-center justify-center shadow-md`}>
+                          <Check className="w-3.5 h-3.5 text-white" />
+                        </div>
+                        <span className="text-sm text-gray-700 font-medium">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
 
-                <div className="mt-auto pt-3 sm:pt-4 border-t border-gradient-to-r from-blue-100 via-purple-100 to-blue-100">
-                  <a href={service.href}>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full border-2 border-purple-500/60 text-purple-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-indigo-50 hover:border-purple-600 hover:text-purple-800 transition-all duration-300 group/btn text-xs sm:text-sm font-semibold py-2 sm:py-3 rounded-xl shadow-sm hover:shadow-md bg-transparent"
-                    >
-                      Learn more
-                      <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-1.5 group-hover/btn:translate-x-1 transition-transform duration-300" />
-                    </Button>
+                  {/* CTA Button */}
+                  <a href={service.href} className="inline-flex items-center gap-2 group/btn">
+                    <span className={`text-sm font-semibold bg-gradient-to-r ${service.gradient} bg-clip-text text-transparent group-hover/btn:gap-3 transition-all duration-300`}>
+                      Learn More
+                    </span>
+                    <ArrowRight className={`w-5 h-5 bg-gradient-to-r ${service.gradient} bg-clip-text text-transparent group-hover/btn:translate-x-1 transition-transform duration-300`} />
                   </a>
                 </div>
+
+                {/* Decorative Corner Element */}
+                <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${service.gradient} opacity-5 rounded-bl-full group-hover:opacity-10 transition-opacity duration-500`}></div>
               </div>
             </motion.div>
           ))}
@@ -174,47 +214,62 @@ export function Services({ showAll = false }: ServicesProps) {
         {/* View All Button */}
         {!showAll && (
           <motion.div
-            className="mt-12 sm:mt-16 text-center"
+            className="text-center"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.3 }}
+            transition={{ duration: 0.6 }}
           >
             <a
               href="/services"
-              className="inline-flex items-center justify-center px-8 sm:px-10 py-4 sm:py-5 border-2 border-purple-600 text-sm sm:text-base font-semibold rounded-2xl text-white bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 hover:border-purple-700 transition-all duration-300 group shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/30 hover:scale-105"
+              className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 via-purple-700 to-blue-600 hover:from-purple-700 hover:via-purple-800 hover:to-blue-700 text-white font-semibold rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
             >
-              View All Services
-              <ArrowRight className="ml-3 h-5 w-5 sm:h-6 sm:w-6 group-hover:translate-x-1 transition-transform duration-300" />
+              <span>View All Services</span>
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </a>
           </motion.div>
         )}
 
-        {/* CTA */}
+        {/* Modern CTA Section with Ballpit */}
         <motion.div
-          className="mt-16 sm:mt-20 lg:mt-24 text-center bg-gradient-to-br from-white/90 via-white/95 to-blue-50/80 backdrop-blur-sm p-8 sm:p-12 rounded-3xl border border-blue-200/60 shadow-2xl shadow-blue-500/10 relative overflow-hidden"
-          initial={{ opacity: 0, y: 20 }}
+          className="mt-20 sm:mt-24 lg:mt-32 relative"
+          initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+          transition={{ duration: 0.8 }}
         >
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-200/30 to-transparent rounded-full -translate-y-16 translate-x-16" />
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-blue-200/30 to-transparent rounded-full translate-y-12 -translate-x-12" />
-
-          <div className="relative z-10">
-            <h3 className="text-2xl sm:text-3xl font-bold text-blue-900 mb-4 sm:mb-6 text-balance">
-              Need a custom solution?
-            </h3>
-            <p className="text-blue-800/80 mb-8 sm:mb-10 max-w-2xl mx-auto text-base sm:text-lg lg:text-xl leading-relaxed text-pretty">
-              We understand that every business is unique. Let's discuss how we can create a tailored solution for your
-              specific needs.
-            </p>
-            <Button
-              size="lg"
-              className="bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 hover:from-purple-700 hover:via-purple-800 hover:to-purple-900 text-white px-8 sm:px-12 py-4 sm:py-6 text-base sm:text-lg font-semibold rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-xl shadow-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/40"
-            >
-              Contact Us Today
-            </Button>
+          <div className="relative bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 rounded-3xl overflow-hidden min-h-[500px] max-h-[500px]">
+            {/* Ballpit Background */}
+            <div className="absolute inset-0 w-full h-full">
+              <Ballpit
+                count={200}
+                gravity={0.7}
+                friction={0.8}
+                wallBounce={0.95}
+                followCursor={true}
+                colors={[0x8b5cf6, 0x3b82f6, 0x6366f1]}
+                className="opacity-30"
+              />
+            </div>
+            
+            {/* Content Overlay */}
+            <div className="relative z-10 flex items-center justify-center min-h-[500px] p-12 sm:p-16 lg:p-20">
+              <div className="text-center max-w-3xl mx-auto">
+                <h3 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-6">
+                  Ready to Transform Your Business?
+                </h3>
+                <p className="text-xl text-gray-300 mb-10 leading-relaxed">
+                  Let's discuss how we can create a custom solution tailored to your unique needs and goals.
+                </p>
+                <Button
+                  href="/contact"
+                  size="lg"
+                  className="bg-white text-gray-900 hover:bg-gray-100 px-10 py-6 text-lg font-bold rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105"
+                >
+                  Get Started Today
+                </Button>
+              </div>
+            </div>
           </div>
         </motion.div>
       </div>

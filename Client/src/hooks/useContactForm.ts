@@ -7,6 +7,7 @@ import {
   ContactFormValues, 
   defaultContactFormValues 
 } from '@/lib/validations/contact';
+import { API_ENDPOINTS } from '@/config/api';
 
 interface UseContactFormOptions {
   /**
@@ -73,18 +74,23 @@ export function useContactForm(options: UseContactFormOptions = {}) {
       trackFormSubmission('contact-form', 'Contact Form');
       
       // Send form data to the backend API
-      const response = await fetch('http://localhost:5000/api/contact', {
+      const response = await fetch(API_ENDPOINTS.contact.submit, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: data.name,
+          firstName: data.firstName,
+          lastName: data.lastName,
           email: data.email,
           phone: data.phone || '',
           company: data.company || '',
-          service: data.service || 'General Enquiry',
+          jobTitle: data.jobTitle || '',
+          service: data.service,
+          otherService: data.otherService || '',
           message: data.message,
+          preferredContactMethod: data.preferredContactMethod,
+          marketingEmails: data.marketingEmails,
         }),
       });
 

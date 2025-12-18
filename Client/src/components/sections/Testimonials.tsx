@@ -214,7 +214,7 @@ export function Testimonials() {
           transition={{ duration: 0.5 }}
         >
           <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-purple-500/10 rounded-xl sm:rounded-2xl -m-3 sm:-m-6 blur-2xl -z-10"></div>
-          <div className="bg-gray-800/50 backdrop-blur-sm p-6 sm:p-8 rounded-xl sm:rounded-2xl border border-purple-900/30">
+          {/* <div className="bg-gray-800/50 backdrop-blur-sm p-6 sm:p-8 rounded-xl sm:rounded-2xl border border-purple-900/30">
             <motion.h3 
               className="text-xl sm:text-2xl font-semibold text-white mb-3 sm:mb-4"
               variants={fadeIn('up', 0.2)}
@@ -239,7 +239,7 @@ export function Testimonials() {
                 Get Started Today
               </Button>
             </motion.div>
-          </div>
+          </div> */}
         </motion.div>
       </div>
 
@@ -252,3 +252,6 @@ export function Testimonials() {
     </section>
   );
 }
+
+
+

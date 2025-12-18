@@ -9,6 +9,7 @@ export default defineConfig({
     postcss: './postcss.config.cjs',
   },
   server: {
+    host: true,
     port: 8001,
     strictPort: true,
     open: true,

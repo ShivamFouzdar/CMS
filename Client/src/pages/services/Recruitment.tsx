@@ -158,11 +158,11 @@ export default function Recruitment() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                  <Button href="#contact" variant="primary" size="lg" className="flex items-center">
+                  <Button href="/contact" variant="primary" size="lg" className="flex items-center">
                     Get Started Today
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Button>
-                  <Button href="#contact" variant="outline" size="lg">
+                  <Button href="/contact" variant="outline" size="lg">
                     Contact Us
                   </Button>
                 </div>
@@ -769,7 +769,7 @@ export default function Recruitment() {
         title="Ready to Find Your Next Great Hire?"
         description="Get started with our comprehensive recruitment services today and build the team that will drive your business forward."
         buttonText="Get Started Today"
-        buttonHref="#contact"
+        buttonHref="/contact"
       />
     </div>
   );

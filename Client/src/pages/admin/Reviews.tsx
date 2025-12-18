@@ -3,6 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_ENDPOINTS } from '@/config/api';
 import { Star, Search, Eye, EyeOff, Trash2, MessageSquare, CheckCircle, XCircle } from 'lucide-react';
+import { AdminLayout } from '@/components/layout/AdminLayout';
+import { useAuth } from '@/hooks/useAuth';
+import { useAsyncOperation } from '@/hooks/useAsyncOperation';
+import { handleApiError } from '@/utils/errorHandler';
 
 interface Review {
   _id: string;
@@ -21,60 +25,64 @@ interface Review {
 
 export default function Reviews() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPublished, setFilterPublished] = useState<'all' | 'published' | 'pending'>('all');
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
   const [showDetails, setShowDetails] = useState(false);
 
-  useEffect(() => {
+  const { execute: fetchReviewsExecute, loading } = useAsyncOperation({
+    onSuccess: (data) => {
+      if (data && Array.isArray(data)) {
+        setReviews(data);
+      }
+    },
+  });
+
+  const fetchReviews = () => fetchReviewsExecute(async () => {
     const token = localStorage.getItem('accessToken');
-    if (!token) {
+    const response = await axios.get(
+      `${API_ENDPOINTS.reviews.all}?limit=100`,
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
+
+    if (response.data.success && response.data.data) {
+      const reviewsData = Array.isArray(response.data.data) ? response.data.data : [];
+      return reviewsData;
+    }
+    return [];
+  });
+
+  useEffect(() => {
+    if (!isAuthenticated) {
       navigate('/auth/login');
       return;
     }
-
     fetchReviews();
-  }, [navigate]);
+  }, [isAuthenticated, navigate]);
 
-  const fetchReviews = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('accessToken');
-      const response = await axios.get(
-        `${API_ENDPOINTS.reviews.all || 'http://localhost:8000/api/reviews/all'}?limit=100`,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+  const { execute: updateStatusExecute } = useAsyncOperation({
+    onSuccess: () => {
+      fetchReviews();
+    },
+  });
 
-      console.log('Admin Reviews API Response:', response.data);
-      console.log('Response data structure:', {
-        success: response.data.success,
-        dataLength: response.data.data?.length,
-        data: response.data.data
-      });
-
-      if (response.data.success && response.data.data) {
-        const reviewsData = Array.isArray(response.data.data) ? response.data.data : [];
-        console.log('Setting reviews:', reviewsData.length, 'reviews');
-        setReviews(reviewsData);
-      } else {
-        console.error('Failed to fetch reviews or invalid response:', response.data);
-        setReviews([]);
+  const { execute: deleteReviewExecute } = useAsyncOperation({
+    onSuccess: () => {
+      fetchReviews();
+      if (selectedReview?._id) {
+        setSelectedReview(null);
       }
-    } catch (error) {
-      console.error('Error fetching reviews:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+  });
 
   const handleStatusUpdate = async (reviewId: string, updates: Partial<{ isPublished: boolean; isVerified: boolean; isFeatured: boolean }>) => {
-    try {
+    updateStatusExecute(async () => {
       const token = localStorage.getItem('accessToken');
-      const url = API_ENDPOINTS.reviews.updateStatus ? API_ENDPOINTS.reviews.updateStatus(reviewId) : `http://localhost:8000/api/reviews/${reviewId}/status`;
+      const url = API_ENDPOINTS.reviews.updateStatus(reviewId);
       await axios.patch(
         url,
         updates,
@@ -88,19 +96,19 @@ export default function Reviews() {
       if (selectedReview?._id === reviewId) {
         setSelectedReview({ ...selectedReview, ...updates });
       }
-    } catch (error) {
-      console.error('Error updating review status:', error);
-      alert('Failed to update review status');
-    }
+    }).catch((error: unknown) => {
+      const errorInfo = handleApiError(error);
+      alert(errorInfo.message);
+    });
   };
 
   const handleDelete = async (reviewId: string) => {
     if (!confirm('Are you sure you want to delete this review?')) return;
 
-    try {
+    deleteReviewExecute(async () => {
       const token = localStorage.getItem('accessToken');
       await axios.delete(
-        `http://localhost:8000/api/reviews/${reviewId}`,
+        API_ENDPOINTS.reviews.delete(reviewId),
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -111,17 +119,10 @@ export default function Reviews() {
         setShowDetails(false);
         setSelectedReview(null);
       }
-    } catch (error) {
-      console.error('Error deleting review:', error);
-      alert('Failed to delete review');
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-    navigate('/auth/login');
+    }).catch((error: unknown) => {
+      const errorInfo = handleApiError(error);
+      alert(errorInfo.message);
+    });
   };
 
   const filteredReviews = reviews.filter(review => {
@@ -148,43 +149,24 @@ export default function Reviews() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      </AdminLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => navigate('/admin/dashboard')}
-                className="text-gray-600 hover:text-gray-900"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-              </button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Reviews Management</h1>
-                <p className="text-sm text-gray-600">Manage customer testimonials and reviews</p>
-              </div>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-            >
-              Logout
-            </button>
-          </div>
+      <AdminLayout>
+        <div className="p-4 sm:p-6 lg:p-8">
+        {/* Page Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Reviews Management</h1>
+          <p className="text-gray-600 mt-2">Manage customer testimonials and reviews</p>
         </div>
-      </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto">
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-lg shadow p-4">
@@ -352,9 +334,8 @@ export default function Reviews() {
             </div>
           )}
         </div>
-      </main>
 
-      {/* Review Details Modal */}
+        {/* Review Details Modal */}
       {showDetails && selectedReview && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -447,7 +428,9 @@ export default function Reviews() {
           </div>
         </div>
       )}
-    </div>
+        </div>
+      </div>
+    </AdminLayout>
   );
 }
 

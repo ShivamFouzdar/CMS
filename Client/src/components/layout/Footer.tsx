@@ -30,7 +30,7 @@ const socialLinks = [
   },
   {
     name: 'LinkedIn',
-    href: '#',
+    href: 'https://www.linkedin.com/company/careermapsolutions/',
     icon: Linkedin,
   },
 ];
@@ -63,7 +63,7 @@ export function Footer() {
           {/* Company Info */}
           <div className="sm:col-span-2 lg:col-span-2">
             <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4">CareerMap <span className="text-purple-300">Solutions</span></h3>
-            <p className="mb-4 sm:mb-6 text-gray-300 text-sm sm:text-base leading-relaxed">
+            <p className="mb-4 sm:mb-6 text-gray-200 text-sm sm:text-base leading-relaxed font-semibold">
               Empowering businesses with comprehensive outsourcing solutions to drive growth and efficiency 
               in today's competitive landscape.
             </p>
@@ -85,19 +85,19 @@ export function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Quick Links</h4>
+            <h4 className="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4">Quick Links</h4>
             <ul className="space-y-2 sm:space-y-3">
               {[
                 { name: 'Our Services', href: '/services' },
                 { name: 'About Us', href: '/about' },
                 { name: 'Contact', href: '/contact' },
-                { name: 'Case Studies', href: '#' },
+                { name: 'Case Studies', href: '/case-studies' },
                 { name: 'Blog', href: '#' }
               ].map((item, index) => (
                 <li key={index}>
                   <a 
                     href={item.href} 
-                    className="text-gray-300 hover:text-purple-300 transition-colors hover:pl-1 sm:hover:pl-2 block text-sm sm:text-base"
+                    className="text-gray-200 hover:text-purple-300 transition-colors hover:pl-1 sm:hover:pl-2 block text-sm sm:text-base font-semibold"
                   >
                     {item.name}
                   </a>
@@ -117,7 +117,7 @@ export function Footer() {
                   </div>
                   <a 
                     href={item.href} 
-                    className="text-gray-300 hover:text-purple-300 transition-colors text-xs sm:text-sm break-all sm:break-normal"
+                    className="text-gray-200 hover:text-purple-300 transition-colors text-xs sm:text-sm break-all sm:break-normal font-semibold"
                   >
                     {item.text}
                   </a>
@@ -129,14 +129,14 @@ export function Footer() {
 
         {/* Copyright */}
         <div className="border-t border-purple-900/30 mt-8 sm:mt-12 pt-6 sm:pt-8 flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
-          <p className="text-xs sm:text-sm text-gray-400 text-center sm:text-left">
+          <p className="text-xs sm:text-sm text-gray-200 text-center sm:text-left font-semibold">
             &copy; {currentYear} <span className="text-purple-300">CareerMap Solutions</span>. All rights reserved.
           </p>
           <div className="flex space-x-4 sm:space-x-6">
-            <a href="/privacy-policy" className="text-xs sm:text-sm text-gray-400 hover:text-purple-300 transition-colors">
+            <a href="/privacy-policy" className="text-xs sm:text-sm text-gray-200 hover:text-purple-300 transition-colors font-semibold">
               Privacy Policy
             </a>
-            <a href="/terms-of-service" className="text-xs sm:text-sm text-gray-400 hover:text-purple-300 transition-colors">
+            <a href="/terms-of-service" className="text-xs sm:text-sm text-gray-200 hover:text-purple-300 transition-colors font-semibold">
               Terms of Service
             </a>
           </div>

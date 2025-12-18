@@ -8,6 +8,7 @@ export { Review, IReview } from './Review';
 export { Service, IService, IServiceProcess, IServicePricing } from './Service';
 export { User, IUser } from './User';
 export { Applicant, IApplicant } from './Applicant';
+export { Settings, ISettings } from './Settings';
 
 // Re-export all models as default exports for convenience
 export { default as ContactModel } from './Contact';
@@ -15,6 +16,7 @@ export { default as ReviewModel } from './Review';
 export { default as ServiceModel } from './Service';
 export { default as UserModel } from './User';
 export { default as ApplicantModel } from './Applicant';
+// Settings doesn't have a default export
 
 // Model registry for dynamic access
 export const models = {
@@ -22,7 +24,8 @@ export const models = {
   Review: () => import('./Review'),
   Service: () => import('./Service'),
   User: () => import('./User'),
-  Applicant: () => import('./Applicant')
+  Applicant: () => import('./Applicant'),
+  Settings: () => import('./Settings')
 };
 
 // Database connection helper

@@ -24,6 +24,20 @@ export const submitContactForm = asyncHandler(async (req: Request, res: Response
     message,
   });
 
+  // Send notification to admins (non-blocking)
+  try {
+    const { notifyNewLead } = await import('@/services/notificationService');
+    notifyNewLead({
+      name,
+      email,
+      phone,
+      service: service || 'General Enquiry',
+      message,
+    }).catch(err => console.error('Notification error:', err));
+  } catch (notifError) {
+    console.error('Failed to send notification:', notifError);
+  }
+
   const response: ApiResponse = {
     success: true,
     message: 'Your message has been sent successfully! We will get back to you soon.',

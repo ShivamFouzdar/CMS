@@ -16,6 +16,7 @@ const services = [
   { name: 'Recruitment', href: '/services/recruitment', description: 'Talent Acquisition & HR' },
   { name: 'Legal Services', href: '/services/legal', description: 'Legal Process Outsourcing' },
   { name: 'KPO Services', href: '/services/kpo', description: 'Knowledge Process Outsourcing' },
+  { name: 'Brand Promotion & Marketing', href: '/services/brand-promotion', description: 'Brand Promotion & Marketing Services' },
 ];
 
 const navItems: NavItem[] = [
@@ -84,11 +85,15 @@ export function Header() {
   return (
     <header 
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
         isScrolled 
-          ? "bg-black/95 backdrop-blur-md shadow-xl border-b border-purple-900/30" 
-          : "bg-gradient-to-r from-black/90 to-purple-900/90 backdrop-blur-sm"
+          ? "bg-gradient-to-r from-black/90 to-purple-900/90 backdrop-blur-xl shadow-2xl border-b border-purple-900/30" 
+          : "bg-gradient-to-r from-black/90 to-purple-900/90 backdrop-blur-lg"
       )}
+      style={{
+        backdropFilter: isScrolled ? 'blur(20px) saturate(180%)' : 'blur(16px) saturate(180%)',
+        WebkitBackdropFilter: isScrolled ? 'blur(20px) saturate(180%)' : 'blur(16px) saturate(180%)',
+      }}
     >
       <div className="container mx-auto px-3 sm:px-4 lg:px-6">
         <div className="flex justify-between items-center h-14 sm:h-16 lg:h-18">
@@ -183,7 +188,7 @@ export function Header() {
             </a>
             <a
               href="#contact"
-              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white text-sm font-medium rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-300 transform hover:scale-105"
+              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white text-sm font-medium rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-300 transform hover:scale-105 shadow-lg"
             >
               Get Started
             </a>
@@ -214,7 +219,11 @@ export function Header() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="lg:hidden bg-gradient-to-b from-black/95 to-purple-900/95 backdrop-blur-md border-t border-purple-800/50 overflow-hidden"
+            className="lg:hidden bg-gradient-to-b from-black/95 to-purple-900/95 backdrop-blur-xl border-t border-purple-800/50 overflow-hidden"
+            style={{
+              backdropFilter: 'blur(20px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            }}
           >
             <div className="container mx-auto px-3 sm:px-4 py-4">
               {/* Mobile Contact Info */}

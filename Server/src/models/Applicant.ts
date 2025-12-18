@@ -51,7 +51,6 @@ const applicantSchema = new Schema<IApplicant>({
       /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
       'Please provide a valid email address',
     ],
-    index: true,
   },
   phone: {
     type: String,
@@ -103,7 +102,6 @@ const applicantSchema = new Schema<IApplicant>({
     type: String,
     enum: ['new', 'reviewing', 'shortlisted', 'rejected', 'hired'],
     default: 'new',
-    index: true,
   },
   notes: {
     type: String,

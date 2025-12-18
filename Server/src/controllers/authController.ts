@@ -13,6 +13,19 @@ import * as authService from '@/services/authService';
  * POST /api/auth/register
  */
 export const register = asyncHandler(async (req: Request, res: Response) => {
+  // Check if registrations are allowed
+  const { areRegistrationsAllowed } = await import('@/services/settingsService');
+  const registrationsAllowed = await areRegistrationsAllowed();
+  
+  if (!registrationsAllowed) {
+    const response: ApiResponse = {
+      success: false,
+      message: 'New user registrations are currently disabled. Please contact an administrator.',
+      timestamp: new Date().toISOString(),
+    };
+    res.status(403).json(response);
+    return;
+  }
   const { firstName, lastName, email, password, role } = req.body;
 
   const result = await authService.registerUser({
@@ -45,11 +58,28 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 
   const result = await authService.loginUser({ email, password });
 
+  // If 2FA is required, return temp token instead of full tokens
+  if (result.requires2FA) {
+    const response: ApiResponse = {
+      success: true,
+      data: {
+        user: result.user,
+        tempToken: result.tokens.accessToken, // Temporary token for 2FA verification
+        requires2FA: true,
+      },
+      message: '2FA verification required',
+      timestamp: new Date().toISOString(),
+    };
+    res.status(200).json(response);
+    return;
+  }
+
   const response: ApiResponse = {
     success: true,
     data: {
       user: result.user,
       tokens: result.tokens,
+      requires2FA: false,
     },
     message: 'Login successful',
     timestamp: new Date().toISOString(),

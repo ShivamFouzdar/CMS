@@ -15,6 +15,12 @@ export interface AuthTokens {
   expiresIn: string;
 }
 
+export interface LoginResult {
+  user: AuthUser;
+  tokens: AuthTokens;
+  requires2FA: boolean;
+}
+
 export interface AuthUser {
   id: string;
   firstName: string;
@@ -106,7 +112,7 @@ export const registerUser = async (data: RegisterData): Promise<{ user: AuthUser
 /**
  * Login admin user
  */
-export const loginUser = async (credentials: LoginCredentials): Promise<{ user: AuthUser; tokens: AuthTokens }> => {
+export const loginUser = async (credentials: LoginCredentials): Promise<LoginResult> => {
   // Validation
   if (!credentials.email || !credentials.password) {
     throw createError('Email and password are required', 400);
@@ -160,6 +166,36 @@ export const loginUser = async (credentials: LoginCredentials): Promise<{ user: 
   await userWithPassword.resetLoginAttempts();
   await userWithPassword.updateLastLogin();
 
+  // Check if 2FA is enabled
+  const userWith2FA = await User.findById(user._id).select('+twoFactor.enabled');
+  const is2FAEnabled = userWith2FA?.twoFactor?.enabled === true;
+
+  // If 2FA is enabled, return temp token instead of full tokens
+  if (is2FAEnabled) {
+    // Generate temporary token for 2FA verification (shorter expiry for temp tokens)
+    const sessionId = generateSessionId();
+    const tempToken = generateTokenPair({
+      userId: (user._id as any).toString(),
+      email: user.email,
+      role: user.role,
+      sessionId,
+    });
+
+    return {
+      user: {
+        id: (user._id as any).toString(),
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        permissions: user.permissions,
+        isEmailVerified: user.isEmailVerified,
+      },
+      tokens: tempToken,
+      requires2FA: true,
+    };
+  }
+
   // Generate session ID
   const sessionId = generateSessionId();
 
@@ -182,6 +218,7 @@ export const loginUser = async (credentials: LoginCredentials): Promise<{ user: 
       isEmailVerified: user.isEmailVerified,
     },
     tokens,
+    requires2FA: false,
   };
 };
 

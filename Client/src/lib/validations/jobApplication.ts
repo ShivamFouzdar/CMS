@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { formatFileSize } from '@/lib/form-utils';
 
 // Common validation messages
 export const validationMessages = {
@@ -135,24 +136,8 @@ export const defaultJobApplicationValues: Omit<JobApplicationFormValues, 'resume
   consent: false,
 };
 
-/**
- * Format phone number for display
- */
-export const formatPhoneNumber = (value: string): string => {
-  // Remove all non-digit characters
-  const cleaned = value.replace(/\D/g, '');
-  
-  // Format as (XXX) XXX-XXXX
-  const match = cleaned.match(/^(\d{0,3})(\d{0,3})(\d{0,4})$/);
-  
-  if (match) {
-    return !match[2]
-      ? match[1]
-      : `(${match[1]}) ${match[2]}${match[3] ? `-${match[3]}` : ''}`;
-  }
-  
-  return value;
-};
+// Note: formatPhoneNumber has been moved to lib/form-utils.ts
+// Import it from there: import { formatPhoneNumber } from '@/lib/form-utils';
 
 /**
  * Validate file type for resume
@@ -166,14 +151,6 @@ export const isValidResumeType = (file: File): boolean => {
   return allowedTypes.includes(file.type);
 };
 
-/**
- * Format file size
- */
-export const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 Bytes';
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-};
+// Note: formatFileSize has been moved to lib/form-utils.ts
+// Import it from there: import { formatFileSize } from '@/lib/form-utils';
 

@@ -1,7 +1,5 @@
-import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-
-// Define the base URL from environment variables or use a default
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+import axios, { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
+import { API_BASE_URL } from '@/config/api';
 
 // Create a custom axios instance with default config
 const apiClient: AxiosInstance = axios.create({
@@ -41,7 +39,11 @@ apiClient.interceptors.response.use(
     if (error.response) {
       // The request was made and the server responded with a status code
       // that falls out of the range of 2xx
-      const errorMessage = error.response.data?.message || error.message;
+      let errorMessage: string = error.message;
+      const data = error.response?.data;
+      if (data && typeof data === 'object' && 'message' in data && typeof (data as any).message === 'string') {
+        errorMessage = (data as any).message;
+      }
       return Promise.reject(new Error(errorMessage));
     } else if (error.request) {
       // The request was made but no response was received
@@ -61,7 +63,7 @@ export const apiService = {
   async submitContactForm(data: ContactFormData): Promise<ApiResponse<ContactFormResponse>> {
     try {
       const response = await apiClient.post<ApiResponse<ContactFormResponse>>('/contact', data);
-      return response;
+      return response.data;
     } catch (error) {
       console.error('Error submitting contact form:', error);
       throw error;
@@ -74,7 +76,7 @@ export const apiService = {
   async submitInquiry(data: InquiryFormData): Promise<ApiResponse<InquiryResponse>> {
     try {
       const response = await apiClient.post<ApiResponse<InquiryResponse>>('/inquiries', data);
-      return response;
+      return response.data;
     } catch (error) {
       console.error('Error submitting inquiry:', error);
       throw error;
@@ -87,7 +89,7 @@ export const apiService = {
   async getServices(): Promise<ApiResponse<Service[]>> {
     try {
       const response = await apiClient.get<ApiResponse<Service[]>>('/services');
-      return response;
+      return response.data;
     } catch (error) {
       console.error('Error fetching services:', error);
       throw error;

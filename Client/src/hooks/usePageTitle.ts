@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { APP_BASE_URL } from '@/config/api';
 
 interface UsePageTitleOptions {
   /**
@@ -62,8 +63,7 @@ export function usePageTitle(
     metaDescriptionTag.content = metaDescription;
     
     // Add canonical URL
-    const siteUrl = import.meta.env.VITE_APP_BASE_URL || 'https://careermapsolutions.com';
-    const canonicalUrl = `${siteUrl}${location.pathname}`.replace(/\/+$/, '');
+    const canonicalUrl = `${APP_BASE_URL}${location.pathname}`.replace(/\/+$/, '');
     
     let canonicalLink = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
     

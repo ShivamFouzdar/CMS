@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Phone, MapPin, Send, CheckCircle, AlertCircle, Facebook, Instagram, Linkedin, Copy, Check, ExternalLink } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, CheckCircle, AlertCircle, Copy, Check, Sparkles, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { fadeIn } from '@/lib/utils';
+import { API_ENDPOINTS } from '@/config/api';
 
 type FormData = {
   name: string;
@@ -50,8 +51,69 @@ export function Contact({ showHeader = true }: ContactProps) {
     setStatus('submitting');
     
     try {
-      const baseUrl = (import.meta as any).env?.VITE_API_BASE_URL || '/api';
-      const response = await fetch(`${baseUrl}/contact`, {
+      // Get Web3Forms access key from environment variable
+      const web3formsAccessKey = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY || 'f58b4191-d670-4d85-890a-fb605d1997ed';
+      
+      console.log('📧 Attempting to send email via Web3Forms...');
+      console.log('Access Key:', web3formsAccessKey.substring(0, 10) + '...');
+      
+      // Call Web3Forms API from client-side (required for free plan)
+      try {
+        const payload = {
+          access_key: web3formsAccessKey,
+          subject: `New Contact Form Submission${formData.service ? ` - ${formData.service}` : ''}`,
+          from_name: formData.name,
+          reply_to: formData.email,
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone || '',
+          service: formData.service || '',
+          message: formData.message,
+        };
+
+        console.log('Web3Forms Payload:', { ...payload, access_key: '***' });
+
+        const web3formsResponse = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+
+        const web3formsResult = await web3formsResponse.json();
+        
+        console.log('Web3Forms Response Status:', web3formsResponse.status);
+        console.log('Web3Forms Response:', web3formsResult);
+
+        if (!web3formsResponse.ok || !web3formsResult.success) {
+          console.error('❌ Web3Forms email failed:', {
+            status: web3formsResponse.status,
+            success: web3formsResult.success,
+            message: web3formsResult.message,
+            error: web3formsResult.error,
+          });
+          
+          // Show user-friendly error if email fails
+          if (web3formsResult.message) {
+            console.warn('Email delivery issue:', web3formsResult.message);
+          }
+        } else {
+          console.log('✅ Email sent successfully via Web3Forms');
+          console.log('Message ID:', web3formsResult.messageId);
+        }
+      } catch (web3formsError: any) {
+        console.error('❌ Web3Forms network error:', web3formsError);
+        console.error('Error details:', {
+          message: web3formsError.message,
+          stack: web3formsError.stack,
+        });
+        // Continue even if Web3Forms fails - we'll still save to backend
+      }
+
+      // Also save to backend for admin access
+      const response = await fetch(API_ENDPOINTS.contact.submit, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -63,7 +125,6 @@ export function Contact({ showHeader = true }: ContactProps) {
       }
       
       setStatus('success');
-      // Reset form
       setFormData({
         name: '',
         email: '',
@@ -72,7 +133,6 @@ export function Contact({ showHeader = true }: ContactProps) {
         message: '',
       });
       
-      // Reset status after 5 seconds
       setTimeout(() => setStatus('idle'), 5000);
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -82,222 +142,233 @@ export function Contact({ showHeader = true }: ContactProps) {
   };
 
   return (
-    <section id="contact" className={`py-12 sm:py-16 md:py-20 lg:py-24 bg-gradient-to-br from-gray-50 via-purple-50 to-gray-50 relative overflow-hidden ${!showHeader ? 'pt-0' : ''}`}>
-      {/* Decorative elements */}
-      <div className="absolute inset-0 w-full h-full opacity-30 sm:opacity-40 pointer-events-none">
-        <div className="absolute -top-10 -right-10 sm:-top-20 sm:-right-20 w-32 h-32 sm:w-64 sm:h-64 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
-        <div className="absolute -bottom-10 -left-10 sm:-bottom-20 sm:-left-20 w-32 h-32 sm:w-64 sm:h-64 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
+    <section 
+      id="contact" 
+      className={`relative py-16 sm:py-20 md:py-24 lg:py-32 overflow-hidden bg-gradient-to-b from-white via-purple-50/30 to-blue-50/30 ${!showHeader ? 'pt-4 sm:pt-6' : ''}`}
+    >
+      {/* Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl"></div>
       </div>
       
-      <div className="container mx-auto px-3 sm:px-4 lg:px-6 relative z-10">
-        {/* Section Header - Conditionally Rendered */}
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        {/* Modern Section Header */}
         {showHeader && (
           <motion.div 
-            className="text-center max-w-3xl mx-auto mb-8 sm:mb-12"
+            className="text-center max-w-4xl mx-auto mb-12 sm:mb-16"
             initial="hidden"
             whileInView="show"
             viewport={{ once: true }}
             variants={{
-              hidden: { opacity: 0, y: 20 },
-              show: { 
-                opacity: 1, 
-                y: 0,
-                transition: { duration: 0.6 }
+              hidden: {},
+              show: {
+                transition: {
+                  staggerChildren: 0.1
+                }
               }
             }}
           >
-            <motion.span 
-              className="text-purple-600 font-semibold text-xs sm:text-sm uppercase tracking-wider mb-2 block"
+            <motion.div
               variants={fadeIn('up', 0.2)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-100 to-blue-100 border border-purple-200/50 mb-6"
             >
-              Get In Touch
-            </motion.span>
+              <Sparkles className="w-4 h-4 text-purple-600" />
+              <span className="text-sm font-semibold text-purple-700 uppercase tracking-wider">Get In Touch</span>
+            </motion.div>
+            
             <motion.h2 
-              className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-3 sm:mb-4"
               variants={fadeIn('up', 0.3)}
+              className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 bg-gradient-to-r from-gray-900 via-purple-900 to-gray-900 bg-clip-text text-transparent"
             >
               Let's Discuss Your Project
             </motion.h2>
+            
             <motion.p 
-              className="text-sm sm:text-base md:text-lg text-gray-600"
               variants={fadeIn('up', 0.4)}
+              className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed"
             >
               Have a question or want to work together? Fill out the form below and we'll get back to you as soon as possible.
             </motion.p>
           </motion.div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-          {/* Contact Form */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+          {/* Modern Contact Form */}
           <motion.div 
-            className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border border-gray-200 shadow-lg order-2 lg:order-1"
+            className="order-2 lg:order-1"
             initial="hidden"
             whileInView="show"
             viewport={{ once: true }}
             variants={fadeIn('right', 0.2)}
           >
-            {status === 'success' ? (
-              <div className="text-center py-6 sm:py-8">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-green-900/20 border border-green-500/30 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                  <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-green-400" />
+            <div className="relative bg-white rounded-3xl p-8 md:p-10 border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden">
+              {/* Decorative Background */}
+              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-100 to-blue-100 rounded-bl-full opacity-50"></div>
+              
+              {status === 'success' ? (
+                <div className="relative z-10 text-center py-8">
+                  <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                    <CheckCircle className="w-10 h-10 text-white" />
+                  </div>
+                  <h3 className="text-3xl font-bold text-gray-900 mb-3">Thank You!</h3>
+                  <p className="text-gray-600 mb-8 text-lg">Your message has been sent successfully. We'll get back to you soon!</p>
+                  <Button 
+                    onClick={() => setStatus('idle')}
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+                  >
+                    Send Another Message
+                  </Button>
                 </div>
-                <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">Thank You!</h3>
-                <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">Your message has been sent successfully. We'll get back to you soon!</p>
-                <Button 
-                  onClick={() => setStatus('idle')}
-                  className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white text-sm sm:text-base"
-                >
-                  Send Another Message
-                </Button>
-              </div>
-            ) : (
-              <>
-                <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Send us a message</h3>
-                {status === 'error' && (
-                  <div className="bg-red-900/20 border-l-4 border-red-500 p-3 sm:p-4 mb-4 sm:mb-6 rounded-r">
-                    <div className="flex">
-                      <div className="flex-shrink-0">
-                        <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-400" aria-hidden="true" />
-                      </div>
-                      <div className="ml-3">
-                        <p className="text-xs sm:text-sm text-red-200">
+              ) : (
+                <div className="relative z-10">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-8">Send us a message</h3>
+                  
+                  {status === 'error' && (
+                    <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
+                      <div className="flex items-center gap-3">
+                        <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+                        <p className="text-sm text-red-700">
                           There was an error submitting your message. Please try again.
                         </p>
                       </div>
                     </div>
-                  </div>
-                )}
-                <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
-                  <div>
-                    <label htmlFor="name" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Full Name <span className="text-red-400">*</span></label>
-                    <input
-                      type="text"
-                      id="name"
-                      name="name"
-                      required
-                      value={formData.name}
-                      onChange={handleChange}
-                      className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-400 transition-all duration-200 text-sm sm:text-base"
-                      placeholder="John Doe"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                  )}
+                  
+                  <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                      <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Email <span className="text-red-400">*</span></label>
+                      <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
+                        Full Name <span className="text-red-500">*</span>
+                      </label>
                       <input
-                        type="email"
-                        id="email"
-                        name="email"
+                        type="text"
+                        id="name"
+                        name="name"
                         required
-                        value={formData.email}
+                        value={formData.name}
                         onChange={handleChange}
-                        className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-400 transition-all duration-200 text-sm sm:text-base"
-                        placeholder="your@email.com"
+                        className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-400 transition-all duration-200"
+                        placeholder="John Doe"
                       />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      <div>
+                        <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                          Email <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="email"
+                          id="email"
+                          name="email"
+                          required
+                          value={formData.email}
+                          onChange={handleChange}
+                          className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-400 transition-all duration-200"
+                          placeholder="your@email.com"
+                        />
+                      </div>
+
+                      <div>
+                        <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
+                        <input
+                          type="tel"
+                          id="phone"
+                          name="phone"
+                          value={formData.phone}
+                          onChange={handleChange}
+                          className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-400 transition-all duration-200"
+                          placeholder="+91 90129 50370"
+                        />
+                      </div>
                     </div>
 
                     <div>
-                      <label htmlFor="phone" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                      <input
-                        type="tel"
-                        id="phone"
-                        name="phone"
-                        value={formData.phone}
+                      <label htmlFor="service" className="block text-sm font-semibold text-gray-700 mb-2">Service Interest</label>
+                      <select
+                        id="service"
+                        name="service"
+                        value={formData.service}
                         onChange={handleChange}
-                        className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-400 transition-all duration-200 text-sm sm:text-base"
-                        placeholder="+91 90129 50370"
-                      />
+                        className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 transition-all duration-200 appearance-none"
+                      >
+                        <option value="">Select a service</option>
+                        {services.map((service) => (
+                          <option key={service} value={service}>{service}</option>
+                        ))}
+                      </select>
                     </div>
-                  </div>
 
-                  <div>
-                    <label htmlFor="service" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Service Interest</label>
-                    <select
-                      id="service"
-                      name="service"
-                      value={formData.service}
-                      onChange={handleChange}
-                      className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-400 transition-all duration-200 appearance-none text-sm sm:text-base"
-                    >
-                      <option value="" className="bg-gray-50 text-gray-900">Select a service</option>
-                      {services.map((service) => (
-                        <option key={service} value={service} className="bg-gray-50 text-gray-900">
-                          {service}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                    <div>
+                      <label htmlFor="message" className="block text-sm font-semibold text-gray-700 mb-2">
+                        Your Message <span className="text-red-500">*</span>
+                      </label>
+                      <textarea
+                        id="message"
+                        name="message"
+                        rows={5}
+                        required
+                        value={formData.message}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-400 transition-all duration-200 resize-none"
+                        placeholder="Tell us about your project..."
+                      ></textarea>
+                    </div>
 
-                  <div>
-                    <label htmlFor="message" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Your Message <span className="text-red-400">*</span></label>
-                    <textarea
-                      id="message"
-                      name="message"
-                      rows={4}
-                      required
-                      value={formData.message}
-                      onChange={handleChange}
-                      className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-400 transition-all duration-200 resize-none text-sm sm:text-base"
-                      placeholder="Tell us about your project..."
-                    ></textarea>
-                  </div>
-
-                  <div>
                     <Button
                       type="submit"
                       size="lg"
-                      className="w-full flex items-center justify-center bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white py-2 sm:py-3 px-4 sm:px-6 rounded-lg font-medium transition-all duration-300 transform hover:scale-[1.02] text-sm sm:text-base"
+                      className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-4 px-6 rounded-xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] flex items-center justify-center gap-2"
                       disabled={status === 'submitting'}
                     >
                       {status === 'submitting' ? (
-                        <span className="flex items-center">
-                          <svg className="animate-spin -ml-1 mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <>
+                          <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
                           Sending...
-                        </span>
+                        </>
                       ) : (
                         <>
-                          <Send className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                          <Send className="w-5 h-5" />
                           Send Message
                         </>
                       )}
                     </Button>
-                  </div>
-                </form>
-              </>
-            )}
+                  </form>
+                </div>
+              )}
+            </div>
           </motion.div>
 
-          {/* Contact Info */}
+          {/* Modern Contact Info */}
           <motion.div
-            className="space-y-6 sm:space-y-8 order-1 lg:order-2"
+            className="space-y-6 order-1 lg:order-2"
             initial="hidden"
             whileInView="show"
             viewport={{ once: true }}
-            variants={fadeIn('right', 0.2)}
+            variants={fadeIn('left', 0.2)}
           >
-            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border border-gray-200 shadow-xl">
-              <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Contact Information</h3>
-              <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">
-                Have questions about our services or want to discuss a project? Reach out to us using the information below or fill out the contact form.
+            {/* Contact Information Card */}
+            <div className="bg-white rounded-3xl p-8 md:p-10 border border-gray-100 shadow-xl">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">Contact Information</h3>
+              <p className="text-gray-600 mb-8 leading-relaxed">
+                Have questions about our services or want to discuss a project? Reach out to us using the information below.
               </p>
               
-              <div className="space-y-4 sm:space-y-5">
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 bg-purple-50 p-2 rounded-lg border border-purple-200">
-                    <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+              <div className="space-y-6">
+                {/* Email */}
+                <div className="flex items-start gap-4 p-4 rounded-2xl bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-100 hover:shadow-lg transition-all duration-300">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-lg">
+                    <Mail className="h-6 w-6 text-white" />
                   </div>
-                  <div className="ml-3 sm:ml-4 flex-1">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <h4 className="text-xs sm:text-sm font-medium text-gray-500 mb-1">Email</h4>
-                        <a href="mailto:info@careermapsolutions.com" className="text-gray-800 hover:text-purple-700 transition-colors text-sm sm:text-base break-all">
-                          info@careermapsolutions.com
-                        </a>
-                      </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-semibold text-gray-500 mb-1">Email</h4>
+                    <div className="flex items-center justify-between gap-3 flex-wrap">
+                      <a href="mailto:info@careermapsolutions.com" className="text-gray-900 hover:text-purple-600 transition-colors font-medium break-all">
+                        info@careermapsolutions.com
+                      </a>
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
@@ -308,15 +379,14 @@ export function Contact({ showHeader = true }: ContactProps) {
                               setTimeout(() => setEmailCopied(false), 1500);
                             } catch {}
                           }}
-                          className="inline-flex items-center px-2.5 py-1.5 rounded-md border border-gray-200 text-gray-600 hover:text-purple-700 hover:border-purple-300 transition-colors text-xs sm:text-sm"
-                          aria-label="Copy email address"
+                          className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:text-purple-600 hover:border-purple-300 transition-colors text-xs font-medium flex items-center gap-1"
                         >
-                          {emailCopied ? <Check className="h-3.5 w-3.5 mr-1 text-green-600" /> : <Copy className="h-3.5 w-3.5 mr-1" />}
+                          {emailCopied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
                           {emailCopied ? 'Copied' : 'Copy'}
                         </button>
                         <a
                           href="mailto:info@careermapsolutions.com"
-                          className="inline-flex items-center px-2.5 py-1.5 rounded-md bg-purple-600 text-white hover:bg-purple-700 transition-colors text-xs sm:text-sm"
+                          className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 transition-all text-xs font-semibold shadow-md"
                         >
                           Email Us
                         </a>
@@ -325,18 +395,17 @@ export function Contact({ showHeader = true }: ContactProps) {
                   </div>
                 </div>
 
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 bg-purple-50 p-2 rounded-lg border border-purple-200">
-                    <Phone className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+                {/* Phone */}
+                <div className="flex items-start gap-4 p-4 rounded-2xl bg-gradient-to-br from-green-50 to-emerald-50 border border-green-100 hover:shadow-lg transition-all duration-300">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-lg">
+                    <Phone className="h-6 w-6 text-white" />
                   </div>
-                  <div className="ml-3 sm:ml-4 flex-1">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <h4 className="text-xs sm:text-sm font-medium text-gray-500 mb-1">Phone</h4>
-                        <a href="tel:+919012950370" className="text-gray-800 hover:text-purple-700 transition-colors text-sm sm:text-base">
-                          +91 90129 50370
-                        </a>
-                      </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-semibold text-gray-500 mb-1">Phone</h4>
+                    <div className="flex items-center justify-between gap-3 flex-wrap">
+                      <a href="tel:+919012950370" className="text-gray-900 hover:text-green-600 transition-colors font-medium">
+                        +91 90129 50370
+                      </a>
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
@@ -347,15 +416,14 @@ export function Contact({ showHeader = true }: ContactProps) {
                               setTimeout(() => setPhoneCopied(false), 1500);
                             } catch {}
                           }}
-                          className="inline-flex items-center px-2.5 py-1.5 rounded-md border border-gray-200 text-gray-600 hover:text-purple-700 hover:border-purple-300 transition-colors text-xs sm:text-sm"
-                          aria-label="Copy phone number"
+                          className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:text-green-600 hover:border-green-300 transition-colors text-xs font-medium flex items-center gap-1"
                         >
-                          {phoneCopied ? <Check className="h-3.5 w-3.5 mr-1 text-green-600" /> : <Copy className="h-3.5 w-3.5 mr-1" />}
+                          {phoneCopied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
                           {phoneCopied ? 'Copied' : 'Copy'}
                         </button>
                         <a
                           href="tel:+919012950370"
-                          className="inline-flex items-center px-2.5 py-1.5 rounded-md bg-purple-600 text-white hover:bg-purple-700 transition-colors text-xs sm:text-sm"
+                          className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 transition-all text-xs font-semibold shadow-md"
                         >
                           Call Now
                         </a>
@@ -364,73 +432,41 @@ export function Contact({ showHeader = true }: ContactProps) {
                   </div>
                 </div>
 
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 bg-purple-50 p-2 rounded-lg border border-purple-200">
-                    <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+                {/* Location */}
+                <div className="flex items-start gap-4 p-4 rounded-2xl bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-100">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg">
+                    <MapPin className="h-6 w-6 text-white" />
                   </div>
-                  <div className="ml-3 sm:ml-4 flex-1">
-                    <h4 className="text-xs sm:text-sm font-medium text-gray-500 mb-1">Location</h4>
-                    <p className="text-gray-800 text-xs sm:text-sm mt-1">Gurgaon, Haryana, India</p>
-                    <div className="mt-2">
-                      <a
-                        href="https://www.google.com/maps/search/?api=1&query=123%20Business%20Ave%2C%20Suite%20100%2C%20New%20York%2C%20NY%2010001"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center text-purple-700 hover:text-purple-800 text-xs sm:text-sm font-medium"
-                      >
-                        Open in Maps
-                        <ExternalLink className="h-3.5 w-3.5 ml-1" />
-                      </a>
-                    </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-semibold text-gray-500 mb-1">Location</h4>
+                    <p className="text-gray-900 font-medium">Gurgaon, Haryana, India</p>
                   </div>
                 </div>
               </div>
             </div>
             
-            <div className="bg-gray-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-200 shadow-lg">
-              <h4 className="font-medium text-gray-800 mb-3 sm:mb-4 text-base sm:text-lg">Business Hours</h4>
-              <ul className="space-y-2 sm:space-y-3">
-                <li className="flex justify-between text-gray-600">
-                  <span className="text-xs sm:text-sm">Monday - Friday</span>
-                  <span className="text-gray-800 font-medium text-xs sm:text-sm">9:00 AM - 6:00 PM</span>
+            {/* Business Hours Card */}
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl p-8 border border-gray-200 shadow-lg">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center shadow-lg">
+                  <Clock className="h-6 w-6 text-white" />
+                </div>
+                <h4 className="text-xl font-bold text-gray-900">Business Hours</h4>
+              </div>
+              <ul className="space-y-4">
+                <li className="flex justify-between items-center p-3 rounded-xl bg-white border border-gray-200">
+                  <span className="text-gray-600 font-medium">Monday - Friday</span>
+                  <span className="text-gray-900 font-bold">9:00 AM - 6:00 PM</span>
                 </li>
-                <li className="flex justify-between text-gray-500">
-                  <span className="text-xs sm:text-sm">Saturday</span>
-                  <span className="text-xs sm:text-sm">Closed</span>
+                <li className="flex justify-between items-center p-3 rounded-xl bg-white border border-gray-200">
+                  <span className="text-gray-500">Saturday</span>
+                  <span className="text-gray-500">Closed</span>
                 </li>
-                <li className="flex justify-between text-gray-400">
-                  <span className="text-xs sm:text-sm">Sunday</span>
-                  <span className="text-gray-500 text-xs sm:text-sm">Closed</span>
+                <li className="flex justify-between items-center p-3 rounded-xl bg-white border border-gray-200">
+                  <span className="text-gray-500">Sunday</span>
+                  <span className="text-gray-500">Closed</span>
                 </li>
               </ul>
-            </div>
-
-            <div className="bg-gray-50 rounded-lg sm:rounded-xl p-4 sm:p-6">
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3">Follow Us</h3>
-              <div className="flex space-x-3 sm:space-x-4">
-                {[
-                  { name: 'Facebook', icon: Facebook, color: 'text-blue-600', href: 'https://www.facebook.com/people/CareerMap-Solutions/61581367203854/' },
-                  { name: 'Instagram', icon: Instagram, color: 'text-pink-600', href: 'https://www.instagram.com/careermapsolutions_official/?hl=en' },
-                  { name: 'X', icon: (props: any) => (
-                    <svg className={props.className} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                    </svg>
-                  ), color: 'text-sky-500', href: 'https://x.com/CareerMap_Com' },
-                  { name: 'LinkedIn', icon: Linkedin, color: 'text-blue-700', href: '#' },
-                ].map((social) => (
-                  <a
-                    key={social.name}
-                    href={social.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`${social.color} hover:opacity-80 transition-opacity`}
-                    aria-label={social.name}
-                  >
-                    <span className="sr-only">{social.name}</span>
-                    <social.icon className="h-5 w-5 sm:h-6 sm:w-6" />
-                  </a>
-                ))}
-              </div>
             </div>
           </motion.div>
         </div>

@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
 import { About as AboutSection } from '@/components/sections/About';
-import { CallToAction } from '@/components/sections/CallToAction';
 import { Team } from '@/components/sections/Team';
 
 export default function AboutPage() {
@@ -15,7 +14,7 @@ export default function AboutPage() {
         </div>
         
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mt-10 items-center">
             {/* Left Column - Large Card */}
             <motion.div
               className="relative order-2 lg:order-1"
@@ -25,12 +24,11 @@ export default function AboutPage() {
             >
               <div className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg border border-white/20">
                 <div className="aspect-w-3 aspect-h-4 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg sm:rounded-xl overflow-hidden">
-                  {/* Team icon placeholder */}
-                  <div className="w-full h-full flex items-center justify-center text-purple-900/20">
-                    <svg className="w-1/3 h-1/3 sm:w-1/2 sm:h-1/2" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 7H17c-.8 0-1.54.37-2.01.99L14 9.5 12.01 7.99A2.5 2.5 0 0 0 10 7H8.46c-.8 0-1.54.37-2.01.99L4 8.5v13.5h2V14h2v8.5h2V14h2v8.5h2V14h2v8.5h2V14h2v8.5z"/>
-                    </svg>
-                  </div>
+                  <img 
+                    src="/about.png" 
+                    alt="About CareerMap Solutions" 
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 
                 {/* Experience badge */}
@@ -119,13 +117,13 @@ export default function AboutPage() {
       </div>
 
       {/* Call to Action */}
-      <CallToAction 
+      {/* <CallToAction 
         title="Ready to work with us?"
         description="Get in touch to learn more about how we can help your business succeed."
         buttonText="Contact Us"
         variant="centered"
         className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50"
-      />
+      /> */}
     </div>
   );
 }

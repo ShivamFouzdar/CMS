@@ -32,6 +32,13 @@ export interface IUser extends Document {
     theme: 'light' | 'dark' | 'auto';
     language: string;
   };
+  twoFactor: {
+    enabled: boolean;
+    secret?: string; // Encrypted secret key
+    backupCodes?: string[]; // Hashed backup codes
+    verifiedAt?: Date;
+    lastUsed?: Date;
+  };
   permissions: string[];
   createdAt: Date;
   updatedAt: Date;
@@ -163,6 +170,26 @@ const userSchema = new Schema<IUser>({
       type: String,
       default: 'en',
       maxlength: [5, 'Language code cannot exceed 5 characters']
+    }
+  },
+  twoFactor: {
+    enabled: {
+      type: Boolean,
+      default: false
+    },
+    secret: {
+      type: String,
+      select: false // Don't include in queries by default
+    },
+    backupCodes: [{
+      type: String,
+      select: false
+    }],
+    verifiedAt: {
+      type: Date
+    },
+    lastUsed: {
+      type: Date
     }
   },
   permissions: [{

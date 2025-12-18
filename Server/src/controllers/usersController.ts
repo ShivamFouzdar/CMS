@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { asyncHandler, createError, validateEmail, sanitizeInput } from '@/utils/helpers';
 import { ApiResponse } from '@/types';
+import { User } from '@/models';
 
 /**
  * Users Controller
@@ -101,10 +102,45 @@ export const updateUserProfile = asyncHandler(async (_req: Request, res: Respons
   res.status(200).json(response);
 });
 
-export const updateUserPreferences = asyncHandler(async (_req: Request, res: Response) => {
+export const updateUserPreferences = asyncHandler(async (req: Request, res: Response) => {
+  const userId = (req as any).user?.id;
+  
+  if (!userId) {
+    throw createError('User not authenticated', 401);
+  }
+
+  const { notifications, theme, language } = req.body;
+
+  const user = await User.findById(userId);
+  if (!user) {
+    throw createError('User not found', 404);
+  }
+
+  // Update preferences
+  if (notifications !== undefined) {
+    user.preferences.notifications = {
+      email: notifications.email !== undefined ? notifications.email : user.preferences.notifications.email,
+      sms: notifications.sms !== undefined ? notifications.sms : user.preferences.notifications.sms,
+      push: notifications.push !== undefined ? notifications.push : user.preferences.notifications.push,
+    };
+  }
+
+  if (theme !== undefined) {
+    user.preferences.theme = theme;
+  }
+
+  if (language !== undefined) {
+    user.preferences.language = language;
+  }
+
+  await user.save();
+
   const response: ApiResponse = {
     success: true,
     message: 'Preferences updated successfully',
+    data: {
+      preferences: user.preferences,
+    },
     timestamp: new Date().toISOString(),
   };
 

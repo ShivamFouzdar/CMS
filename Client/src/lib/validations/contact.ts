@@ -126,35 +126,5 @@ export const defaultContactFormValues: ContactFormValues = {
   marketingEmails: false,
 };
 
-/**
- * Format phone number for display
- */
-export const formatPhoneNumber = (value: string): string => {
-  // Remove all non-digit characters
-  const cleaned = value.replace(/\D/g, '');
-  
-  // Format as (XXX) XXX-XXXX
-  const match = cleaned.match(/^(\d{0,3})(\d{0,3})(\d{0,4})$/);
-  
-  if (match) {
-    return !match[2]
-      ? match[1]
-      : `(${match[1]}) ${match[2]}${match[3] ? `-${match[3]}` : ''}`;
-  }
-  
-  return value;
-};
-
-/**
- * Remove formatting from phone number
- */
-export const unformatPhoneNumber = (value: string): string => {
-  return value.replace(/\D/g, '');
-};
-
-/**
- * Validate email format
- */
-export const isValidEmail = (email: string): boolean => {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-};
+// Note: formatPhoneNumber, unformatPhoneNumber, and isValidEmail have been moved to lib/form-utils.ts
+// Import them from there: import { formatPhoneNumber, unformatPhoneNumber, isValidEmail } from '@/lib/form-utils';

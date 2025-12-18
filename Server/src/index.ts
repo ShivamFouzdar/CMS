@@ -1,22 +1,24 @@
+// Load environment variables FIRST before any other imports
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import helmet from 'helmet';
 import compression from 'compression';
-import dotenv from 'dotenv';
 
 // Import configurations
 import { helmetConfig } from '@/config/helmet';
 import { initializeDatabase, createIndexes, seedDatabase } from '@/config/database';
+import { initializeEmailService } from '@/services/emailService';
 
 // Import middleware
 import { errorHandler } from '@/middleware/errorHandler';
 import { notFoundHandler } from '@/middleware/notFoundHandler';
+import { checkMaintenanceMode } from '@/middleware/maintenanceMode';
 
 // Import routes
 import healthRoutes from '@/routes/health';
 import apiRoutes from '@/routes/api';
-
-// Load environment variables
-dotenv.config();
 
 const app = express();
 const PORT = process.env['PORT'] || 8000;
@@ -65,6 +67,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Static files (for future file uploads)
 app.use('/uploads', express.static('uploads'));
 
+// Maintenance mode check (before routes)
+app.use(checkMaintenanceMode);
+
 // Routes
 app.use('/health', healthRoutes);
 app.use('/api', apiRoutes);
@@ -89,6 +94,9 @@ const startServer = async () => {
     } catch (dbError) {
       console.warn('⚠️  Database initialization failed, continuing without database:', dbError);
     }
+    
+    // Initialize email service
+    initializeEmailService();
     
     // Start server
     app.listen(PORT, () => {

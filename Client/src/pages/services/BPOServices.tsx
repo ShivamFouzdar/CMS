@@ -68,11 +68,11 @@ export default function BPOServices() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                  <Button href="#contact" variant="primary" size="lg" className="flex items-center">
+                  <Button href="/contact" variant="primary" size="lg" className="flex items-center">
                     Get Started Today
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Button>
-                  <Button href="#contact" variant="outline" size="lg">
+                  <Button href="/contact" variant="outline" size="lg">
                     Contact Us
                   </Button>
                 </div>
@@ -584,7 +584,7 @@ export default function BPOServices() {
         title="Ready to Transform Your Business Operations?"
         description="Get started with our BPO services today and experience the difference professional outsourcing can make."
         buttonText="Get Started Today"
-        buttonHref="#contact"
+        buttonHref="/contact"
       />
     </div>
   );

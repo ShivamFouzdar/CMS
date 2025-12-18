@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Briefcase, Download, Eye, Trash2, Users, TrendingUp, 
-  Calendar, MapPin, Mail, Phone, FileText, Loader2,
+  MapPin, Mail, Phone, FileText, Loader2,
   AlertCircle
 } from 'lucide-react';
 import { 
@@ -15,73 +15,95 @@ import {
   type JobApplicationStats 
 } from '@/services/jobApplicationService';
 import { fadeIn } from '@/lib/utils';
+import { AdminLayout } from '@/components/layout/AdminLayout';
+import { useAsyncOperation } from '@/hooks/useAsyncOperation';
+import { usePagination } from '@/hooks/usePagination';
+import { handleApiError } from '@/utils/errorHandler';
+import { StatCard } from '@/components/ui/StatCard';
 
 export default function JobApplicants() {
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [stats, setStats] = useState<JobApplicationStats | null>(null);
   const [selectedApplication, setSelectedApplication] = useState<JobApplication | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
+  
+  const { page, totalPages, total, setPage, setTotalPages, setTotal } = usePagination({
+    initialPage: 1,
+    itemsPerPage: 10,
+  });
 
-  useEffect(() => {
-    fetchData();
-  }, [page]);
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const [applicationsData, statsData] = await Promise.all([
-        getJobApplications(page, 10),
-        getJobApplicationStats(),
-      ]);
-
-      setApplications(applicationsData.data || []);
-      setStats(statsData.data);
-      setTotalPages(applicationsData.meta?.pagination.totalPages || 1);
-      setTotal(applicationsData.meta?.pagination.total || 0);
-    } catch (err: any) {
-      if (err.code === 'ERR_NETWORK') {
-        setError('Server is not running. Please start the server.');
-      } else {
-        setError('Failed to load job applications');
+  const { execute: fetchDataExecute, loading, error } = useAsyncOperation({
+    onSuccess: (data) => {
+      if (data) {
+        setApplications(data.applications || []);
+        setStats(data.stats);
+        setTotalPages(data.meta?.pagination.totalPages || 1);
+        setTotal(data.meta?.pagination.total || 0);
       }
-      console.error(err);
-      // Set empty data to prevent errors
-      setApplications([]);
-      setStats({
-        total: 0,
-        pending: 0,
-        approved: 0,
-        byExperience: {},
-        byWorkMode: {},
-        bySource: {},
-        recent: [],
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+  });
+
+  const fetchData = () => fetchDataExecute(async () => {
+    const [applicationsData, statsData] = await Promise.all([
+      getJobApplications(page, 10),
+      getJobApplicationStats(),
+    ]);
+
+    return {
+      applications: applicationsData.data || [],
+      stats: statsData.data,
+      meta: applicationsData.meta,
+    };
+  }).catch((err) => {
+    // Set empty data to prevent errors
+    setApplications([]);
+    setStats({
+      total: 0,
+      pending: 0,
+      approved: 0,
+      byExperience: {},
+      byWorkMode: {},
+      bySource: {},
+      recent: [],
+    });
+    throw err;
+  });
+
+  const { execute: viewDetailsExecute } = useAsyncOperation({
+    onSuccess: (data) => {
+      if (data) {
+        setSelectedApplication(data);
+      }
+    },
+  });
+
+  const { execute: downloadResumeFileExecute } = useAsyncOperation();
+
+  const { execute: deleteApplicationExecute } = useAsyncOperation({
+    onSuccess: () => {
+      fetchData();
+      if (selectedApplication?.id) {
+        setSelectedApplication(null);
+      }
+    },
+  });
 
   const handleViewDetails = async (id: string) => {
-    try {
+    viewDetailsExecute(async () => {
       const response = await getJobApplicationById(id);
-      setSelectedApplication(response.data);
-    } catch (err) {
-      console.error('Failed to load application details:', err);
-    }
+      return response.data;
+    }).catch((err) => {
+      const errorInfo = handleApiError(err);
+      console.error('Failed to load application details:', errorInfo.message);
+    });
   };
 
   const handleDownloadResume = async (id: string) => {
-    try {
+    downloadResumeFileExecute(async () => {
       await downloadResume(id);
-    } catch (err) {
-      alert('Failed to download resume');
-      console.error(err);
-    }
+    }).catch((err) => {
+      const errorInfo = handleApiError(err);
+      alert(errorInfo.message);
+    });
   };
 
   const handleDelete = async (id: string) => {
@@ -89,29 +111,28 @@ export default function JobApplicants() {
       return;
     }
 
-    try {
+    deleteApplicationExecute(async () => {
       await deleteJobApplication(id);
-      fetchData();
-      if (selectedApplication?.id === id) {
-        setSelectedApplication(null);
-      }
-    } catch (err) {
-      alert('Failed to delete application');
-      console.error(err);
-    }
+    }).catch((err) => {
+      const errorInfo = handleApiError(err);
+      alert(errorInfo.message);
+    });
   };
 
   if (loading && !stats) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-      </div>
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        </div>
+      </AdminLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <AdminLayout>
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div 
           className="mb-8"
@@ -134,59 +155,30 @@ export default function JobApplicants() {
             initial="hidden"
             animate="show"
           >
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <div className="flex items-center">
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <Users className="h-6 w-6 text-blue-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm text-gray-600">Total Applications</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <div className="flex items-center">
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <TrendingUp className="h-6 w-6 text-green-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm text-gray-600">This Month</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {Object.values(stats.bySource).reduce((a, b) => a + b, 0)}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <div className="flex items-center">
-                <div className="p-3 bg-purple-100 rounded-lg">
-                  <Briefcase className="h-6 w-6 text-purple-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm text-gray-600">Remote Candidates</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {stats.byWorkMode['Work from Home'] || 0}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <div className="flex items-center">
-                <div className="p-3 bg-orange-100 rounded-lg">
-                  <FileText className="h-6 w-6 text-orange-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm text-gray-600">New Today</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {stats.recent.length}
-                  </p>
-                </div>
-              </div>
-            </div>
+            <StatCard
+              title="Total Applications"
+              value={stats.total}
+              icon={Users}
+              gradient="blue"
+            />
+            <StatCard
+              title="This Month"
+              value={Object.values(stats.bySource).reduce((a, b) => a + b, 0)}
+              icon={TrendingUp}
+              gradient="green"
+            />
+            <StatCard
+              title="Remote Candidates"
+              value={stats.byWorkMode['Work from Home'] || 0}
+              icon={Briefcase}
+              gradient="purple"
+            />
+            <StatCard
+              title="New Today"
+              value={stats.recent.length}
+              icon={FileText}
+              gradient="yellow"
+            />
           </motion.div>
         )}
 
@@ -304,7 +296,7 @@ export default function JobApplicants() {
           {totalPages > 1 && (
             <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 flex items-center justify-between">
               <div className="text-sm text-gray-700">
-                Showing page {page} of {totalPages} ({total} total)
+                Showing page {page} of {totalPages} ({total || 0} total)
               </div>
               <div className="flex space-x-2">
                 <button
@@ -338,8 +330,9 @@ export default function JobApplicants() {
             }}
           />
         )}
+        </div>
       </div>
-    </div>
+    </AdminLayout>
   );
 }
 

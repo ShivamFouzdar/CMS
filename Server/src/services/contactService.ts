@@ -1,13 +1,12 @@
 import { ContactFormData } from '@/types';
 import { createError, validateEmail, sanitizeInput } from '@/utils/helpers';
+import { Contact } from '@/models';
 
 /**
  * Contact Service
  * Handles business logic for contact form submissions
+ * Saves all contact form submissions to the database
  */
-
-// Mock data storage (replace with database in production)
-let contactSubmissions: Array<ContactFormData & { id: string; submittedAt: string; status?: string; notes?: string }> = [];
 
 /**
  * Submit contact form
@@ -23,67 +22,27 @@ export const submitContactForm = async (data: ContactFormData): Promise<{ id: st
   }
 
   // Sanitize inputs
-  const sanitizedData: ContactFormData = {
+  const sanitizedData = {
     name: sanitizeInput(data.name),
-    email: sanitizeInput(data.email),
-    phone: data.phone ? sanitizeInput(data.phone) : '',
-    company: data.company ? sanitizeInput(data.company) : '',
+    email: sanitizeInput(data.email).toLowerCase(),
+    phone: data.phone ? sanitizeInput(data.phone) : undefined,
+    company: data.company ? sanitizeInput(data.company) : undefined,
     service: data.service ? sanitizeInput(data.service) : 'General Enquiry',
     message: sanitizeInput(data.message),
+    status: 'new' as const,
+    priority: 'medium' as const,
+    source: 'website' as const,
   };
 
-  // Create submission record
-  const submission = {
-    id: `contact_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-    submittedAt: new Date().toISOString(),
-    ...sanitizedData,
-  };
+  // Create and save contact submission to database
+  const contact = new Contact(sanitizedData);
+  await contact.save();
 
-  // Store submission locally
-  contactSubmissions.push(submission);
-
-  // Forward to Web3Forms via server-side request
-  const accessKey = process.env['WEB3FORMS_ACCESS_KEY'];
-  if (!accessKey) {
-    throw createError('Web3Forms access key not configured. Set WEB3FORMS_ACCESS_KEY in Server/.env', 500);
-  }
-
-  const payload = {
-    access_key: accessKey,
-    subject: `New Contact Form Submission${sanitizedData.service ? ` - ${sanitizedData.service}` : ''}`,
-    from_name: sanitizedData.name,
-    reply_to: sanitizedData.email,
-    name: sanitizedData.name,
-    email: sanitizedData.email,
-    phone: sanitizedData.phone,
-    company: sanitizedData.company,
-    service: sanitizedData.service,
-    message: sanitizedData.message,
-  } as Record<string, string>;
-
-  const fetchFn = (global as any).fetch as any;
-  if (!fetchFn) {
-    throw createError('Fetch API not available in Node environment', 500);
-  }
-
-  const web3formsResponse = await fetchFn('https://api.web3forms.com/submit', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  });
-
-  const result = await web3formsResponse.json().catch(() => ({} as any));
-  if (!web3formsResponse.ok || !result || result.success === false) {
-    const errorMessage = (result && (result.message || result.error)) || 'Failed to send message';
-    throw createError(errorMessage, 502);
-  }
+  console.log('✅ Contact form submission saved to database:', contact._id);
 
   return {
-    id: submission.id,
-    submittedAt: submission.submittedAt,
+    id: (contact._id as any).toString(),
+    submittedAt: contact.submittedAt.toISOString(),
   };
 };
 
@@ -94,13 +53,34 @@ export const getAllContactSubmissions = async (
   page: number = 1,
   limit: number = 10
 ): Promise<{ data: any[]; total: number; page: number; totalPages: number }> => {
-  const total = contactSubmissions.length;
-  const startIndex = (page - 1) * limit;
-  const endIndex = startIndex + limit;
-  const paginatedSubmissions = contactSubmissions.slice(startIndex, endIndex);
+  const skip = (page - 1) * limit;
+  
+  const [data, total] = await Promise.all([
+    Contact.find()
+      .sort({ submittedAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+    Contact.countDocuments(),
+  ]);
 
   return {
-    data: paginatedSubmissions,
+    data: data.map(contact => ({
+      id: (contact._id as any).toString(),
+      name: contact.name,
+      email: contact.email,
+      phone: contact.phone,
+      company: contact.company,
+      service: contact.service,
+      message: contact.message,
+      status: contact.status,
+      priority: contact.priority,
+      notes: contact.notes,
+      submittedAt: contact.submittedAt.toISOString(),
+      updatedAt: contact.updatedAt.toISOString(),
+      source: contact.source,
+      tags: contact.tags,
+    })),
     total,
     page,
     totalPages: Math.ceil(total / limit),
@@ -111,13 +91,30 @@ export const getAllContactSubmissions = async (
  * Get contact submission by ID
  */
 export const getContactSubmissionById = async (id: string): Promise<any> => {
-  const submission = contactSubmissions.find(sub => sub.id === id);
+  const contact = await Contact.findById(id);
 
-  if (!submission) {
+  if (!contact) {
     throw createError('Contact submission not found', 404);
   }
 
-  return submission;
+  return {
+    id: (contact._id as any).toString(),
+    name: contact.name,
+    email: contact.email,
+    phone: contact.phone,
+    company: contact.company,
+    service: contact.service,
+    message: contact.message,
+    status: contact.status,
+    priority: contact.priority,
+    notes: contact.notes,
+    assignedTo: contact.assignedTo,
+    submittedAt: contact.submittedAt.toISOString(),
+    updatedAt: contact.updatedAt.toISOString(),
+    lastContactedAt: contact.lastContactedAt?.toISOString(),
+    source: contact.source,
+    tags: contact.tags,
+  };
 };
 
 /**
@@ -128,108 +125,133 @@ export const updateContactSubmissionStatus = async (
   status: string,
   notes?: string
 ): Promise<any> => {
-  const submissionIndex = contactSubmissions.findIndex(sub => sub.id === id);
+  const contact = await Contact.findById(id);
 
-  if (submissionIndex === -1) {
+  if (!contact) {
     throw createError('Contact submission not found', 404);
   }
 
-  const currentSubmission = contactSubmissions[submissionIndex];
-  if (currentSubmission) {
-    contactSubmissions[submissionIndex] = {
-      ...currentSubmission,
-      status: status || 'processed',
-      notes: notes || '',
-      updatedAt: new Date().toISOString(),
-    };
+  contact.status = status as any;
+  if (notes !== undefined) {
+    contact.notes = notes;
   }
+  contact.updatedAt = new Date();
 
-  return contactSubmissions[submissionIndex];
+  await contact.save();
+
+  return {
+    id: (contact._id as any).toString(),
+    name: contact.name,
+    email: contact.email,
+    phone: contact.phone,
+    company: contact.company,
+    service: contact.service,
+    message: contact.message,
+    status: contact.status,
+    priority: contact.priority,
+    notes: contact.notes,
+    submittedAt: contact.submittedAt.toISOString(),
+    updatedAt: contact.updatedAt.toISOString(),
+  };
 };
 
 /**
  * Delete contact submission
  */
 export const deleteContactSubmission = async (id: string): Promise<void> => {
-  const submissionIndex = contactSubmissions.findIndex(sub => sub.id === id);
+  const contact = await Contact.findByIdAndDelete(id);
 
-  if (submissionIndex === -1) {
+  if (!contact) {
     throw createError('Contact submission not found', 404);
   }
-
-  contactSubmissions.splice(submissionIndex, 1);
 };
 
 /**
  * Get contact statistics
  */
 export const getContactStatistics = async () => {
-  const stats = {
-    total: contactSubmissions.length,
-    byStatus: {
-      new: contactSubmissions.filter(c => c.status === 'new').length,
-      in_progress: contactSubmissions.filter(c => c.status === 'in_progress').length,
-      completed: contactSubmissions.filter(c => c.status === 'completed').length,
-      closed: contactSubmissions.filter(c => c.status === 'closed').length,
-    },
-    byService: contactSubmissions.reduce((acc, contact) => {
-      const service = contact.service || 'General Enquiry';
-      acc[service] = (acc[service] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>),
-    recent: contactSubmissions.slice(-5).map(c => ({
-      id: c.id,
+  const stats = await Contact.getStats();
+  
+  // Get service breakdown
+  const serviceStats = await Contact.aggregate([
+    {
+      $group: {
+        _id: '$service',
+        count: { $sum: 1 }
+      }
+    }
+  ]);
+
+  const byService = serviceStats.reduce((acc, stat) => {
+    acc[stat._id || 'General Enquiry'] = stat.count;
+    return acc;
+  }, {} as Record<string, number>);
+
+  // Get recent submissions
+  const recent = await Contact.find()
+    .sort({ submittedAt: -1 })
+    .limit(5)
+    .select('name email service status submittedAt')
+    .lean();
+
+  return {
+    total: stats.total,
+    byStatus: stats.byStatus,
+    byService,
+    recent: recent.map(c => ({
+      id: (c._id as any).toString(),
       name: c.name,
       email: c.email,
       service: c.service,
       status: c.status,
-      submittedAt: c.submittedAt,
+      submittedAt: c.submittedAt.toISOString(),
     })),
   };
-
-  return stats;
 };
 
 /**
  * Get contacts by service
  */
 export const getContactsByService = async (service: string, limit: number = 10) => {
-  const serviceContacts = contactSubmissions
-    .filter(contact =>
-      contact.service?.toLowerCase().includes(service.toLowerCase()) || false
-    )
-    .slice(0, limit)
-    .map(contact => ({
-      id: contact.id,
-      name: contact.name,
-      email: contact.email,
-      service: contact.service,
-      status: contact.status,
-      submittedAt: contact.submittedAt,
-      message: contact.message.substring(0, 100) + '...',
-    }));
+  const contacts = await Contact.getByService(service, limit);
 
-  return serviceContacts;
+  return contacts.map(contact => ({
+    id: (contact._id as any).toString(),
+    name: contact.name,
+    email: contact.email,
+    service: contact.service,
+    status: contact.status,
+    submittedAt: contact.submittedAt.toISOString(),
+    message: contact.message ? contact.message.substring(0, 100) + '...' : '',
+  }));
 };
 
 /**
  * Mark contact as contacted
  */
 export const markContactAsContacted = async (id: string): Promise<any> => {
-  const submissionIndex = contactSubmissions.findIndex(sub => sub.id === id);
+  const contact = await Contact.findById(id);
 
-  if (submissionIndex === -1) {
+  if (!contact) {
     throw createError('Contact submission not found', 404);
   }
 
-  const currentSubmission = contactSubmissions[submissionIndex];
-  if (currentSubmission) {
-    contactSubmissions[submissionIndex] = {
-      ...currentSubmission,
-      updatedAt: new Date().toISOString(),
-    } as any;
-  }
+  await contact.markAsContacted();
 
-  return contactSubmissions[submissionIndex];
+  return {
+    id: (contact._id as any).toString(),
+    name: contact.name,
+    email: contact.email,
+    phone: contact.phone,
+    company: contact.company,
+    service: contact.service,
+    message: contact.message,
+    status: contact.status,
+    priority: contact.priority,
+    notes: contact.notes,
+    submittedAt: contact.submittedAt.toISOString(),
+    updatedAt: contact.updatedAt.toISOString(),
+    lastContactedAt: contact.lastContactedAt?.toISOString(),
+  };
 };
 

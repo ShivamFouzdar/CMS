@@ -127,3 +127,10 @@ coverage/
 # Keep important documentation
 !*.md
 
+# AWS/SSH Private Keys (NEVER commit these!)
+*.pem
+*.key
+*.ppk
+**/.ssh/
+!**/.ssh/config
+

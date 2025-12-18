@@ -72,13 +72,13 @@ export default function ServicesPage() {
       </div>
 
       {/* Call to Action */}
-      <CallToAction 
+      {/* <CallToAction 
         title="Ready to get started?"
         description="Contact us today to learn more about how our services can help your business thrive."
         buttonText="Get in Touch"
         variant="centered"
         className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50"
-      />
+      /> */}
     </div>
   );
 }

@@ -180,6 +180,19 @@ export const submitReview = asyncHandler(async (req: Request, res: Response) => 
     image
   });
 
+  // Send notification to admins (non-blocking)
+  try {
+    const { notifyNewReview } = await import('@/services/notificationService');
+    notifyNewReview({
+      reviewerName: name,
+      company: role || 'N/A',
+      rating: rating || 5,
+      category: category || 'General',
+    }).catch(err => console.error('Notification error:', err));
+  } catch (notifError) {
+    console.error('Failed to send notification:', notifError);
+  }
+
   const response: ApiResponse = {
     success: true,
     message: 'Thank you for your review! It will be published after moderation.',

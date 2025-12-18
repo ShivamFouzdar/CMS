@@ -3,7 +3,15 @@ import path from 'path';
 import { configureCloudinary } from '@/utils/cloudinary';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
 
-const cloudinary = configureCloudinary();
+// Initialize Cloudinary with error handling
+let cloudinary;
+try {
+  cloudinary = configureCloudinary();
+} catch (error) {
+  console.error('❌ Cloudinary configuration failed:', error instanceof Error ? error.message : error);
+  console.error('⚠️  Please ensure CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET are set in your .env file');
+  throw error;
+}
 
 const allowedMimes = [
   'application/pdf',

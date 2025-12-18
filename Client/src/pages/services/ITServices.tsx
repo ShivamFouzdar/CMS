@@ -344,7 +344,7 @@ export default function ITServices() {
                     View Our Projects
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Button>
-                  <Button href="#contact" variant="outline" size="lg">
+                  <Button href="/contact" variant="outline" size="lg">
                     Start Your Project
                   </Button>
                 </div>
@@ -932,7 +932,7 @@ export default function ITServices() {
         title="Ready to Build Your MERN Stack Application?"
         description="Get started with our expert MERN stack development services today and create powerful full-stack applications."
         buttonText="Start Your MERN Project"
-        buttonHref="#contact"
+        buttonHref="/contact"
       />
     </div>
   );

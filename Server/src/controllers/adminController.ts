@@ -131,9 +131,15 @@ export const getSystemLogs = asyncHandler(async (_req: Request, res: Response) =
   res.status(200).json(response);
 });
 
-export const updateSystemSettings = asyncHandler(async (_req: Request, res: Response) => {
+export const updateSystemSettings = asyncHandler(async (req: Request, res: Response) => {
+  const { updateSystemSettings: updateSettings } = await import('@/services/settingsService');
+  
+  const settingsData = req.body;
+  const updatedSettings = await updateSettings(settingsData);
+
   const response: ApiResponse = {
     success: true,
+    data: updatedSettings,
     message: 'System settings updated successfully',
     timestamp: new Date().toISOString(),
   };
@@ -142,11 +148,9 @@ export const updateSystemSettings = asyncHandler(async (_req: Request, res: Resp
 });
 
 export const getSystemSettings = asyncHandler(async (_req: Request, res: Response) => {
-  const settings = {
-    siteName: 'CMS',
-    contactEmail: 'admin@example.com',
-    maintenanceMode: false
-  };
+  const { getSystemSettings: fetchSettings } = await import('@/services/settingsService');
+  
+  const settings = await fetchSettings();
 
   const response: ApiResponse = {
     success: true,

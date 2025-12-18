@@ -98,11 +98,11 @@ export default function CustomerSupport() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                  <Button href="#contact" variant="primary" size="lg" className="flex items-center">
+                  <Button href="/contact" variant="primary" size="lg" className="flex items-center">
                     Get Started Today
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Button>
-                  <Button href="#contact" variant="outline" size="lg">
+                  <Button href="/contact" variant="outline" size="lg">
                     Contact Us
                   </Button>
                 </div>
@@ -716,7 +716,7 @@ export default function CustomerSupport() {
         title="Ready to Transform Your Customer Support?"
         description="Get started with our comprehensive customer support solutions today and deliver exceptional experiences to your customers."
         buttonText="Get Started Today"
-        buttonHref="#contact"
+        buttonHref="/contact"
       />
     </div>
   );

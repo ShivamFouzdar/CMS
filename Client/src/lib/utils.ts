@@ -37,22 +37,5 @@ export const staggerContainer = {
   },
 };
 
-export const formatPhoneNumber = (phoneNumber: string): string => {
-  // Remove all non-digit characters
-  const cleaned = ('' + phoneNumber).replace(/\D/g, '');
-  
-  // Check if the number has 10 digits (US/Canada format)
-  const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
-  
-  if (match) {
-    return `(${match[1]}) ${match[2]}-${match[3]}`;
-  }
-  
-  // Return original if not in expected format
-  return phoneNumber;
-};
-
-export const validateEmail = (email: string): boolean => {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return re.test(email);
-};
+// Note: formatPhoneNumber and validateEmail have been moved to lib/form-utils.ts
+// Import them from there: import { formatPhoneNumber, isValidEmail } from '@/lib/form-utils';

@@ -1,12 +1,11 @@
-import { useState, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Phone, User, Building, Briefcase, AlertCircle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/forms/Button';
 import { Input } from '@/components/forms/FormField';
 import { Textarea } from '@/components/forms/FormField';
 import { Select } from '@/components/forms/FormField';
-import { fadeIn, staggerContainer } from '@/lib/utils';
+import { fadeIn, staggerContainer, cn } from '@/lib/utils';
 import { useContactForm } from '@/hooks/useContactForm';
 import { serviceOptions } from '@/lib/validations/contact';
 
@@ -47,12 +46,13 @@ export function ContactForm({
   const {
     register,
     handleSubmit,
-    control,
     reset,
-    watch,
-    formState: { errors, isDirty, isValid, isSubmitting, isSubmitSuccessful },
+    errors,
+    isDirty,
+    isValid,
+    isSubmitting,
+    isSubmitSuccessful,
     submitError,
-    submitSuccess,
     selectedService,
   } = useContactForm({
     onSuccess: (data) => {
@@ -84,7 +84,7 @@ export function ContactForm({
           initial="hidden"
           animate="show"
         >
-          <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl mb-4">
+          <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl mb-2">
             Get in Touch
           </h2>
           {showDescription && (
@@ -124,7 +124,7 @@ export function ContactForm({
             key="contact-form"
             onSubmit={handleSubmit}
             className="space-y-8"
-            variants={staggerContainer(0.1, 0.2)}
+            variants={staggerContainer}
             initial="hidden"
             animate="show"
           >
@@ -366,11 +366,6 @@ export function ContactForm({
       </AnimatePresence>
     </div>
   );
-}
-
-// Helper function to merge class names
-function cn(...classes: (string | undefined)[]) {
-  return classes.filter(Boolean).join(' ');
 }
 
 export default ContactForm;

@@ -11,6 +11,7 @@ export { default as serviceRoutes } from './services';
 export { default as userRoutes } from './users';
 export { default as adminRoutes } from './admin';
 export { default as authRoutes } from './auth';
+export { default as twoFactorRoutes } from './twoFactor';
 
 // Route configuration
 export const routeConfig = {

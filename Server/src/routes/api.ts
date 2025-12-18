@@ -8,6 +8,7 @@ import userRoutes from './users';
 import adminRoutes from './admin';
 import authRoutes from './auth';
 import jobApplicationRoutes from './jobApplication';
+import twoFactorRoutes from './twoFactor';
 
 const router = Router();
 
@@ -26,6 +27,7 @@ router.get('/', (_req, res) => {
       admin: '/api/admin',
       auth: '/api/auth',
       jobApplication: '/api/job-application',
+      twoFactor: '/api/2fa',
     },
     timestamp: new Date().toISOString(),
   });
@@ -39,5 +41,6 @@ router.use('/users', userRoutes);
 router.use('/admin', adminRoutes);
 router.use('/auth', authRoutes);
 router.use('/job-application', jobApplicationRoutes);
+router.use('/2fa', twoFactorRoutes);
 
 export default router;

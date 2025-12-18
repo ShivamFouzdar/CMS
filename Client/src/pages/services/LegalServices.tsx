@@ -296,11 +296,11 @@ export default function LegalServices() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                  <Button href="#contact" variant="primary" size="lg" className="flex items-center">
+                  <Button href="/contact" variant="primary" size="lg" className="flex items-center">
                     Get Started Today
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Button>
-                  <Button href="#contact" variant="outline" size="lg">
+                  <Button href="/contact" variant="outline" size="lg">
                     Contact Us
                   </Button>
                 </div>
@@ -907,7 +907,7 @@ export default function LegalServices() {
         title="Ready to Secure Your Business Legally?"
         description="Get started with our comprehensive legal services today and ensure your business is protected and compliant."
         buttonText="Get Started Today"
-        buttonHref="#contact"
+        buttonHref="/contact"
       />
     </div>
   );
