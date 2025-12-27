@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
-import { fadeIn } from '@/lib/utils';
-import { ArrowLeft, FileText, Users, Shield, AlertTriangle, Mail } from 'lucide-react';
+import { ArrowLeft, FileText, Users, Shield, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export function TermsOfService() {
@@ -210,21 +209,7 @@ export function TermsOfService() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.6 }}
             >
-              <div className="bg-gradient-to-r from-purple-500/10 to-indigo-500/10 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-purple-200">
-                <h3 className="text-xl sm:text-2xl font-semibold text-blue-900 mb-4">
-                  Need Assistance?
-                </h3>
-                <p className="text-gray-700 mb-6">
-                  If you have any questions about these terms or need support with our services, please don't hesitate to contact us.
-                </p>
-                <a
-                  href="mailto:support@careermapsolutions.com"
-                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105"
-                >
-                  <Mail className="w-5 h-5 mr-2" />
-                  Contact Support Team
-                </a>
-              </div>
+            
             </motion.div>
           </div>
         </div>

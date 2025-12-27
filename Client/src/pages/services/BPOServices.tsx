@@ -2,8 +2,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { CallToAction } from '@/components/sections/CallToAction';
+import { ServiceCard } from '@/components/ui/ServiceCard';
 import { 
-  CheckCircle, 
   Star, 
   ArrowRight, 
   Clock, 
@@ -17,7 +17,6 @@ import {
   MessageSquare,
   BarChart3,
   Briefcase,
-  Phone,
   Database,
   Settings,
   Target,
@@ -68,7 +67,7 @@ export default function BPOServices() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                  <Button href="/contact" variant="primary" size="lg" className="flex items-center">
+                  <Button href="/contact" variant="default" size="lg" className="flex items-center">
                     Get Started Today
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Button>
@@ -97,71 +96,19 @@ export default function BPOServices() {
                 initial={{ opacity: 0, x: 60 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
-                className="relative"
+                className="relative group"
               >
-                <div className="bg-white rounded-2xl shadow-2xl p-8 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-blue-500/10"></div>
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-xl font-semibold text-gray-900">Live Dashboard</h3>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                        <span className="text-sm text-gray-600">Online</span>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                      <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-2xl font-bold text-purple-600">1,247</div>
-                            <div className="text-sm text-gray-600">Active Calls</div>
-                          </div>
-                          <Phone className="w-8 h-8 text-purple-500" />
-                        </div>
-                      </div>
-                      <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-2xl font-bold text-blue-600">98.5%</div>
-                            <div className="text-sm text-gray-600">Satisfaction</div>
-                          </div>
-                          <Star className="w-8 h-8 text-blue-500" />
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                            <CheckCircle className="w-4 h-4 text-green-600" />
-                          </div>
-                          <span className="text-sm font-medium">Customer Service</span>
-                        </div>
-                        <span className="text-sm text-green-600 font-medium">Active</span>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                            <Database className="w-4 h-4 text-blue-600" />
-                          </div>
-                          <span className="text-sm font-medium">Data Processing</span>
-                        </div>
-                        <span className="text-sm text-blue-600 font-medium">Processing</span>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                            <Mail className="w-4 h-4 text-purple-600" />
-                          </div>
-                          <span className="text-sm font-medium">Email Support</span>
-                        </div>
-                        <span className="text-sm text-purple-600 font-medium">Active</span>
-                      </div>
-                    </div>
+                <div className="bg-white rounded-2xl shadow-2xl overflow-hidden transition-all duration-500 group-hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] group-hover:scale-[1.02]">
+                  <div className="relative overflow-hidden">
+                    <img 
+                      src="/BPO.png" 
+                      alt="BPO Services - Customer Service Team" 
+                      className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-purple-600/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   </div>
                 </div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500 -z-10"></div>
               </motion.div>
             </div>
           </div>
@@ -189,70 +136,68 @@ export default function BPOServices() {
               </p>
             </motion.div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {[
                 {
-                  icon: <Headphones className="w-8 h-8 text-purple-500" />,
+                  icon: <Headphones className="w-6 h-6 text-white" />,
                   title: "Customer Service",
                   description: "24/7 multilingual customer support across voice, email, and chat channels.",
-                  features: ["Multi-channel Support", "CRM Integration", "Quality Monitoring", "Real-time Analytics"]
+                  features: ["Multi-channel Support", "CRM Integration", "Quality Monitoring", "Real-time Analytics"],
+                  gradient: "from-purple-500 to-pink-500",
+                  bgGradient: "from-purple-50 to-pink-50",
                 },
                 {
-                  icon: <Database className="w-8 h-8 text-blue-500" />,
+                  icon: <Database className="w-6 h-6 text-white" />,
                   title: "Data Entry & Processing",
                   description: "Accurate and efficient data entry, validation, and processing services.",
-                  features: ["Data Validation", "OCR Processing", "Quality Checks", "Secure Handling"]
+                  features: ["Data Validation", "OCR Processing", "Quality Checks", "Secure Handling"],
+                  gradient: "from-blue-500 to-cyan-500",
+                  bgGradient: "from-blue-50 to-cyan-50",
                 },
                 {
-                  icon: <Mail className="w-8 h-8 text-green-500" />,
+                  icon: <Mail className="w-6 h-6 text-white" />,
                   title: "Email Management",
                   description: "Professional email handling, response management, and ticket resolution.",
-                  features: ["Auto-routing", "Template Responses", "Escalation Management", "Performance Tracking"]
+                  features: ["Auto-routing", "Template Responses", "Escalation Management", "Performance Tracking"],
+                  gradient: "from-green-500 to-emerald-500",
+                  bgGradient: "from-green-50 to-emerald-50",
                 },
                 {
-                  icon: <BarChart3 className="w-8 h-8 text-orange-500" />,
+                  icon: <BarChart3 className="w-6 h-6 text-white" />,
                   title: "Back Office Operations",
                   description: "Complete back-office support including accounting, HR, and administrative tasks.",
-                  features: ["Invoice Processing", "Payroll Management", "Document Handling", "Compliance Support"]
+                  features: ["Invoice Processing", "Payroll Management", "Document Handling", "Compliance Support"],
+                  gradient: "from-orange-500 to-red-500",
+                  bgGradient: "from-orange-50 to-red-50",
                 },
                 {
-                  icon: <MessageSquare className="w-8 h-8 text-pink-500" />,
+                  icon: <MessageSquare className="w-6 h-6 text-white" />,
                   title: "Live Chat Support",
                   description: "Real-time chat support with instant responses and seamless customer experience.",
-                  features: ["Instant Responses", "Chat Routing", "Co-browsing", "Transcript Management"]
+                  features: ["Instant Responses", "Chat Routing", "Co-browsing", "Transcript Management"],
+                  gradient: "from-pink-500 to-rose-500",
+                  bgGradient: "from-pink-50 to-rose-50",
                 },
                 {
-                  icon: <Settings className="w-8 h-8 text-indigo-500" />,
+                  icon: <Settings className="w-6 h-6 text-white" />,
                   title: "Process Automation",
                   description: "Automate repetitive tasks and streamline workflows for better efficiency.",
-                  features: ["Workflow Design", "Task Automation", "Integration APIs", "Performance Monitoring"]
+                  features: ["Workflow Design", "Task Automation", "Integration APIs", "Performance Monitoring"],
+                  gradient: "from-indigo-500 to-purple-500",
+                  bgGradient: "from-indigo-50 to-purple-50",
                 }
               ].map((service, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 group"
-                >
-                  <div className="mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                      {service.icon}
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-3">{service.title}</h3>
-                    <p className="text-gray-600 mb-4">{service.description}</p>
-                  </div>
-                  
-                  <ul className="space-y-2">
-                    {service.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-center text-sm text-gray-600">
-                        <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </motion.div>
+                <ServiceCard
+                  key={service.title}
+                  icon={service.icon}
+                  title={service.title}
+                  description={service.description}
+                  features={service.features}
+                  gradient={service.gradient}
+                  bgGradient={service.bgGradient}
+                  animationDelay={0.1 * index}
+                  showFeatures={4}
+                />
               ))}
             </div>
           </div>

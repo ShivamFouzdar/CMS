@@ -9,51 +9,25 @@ import {
   Clock, 
   Shield, 
   Users, 
-  TrendingUp,
   ChevronRight,
   Quote,
   Headphones,
   Mail,
   MessageSquare,
   BarChart3,
-  Briefcase,
   Phone,
-  Database,
   Settings,
   Target,
   Plus,
   Minus,
   Globe,
   Zap,
-  Award,
   Monitor,
   Smartphone,
-  Laptop,
-  Tablet,
   Video,
-  Mic,
-  Camera,
   MessageCircle,
-  Send,
   Bot,
-  User,
-  Calendar,
-  CheckSquare,
-  AlertCircle,
-  ThumbsUp,
-  ThumbsDown,
-  RefreshCw,
-  Download,
-  Upload,
-  FileText,
-  Image,
-  Link,
-  Smile,
-  Heart,
-  Coffee,
-  Moon,
-  Sun
-} from 'lucide-react';
+  ThumbsUp} from 'lucide-react';
 
 export default function CustomerSupport() {
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
@@ -98,7 +72,7 @@ export default function CustomerSupport() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                  <Button href="/contact" variant="primary" size="lg" className="flex items-center">
+                  <Button href="/contact" variant="default" size="lg" className="flex items-center">
                     Get Started Today
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Button>

@@ -7,7 +7,7 @@ import {
   downloadResume,
   deleteJobApplication
 } from '@/controllers/jobApplicationController';
-// import { authenticateToken, requireRole } from '@/middleware/auth'; // TODO: Re-enable in production
+import { authenticateToken } from '@/middleware/auth';
 
 const router = Router();
 
@@ -20,16 +20,16 @@ const router = Router();
 router.post('/', submitJobApplication);
 
 // Protected routes (require authentication)
-// router.use(authenticateToken); // TODO: Enable authentication in production
+router.use(authenticateToken);
 
 // Job application management routes
-router.get('/submissions', getJobApplications); // requireRole(['admin', 'moderator']) - disabled for testing
-router.get('/submissions/:id', getJobApplicationById); // requireRole(['admin', 'moderator']) - disabled for testing
-router.get('/submissions/:id/resume', downloadResume); // requireRole(['admin', 'moderator']) - disabled for testing
-router.delete('/submissions/:id', deleteJobApplication); // requireRole(['admin']) - disabled for testing
+router.get('/submissions', getJobApplications);
+router.get('/submissions/:id', getJobApplicationById);
+router.get('/submissions/:id/resume', downloadResume);
+router.delete('/submissions/:id', deleteJobApplication);
 
 // Statistics routes
-router.get('/stats', getJobApplicationStats); // requireRole(['admin', 'moderator']) - disabled for testing
+router.get('/stats', getJobApplicationStats);
 
 export default router;
 

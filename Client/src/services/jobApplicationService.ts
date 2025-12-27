@@ -24,6 +24,8 @@ export interface JobApplication {
 
 export interface JobApplicationStats {
   total: number;
+  newToday?: number;
+  thisMonth?: number;
   pending?: number;
   approved?: number;
   rejected?: number;
@@ -63,14 +65,40 @@ export const getJobApplications = async (
 ): Promise<PaginatedResponse<JobApplication>> => {
   try {
     const token = localStorage.getItem('accessToken');
+    
+    if (!token) {
+      console.error('No access token found');
+      throw new Error('Authentication required. Please log in again.');
+    }
+
+    console.log('Fetching job applications from:', API_ENDPOINTS.jobApplication.submissions);
+    console.log('Page:', page, 'Limit:', limit);
+
     const response = await axios.get(API_ENDPOINTS.jobApplication.submissions, {
       params: { page, limit },
       headers: { Authorization: `Bearer ${token}` },
     });
+
+    console.log('Job applications response:', response.data);
     return response.data;
   } catch (error: any) {
+    console.error('Error fetching job applications:', error);
+    console.error('Error response:', error.response?.data);
+    console.error('Error status:', error.response?.status);
+    
+    if (error.response?.status === 401) {
+      // Unauthorized - token expired or invalid
+      console.error('Authentication failed. Redirecting to login...');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      window.location.href = '/auth/login';
+      throw new Error('Session expired. Please log in again.');
+    }
+    
     if (error.response?.status === 404 || error.code === 'ERR_NETWORK') {
       // Return empty data if no applicants or server is down
+      console.warn('No job applications found or network error');
       return {
         success: true,
         data: [],
@@ -86,6 +114,8 @@ export const getJobApplications = async (
         timestamp: new Date().toISOString(),
       };
     }
+    
+    // Re-throw other errors
     throw error;
   }
 };

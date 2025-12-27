@@ -4,8 +4,8 @@ import axios from 'axios';
 import { API_ENDPOINTS } from '@/config/api';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { useAuth } from '@/hooks/useAuth';
-import { useAsyncOperation } from '@/hooks/useAsyncOperation';
 import { StatCard } from '@/components/ui/StatCard';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Briefcase, Clock, CheckCircle, Users } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -17,44 +17,60 @@ export default function AdminDashboard() {
     approvedApplications: 0,
     totalContacts: 0,
   });
-
-  const { execute, loading } = useAsyncOperation({
-    onSuccess: () => {},
-  });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // ProtectedRoute already handles authentication check
+    // Only fetch stats if authenticated
     if (!isAuthenticated) {
-      navigate('/auth/login');
+      setLoading(false);
       return;
     }
+
+    let isMounted = true;
+
+    const fetchStats = async () => {
+      try {
+        setLoading(true);
+        // Fetch job application stats and contact stats
+        const [applicationsResponse, contactsResponse] = await Promise.all([
+          axios.get(API_ENDPOINTS.jobApplication.stats, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
+          }).catch(() => ({ data: { success: false, data: {} } })),
+          axios.get(API_ENDPOINTS.contact.stats, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
+          }).catch(() => ({ data: { success: false, data: { total: 0 } } })),
+        ]);
+
+        if (isMounted) {
+          setStats({
+            totalApplications: applicationsResponse.data.success ? (applicationsResponse.data.data.total || 0) : 0,
+            pendingApplications: applicationsResponse.data.success ? (applicationsResponse.data.data.pending || 0) : 0,
+            approvedApplications: applicationsResponse.data.success ? (applicationsResponse.data.data.approved || 0) : 0,
+            totalContacts: contactsResponse.data.success ? (contactsResponse.data.data.total || 0) : 0,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch dashboard stats:', error);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
     fetchStats();
-  }, [isAuthenticated, navigate]);
 
-  const fetchStats = () => execute(async () => {
-    // Fetch job application stats and contact stats
-    const [applicationsResponse, contactsResponse] = await Promise.all([
-      axios.get(API_ENDPOINTS.jobApplication.stats, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
-      }).catch(() => ({ data: { success: false, data: {} } })),
-      axios.get(API_ENDPOINTS.contact.stats, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
-      }).catch(() => ({ data: { success: false, data: { total: 0 } } })),
-    ]);
-
-    setStats({
-      totalApplications: applicationsResponse.data.success ? (applicationsResponse.data.data.total || 0) : 0,
-      pendingApplications: applicationsResponse.data.success ? (applicationsResponse.data.data.pending || 0) : 0,
-      approvedApplications: applicationsResponse.data.success ? (applicationsResponse.data.data.approved || 0) : 0,
-      totalContacts: contactsResponse.data.success ? (contactsResponse.data.data.total || 0) : 0,
-    });
-  });
+    // Cleanup function to prevent state updates if component unmounts
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated]);
 
   if (loading) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
+        <LoadingSpinner size="lg" fullScreen />
       </AdminLayout>
     );
   }

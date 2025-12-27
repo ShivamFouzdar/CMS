@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion';
 import { Star, Quote, ArrowRight, Eye, MoreHorizontal } from 'lucide-react';
 import { fadeIn } from '@/lib/utils';
-import { Button } from '@/components/ui/Button';
 import { useNavigate } from 'react-router-dom';
 import { reviewsService, Review } from '@/services/reviewsService';
 import { useState, useEffect } from 'react';
@@ -90,7 +89,7 @@ export function Testimonials() {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <p className="text-purple-600 text-xs sm:text-sm mt-1">Testimonials</p>
+          <p className="text-purple-600 text-base sm:text-lg md:text-xl mt-1">Testimonials</p>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center text-gray-800 mb-3 sm:mb-4">
             What Our Clients Say
           </h2>

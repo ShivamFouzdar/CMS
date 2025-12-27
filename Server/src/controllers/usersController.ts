@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { asyncHandler, createError, validateEmail, sanitizeInput } from '@/utils/helpers';
 import { ApiResponse } from '@/types';
 import { User } from '@/models';
+import * as authService from '@/services/authService';
 
 /**
  * Users Controller
@@ -74,18 +75,23 @@ export const logoutUser = asyncHandler(async (_req: Request, res: Response) => {
   res.status(200).json(response);
 });
 
-export const getCurrentUser = asyncHandler(async (_req: Request, res: Response) => {
-  // In production, this would get user from JWT token
+export const getCurrentUser = asyncHandler(async (req: Request, res: Response) => {
+  const userId = (req as any).user?.id;
+
+  if (!userId) {
+    throw createError('User not authenticated', 401);
+  }
+
+  const user = await authService.getCurrentUser(userId);
+
   const response: ApiResponse = {
     success: true,
     data: {
-      id: 'user_123',
-      email: 'admin@example.com',
-      firstName: 'Admin',
-      lastName: 'User',
-      role: 'admin'
+      user: {
+        ...user,
+      },
     },
-    message: 'User profile retrieved successfully',
+    message: 'User information retrieved successfully',
     timestamp: new Date().toISOString(),
   };
 

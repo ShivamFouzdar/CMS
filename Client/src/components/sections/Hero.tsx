@@ -4,45 +4,34 @@ import { fadeIn } from '@/lib/utils';
 import { JobApplicationTrigger } from './JobApplicationDialog';
 import { Link } from 'react-router-dom';
 import { CheckCircle, ArrowRight } from 'lucide-react';
-
-const backgroundImages = [
-  '/work.png',
-];
+import FloatingLines from './FloatingLines';
 
 export function Hero() {
   return (
     <section 
       className="relative flex items-center justify-center overflow-hidden pt-18 sm:pt-24 md:pt-24 lg:pt-28 pb-16 sm:pb-20 md:pb-24 lg:pb-28 min-h-[600px] sm:min-h-[700px] md:min-h-[800px]"
     >
-      {/* 🔹 Background Image with Zoom */}
+      {/* 🔹 Floating Lines Background */}
       <div className="absolute inset-0 z-0 overflow-hidden">
-        <motion.img
-          src={backgroundImages[0]}
-          alt="CareerMap Solutions Background"
-          className="w-full h-full object-cover"
-          style={{ 
-            filter: 'contrast(1.1) brightness(0.9)',
-            WebkitFilter: 'contrast(1.1) brightness(0.9)',
-            backdropFilter: 'none',
-            WebkitBackdropFilter: 'none',
-          }}
-          initial={{ scale: 1.0 }}
-          animate={{ scale: 1.25 }}
-          transition={{
-            duration: 15,
-            ease: 'easeInOut',
-            repeat: Infinity,
-            repeatType: 'reverse',
-          }}
+        <FloatingLines 
+          enabledWaves={['top', 'middle', 'bottom']}
+          lineCount={[10, 15, 20]}
+          lineDistance={[8, 6, 4]}
+          bendRadius={10.0}
+          bendStrength={-2.0}
+          mouseDamping={0.15}
+          interactive={true}
+          parallax={true}
+          parallaxStrength={0.5}
+          mixBlendMode="screen"
         />
-        {/* Gradient Overlays - Balanced contrast */}
-        <div className="absolute inset-0 bg-gradient-to-br from-black/50 via-purple-900/65 to-black/40"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent"></div>
-        <div className="absolute inset-0 bg-black/20"></div>
       </div>
 
+      {/* 🔹 Background Overlay for better text readability */}
+      <div className="absolute inset-0 z-[1] bg-gradient-to-b from-black/40 via-black/30 to-black/50 pointer-events-none" />
+
       {/* 🔹 Background Pattern */}
-      <div className="absolute inset-0 z-[1] opacity-10">
+      <div className="absolute inset-0 z-[1] opacity-10 pointer-events-none">
         <div className="absolute inset-0" style={{
           backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.15) 1px, transparent 0)',
           backgroundSize: '40px 40px',
@@ -73,7 +62,7 @@ export function Hero() {
             variants={fadeIn('up', 0.2)}
           >
             Empowering Careers.{' '}
-            <span className="block mt-2 sm:mt-3 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 bg-clip-text text-transparent  leading-relaxed pt-1 sm:pt-2 pb-0.5 sm:pb-1">
+            <span className="block mt-2 sm:mt-3 text-white leading-relaxed pt-1 sm:pt-2 pb-0.5 sm:pb-1">
               Enabling Businesses.
             </span>
           </motion.h1>
@@ -112,14 +101,16 @@ export function Hero() {
           <div className="flex items-center gap-3 px-4 sm:px-6 py-2 sm:py-3 bg-white/10 backdrop-blur-md rounded-full border border-white/20">
             <div className="flex -space-x-2">
               {[1, 2, 3].map((i) => (
-                <div 
+                <img 
                   key={i}
-                  className="h-8 w-8 sm:h-10 sm:w-10 rounded-full border-2 border-white/50 bg-gradient-to-br from-purple-400 to-pink-400"
+                  src={`/${i}.png`}
+                  alt={`Trusted business ${i}`}
+                  className="h-8 w-8 sm:h-10 sm:w-10 rounded-full border-2 border-white/50 object-cover"
                   style={{ zIndex: 3 - i }}
                 />
               ))}
             </div>
-            <span className="text-white/90 font-medium text-sm sm:text-base">Trusted by 50+ businesses</span>
+            <span className="text-white/90 font-medium text-sm sm:text-base">Trusted by businesses</span>
           </div>
           <div className="flex items-center gap-3 px-4 sm:px-6 py-2 sm:py-3 bg-white/10 backdrop-blur-md rounded-full border border-white/20">
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">

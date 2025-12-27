@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useDebounce } from '@/hooks/useDebounce';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_ENDPOINTS } from '@/config/api';
@@ -7,6 +8,8 @@ import { AdminLayout } from '@/components/layout/AdminLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { useAsyncOperation } from '@/hooks/useAsyncOperation';
 import { handleApiError } from '@/utils/errorHandler';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface Review {
   _id: string;
@@ -28,6 +31,7 @@ export default function Reviews() {
   const { isAuthenticated } = useAuth();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 300); // Debounce search input
   const [filterPublished, setFilterPublished] = useState<'all' | 'published' | 'pending'>('all');
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
   const [showDetails, setShowDetails] = useState(false);
@@ -62,7 +66,8 @@ export default function Reviews() {
       return;
     }
     fetchReviews();
-  }, [isAuthenticated, navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   const { execute: updateStatusExecute } = useAsyncOperation({
     onSuccess: () => {
@@ -79,7 +84,7 @@ export default function Reviews() {
     },
   });
 
-  const handleStatusUpdate = async (reviewId: string, updates: Partial<{ isPublished: boolean; isVerified: boolean; isFeatured: boolean }>) => {
+  const handleStatusUpdate = useCallback(async (reviewId: string, updates: Partial<{ isPublished: boolean; isVerified: boolean; isFeatured: boolean }>) => {
     updateStatusExecute(async () => {
       const token = localStorage.getItem('accessToken');
       const url = API_ENDPOINTS.reviews.updateStatus(reviewId);
@@ -94,15 +99,15 @@ export default function Reviews() {
       // Update local state
       setReviews(prev => prev.map(r => r._id === reviewId ? { ...r, ...updates } : r));
       if (selectedReview?._id === reviewId) {
-        setSelectedReview({ ...selectedReview, ...updates });
+        setSelectedReview(prev => prev ? { ...prev, ...updates } : null);
       }
     }).catch((error: unknown) => {
       const errorInfo = handleApiError(error);
       alert(errorInfo.message);
     });
-  };
+  }, [updateStatusExecute, selectedReview]);
 
-  const handleDelete = async (reviewId: string) => {
+  const handleDelete = useCallback(async (reviewId: string) => {
     if (!confirm('Are you sure you want to delete this review?')) return;
 
     deleteReviewExecute(async () => {
@@ -123,36 +128,42 @@ export default function Reviews() {
       const errorInfo = handleApiError(error);
       alert(errorInfo.message);
     });
-  };
+  }, [deleteReviewExecute, selectedReview]);
 
-  const filteredReviews = reviews.filter(review => {
-    const matchesSearch = review.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         review.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         review.content.toLowerCase().includes(searchTerm.toLowerCase());
+  // Memoize filtered reviews to avoid recalculating on every render
+  // Use debounced search term for better performance
+  const filteredReviews = useMemo(() => {
+    return reviews.filter(review => {
+      const lowerSearchTerm = debouncedSearchTerm.toLowerCase();
+      const matchesSearch = review.name.toLowerCase().includes(lowerSearchTerm) ||
+                           review.email.toLowerCase().includes(lowerSearchTerm) ||
+                           review.content.toLowerCase().includes(lowerSearchTerm);
 
-    let matchesFilter = true;
-    if (filterPublished === 'published') {
-      matchesFilter = review.isPublished === true;
-    } else if (filterPublished === 'pending') {
-      matchesFilter = review.isPublished === false;
-    }
+      let matchesFilter = true;
+      if (filterPublished === 'published') {
+        matchesFilter = review.isPublished === true;
+      } else if (filterPublished === 'pending') {
+        matchesFilter = review.isPublished === false;
+      }
 
-    return matchesSearch && matchesFilter;
-  });
+      return matchesSearch && matchesFilter;
+    });
+  }, [reviews, debouncedSearchTerm, filterPublished]);
 
-  const stats = {
-    total: reviews.length,
-    published: reviews.filter(r => r.isPublished).length,
-    pending: reviews.filter(r => !r.isPublished).length,
-    verified: reviews.filter(r => r.isVerified).length,
-  };
+  // Memoize stats calculation
+  const stats = useMemo(() => {
+    return {
+      total: reviews.length,
+      published: reviews.filter(r => r.isPublished).length,
+      pending: reviews.filter(r => !r.isPublished).length,
+      verified: reviews.filter(r => r.isVerified).length,
+    };
+  }, [reviews]);
 
   if (loading) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
+        <LoadingSpinner size="lg" fullScreen />
       </AdminLayout>
     );
   }
@@ -329,9 +340,14 @@ export default function Reviews() {
           </div>
 
           {filteredReviews.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-500">No reviews found</p>
-            </div>
+            <tbody>
+              <EmptyState
+                icon={MessageSquare}
+                title="No reviews found"
+                description="Try adjusting your search or filter criteria."
+                colSpan={6}
+              />
+            </tbody>
           )}
         </div>
 

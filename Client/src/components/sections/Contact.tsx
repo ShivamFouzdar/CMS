@@ -384,12 +384,17 @@ export function Contact({ showHeader = true }: ContactProps) {
                           {emailCopied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
                           {emailCopied ? 'Copied' : 'Copy'}
                         </button>
-                        <a
-                          href="mailto:info@careermapsolutions.com"
-                          className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 transition-all text-xs font-semibold shadow-md"
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.location.href = 'mailto:info@careermapsolutions.com';
+                          }}
+                          className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 active:scale-95 transition-all text-sm font-semibold shadow-md hover:shadow-lg min-h-[44px] touch-manipulation cursor-pointer"
+                          aria-label="Send email to info@careermapsolutions.com"
                         >
                           Email Us
-                        </a>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -421,12 +426,17 @@ export function Contact({ showHeader = true }: ContactProps) {
                           {phoneCopied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
                           {phoneCopied ? 'Copied' : 'Copy'}
                         </button>
-                        <a
-                          href="tel:+919012950370"
-                          className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 transition-all text-xs font-semibold shadow-md"
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.location.href = 'tel:+919012950370';
+                          }}
+                          className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 active:scale-95 transition-all text-sm font-semibold shadow-md hover:shadow-lg min-h-[44px] touch-manipulation cursor-pointer"
+                          aria-label="Call +91 90129 50370"
                         >
                           Call Now
-                        </a>
+                        </button>
                       </div>
                     </div>
                   </div>

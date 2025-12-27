@@ -66,7 +66,7 @@ const services = [
   {
     icon: <Code className="w-6 h-6 text-white" />,
     title: "IT Services",
-    description: "Full-stack MERN development services for modern web applications and digital solutions.",
+    description: "Full-stack development services for modern web applications and digital solutions.",
     features: [
       "React Frontend Development",
       "Express.js Backend",

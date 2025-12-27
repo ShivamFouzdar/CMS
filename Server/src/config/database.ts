@@ -318,8 +318,8 @@ export const seedDatabase = async (): Promise<void> => {
         {
           name: 'IT Services',
           slug: 'it',
-          description: 'Full-stack MERN development and comprehensive IT solutions to modernize your business with cutting-edge technology.',
-          shortDescription: 'Modernize your business with our MERN stack development',
+          description: 'Full-stack development and comprehensive IT solutions to modernize your business with cutting-edge technology.',
+          shortDescription: 'Modernize your business with our Full stack development',
           icon: 'Code',
           features: [
             'React Frontend Development',

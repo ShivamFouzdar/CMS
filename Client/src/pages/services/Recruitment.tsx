@@ -2,8 +2,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { CallToAction } from '@/components/sections/CallToAction';
+import { ServiceCard } from '@/components/ui/ServiceCard';
 import { 
-  CheckCircle, 
   Star, 
   ArrowRight, 
   Clock, 
@@ -13,103 +13,17 @@ import {
   ChevronRight,
   Quote,
   UserPlus,
-  Mail,
-  MessageSquare,
   BarChart3,
-  Briefcase,
-  Phone,
-  Database,
-  Settings,
   Target,
   Plus,
   Minus,
-  Globe,
-  Zap,
-  Award,
-  Monitor,
   Search,
   FileText,
-  PieChart,
-  Lightbulb,
-  BookOpen,
   GraduationCap,
-  Microscope,
-  Calculator,
-  TrendingDown,
-  Eye,
-  Filter,
-  Layers,
-  Cpu,
-  Network,
-  GitBranch,
   Code,
-  Database as DatabaseIcon,
-  Cloud,
-  Lock,
-  Unlock,
-  RefreshCw,
-  Download,
-  Upload,
-  Share2,
-  Copy,
-  Edit,
-  Trash2,
-  Save,
-  Send,
-  CheckSquare,
-  AlertCircle,
-  ThumbsUp,
-  ThumbsDown,
-  Coffee,
-  Moon,
-  Sun,
-  Gavel,
-  FileCheck,
-  Clipboard,
-  PenTool,
-  Archive,
-  FolderOpen,
-  Document,
-  Scroll,
   Building,
   UserCheck,
-  AlertTriangle,
-  CheckCircle2,
-  XCircle,
-  Info,
-  HelpCircle,
-  ExternalLink,
-  Calendar,
-  Clock as ClockIcon,
-  Timer,
-  Stopwatch,
-  Hourglass,
-  Calendar as CalendarIcon,
-  MapPin,
-  Phone as PhoneIcon,
-  Mail as MailIcon,
-  MessageCircle,
   Video,
-  Camera,
-  Mic,
-  Headphones,
-  Volume2,
-  VolumeX,
-  Play,
-  Pause,
-  SkipForward,
-  SkipBack,
-  RotateCcw,
-  RotateCw,
-  Maximize,
-  Minimize,
-  Move,
-  Copy as CopyIcon,
-  Scissors,
-  Clipboard as ClipboardIcon,
-  Bookmark,
-  Tag,
-  Flag,
   Heart,
   ShoppingCart,
   Factory
@@ -158,7 +72,7 @@ export default function Recruitment() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                  <Button href="/contact" variant="primary" size="lg" className="flex items-center">
+                  <Button href="/contact" variant="default" size="lg" className="flex items-center">
                     Get Started Today
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Button>
@@ -187,71 +101,19 @@ export default function Recruitment() {
                 initial={{ opacity: 0, x: 60 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
-                className="relative"
+                className="relative group"
               >
-                <div className="bg-white rounded-2xl shadow-2xl p-8 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-blue-500/10"></div>
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-xl font-semibold text-gray-900">Recruitment Dashboard</h3>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                        <span className="text-sm text-gray-600">Active</span>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                      <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-2xl font-bold text-green-600">47</div>
-                            <div className="text-sm text-gray-600">Active Jobs</div>
-                          </div>
-                          <Briefcase className="w-8 h-8 text-green-500" />
-                        </div>
-                      </div>
-                      <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-2xl font-bold text-blue-600">234</div>
-                            <div className="text-sm text-gray-600">Candidates</div>
-                          </div>
-                          <Users className="w-8 h-8 text-blue-500" />
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                            <CheckCircle className="w-4 h-4 text-green-600" />
-                          </div>
-                          <span className="text-sm font-medium">Screening</span>
-                        </div>
-                        <span className="text-sm text-green-600 font-medium">12 Active</span>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                            <Video className="w-4 h-4 text-blue-600" />
-                          </div>
-                          <span className="text-sm font-medium">Interviews</span>
-                        </div>
-                        <span className="text-sm text-blue-600 font-medium">8 Scheduled</span>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                            <UserCheck className="w-4 h-4 text-purple-600" />
-                          </div>
-                          <span className="text-sm font-medium">Onboarding</span>
-                        </div>
-                        <span className="text-sm text-purple-600 font-medium">5 New</span>
-                      </div>
-                    </div>
+                <div className="bg-white rounded-2xl shadow-2xl overflow-hidden transition-all duration-500 group-hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] group-hover:scale-[1.02]">
+                  <div className="relative overflow-hidden">
+                    <img 
+                      src="/recruitment.png" 
+                      alt="Recruitment Services" 
+                      className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-green-600/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   </div>
                 </div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-green-600 to-blue-600 rounded-2xl opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500 -z-10"></div>
               </motion.div>
             </div>
           </div>
@@ -278,70 +140,68 @@ export default function Recruitment() {
               </p>
             </motion.div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {[
                 {
-                  icon: <Search className="w-8 h-8 text-green-500" />,
+                  icon: <Search className="w-6 h-6 text-white" />,
                   title: "Talent Sourcing",
                   description: "Advanced sourcing strategies to find the best candidates across multiple channels.",
-                  features: ["Job Board Management", "Social Media Sourcing", "Referral Programs", "Passive Candidate Search", "Database Mining", "AI-Powered Matching"]
+                  features: ["Job Board Management", "Social Media Sourcing", "Referral Programs", "Passive Candidate Search", "Database Mining", "AI-Powered Matching"],
+                  gradient: "from-green-500 to-emerald-500",
+                  bgGradient: "from-green-50 to-emerald-50",
                 },
                 {
-                  icon: <Users className="w-8 h-8 text-blue-500" />,
+                  icon: <Users className="w-6 h-6 text-white" />,
                   title: "Candidate Screening",
                   description: "Comprehensive screening and assessment processes to identify top talent.",
-                  features: ["Resume Screening", "Phone Interviews", "Skills Assessment", "Background Checks", "Reference Verification", "Cultural Fit Analysis"]
+                  features: ["Resume Screening", "Phone Interviews", "Skills Assessment", "Background Checks", "Reference Verification", "Cultural Fit Analysis"],
+                  gradient: "from-blue-500 to-cyan-500",
+                  bgGradient: "from-blue-50 to-cyan-50",
                 },
                 {
-                  icon: <Video className="w-8 h-8 text-purple-500" />,
+                  icon: <Video className="w-6 h-6 text-white" />,
                   title: "Interview Management",
                   description: "Structured interview processes with expert coordination and evaluation.",
-                  features: ["Interview Scheduling", "Panel Coordination", "Technical Assessments", "Behavioral Interviews", "Video Interviews", "Feedback Collection"]
+                  features: ["Interview Scheduling", "Panel Coordination", "Technical Assessments", "Behavioral Interviews", "Video Interviews", "Feedback Collection"],
+                  gradient: "from-purple-500 to-pink-500",
+                  bgGradient: "from-purple-50 to-pink-50",
                 },
                 {
-                  icon: <FileText className="w-8 h-8 text-orange-500" />,
+                  icon: <FileText className="w-6 h-6 text-white" />,
                   title: "Job Description Writing",
                   description: "Compelling job descriptions that attract the right candidates.",
-                  features: ["Job Analysis", "Requirements Definition", "Compensation Research", "Market Analysis", "SEO Optimization", "A/B Testing"]
+                  features: ["Job Analysis", "Requirements Definition", "Compensation Research", "Market Analysis", "SEO Optimization", "A/B Testing"],
+                  gradient: "from-orange-500 to-red-500",
+                  bgGradient: "from-orange-50 to-red-50",
                 },
                 {
-                  icon: <BarChart3 className="w-8 h-8 text-pink-500" />,
+                  icon: <BarChart3 className="w-6 h-6 text-white" />,
                   title: "Recruitment Analytics",
                   description: "Data-driven insights to optimize your hiring process and outcomes.",
-                  features: ["Time-to-Hire Tracking", "Source Effectiveness", "Candidate Pipeline", "Cost Analysis", "Quality Metrics", "Predictive Analytics"]
+                  features: ["Time-to-Hire Tracking", "Source Effectiveness", "Candidate Pipeline", "Cost Analysis", "Quality Metrics", "Predictive Analytics"],
+                  gradient: "from-pink-500 to-rose-500",
+                  bgGradient: "from-pink-50 to-rose-50",
                 },
                 {
-                  icon: <UserCheck className="w-8 h-8 text-indigo-500" />,
+                  icon: <UserCheck className="w-6 h-6 text-white" />,
                   title: "Onboarding Support",
                   description: "Seamless onboarding experience to ensure new hire success and retention.",
-                  features: ["Welcome Programs", "Documentation", "Training Coordination", "Mentor Matching", "Progress Tracking", "Retention Programs"]
+                  features: ["Welcome Programs", "Documentation", "Training Coordination", "Mentor Matching", "Progress Tracking", "Retention Programs"],
+                  gradient: "from-indigo-500 to-purple-500",
+                  bgGradient: "from-indigo-50 to-purple-50",
                 }
               ].map((service, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 group"
-                >
-                  <div className="mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-green-50 to-blue-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                      {service.icon}
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-3">{service.title}</h3>
-                    <p className="text-gray-600 mb-4">{service.description}</p>
-                  </div>
-                  
-                  <ul className="space-y-2">
-                    {service.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-center text-sm text-gray-600">
-                        <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </motion.div>
+                <ServiceCard
+                  key={service.title}
+                  icon={service.icon}
+                  title={service.title}
+                  description={service.description}
+                  features={service.features}
+                  gradient={service.gradient}
+                  bgGradient={service.bgGradient}
+                  animationDelay={0.1 * index}
+                  showFeatures={6}
+                />
               ))}
             </div>
           </div>
@@ -509,70 +369,68 @@ export default function Recruitment() {
               </p>
             </motion.div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {[
                 {
-                  icon: <Code className="w-8 h-8 text-blue-500" />,
+                  icon: <Code className="w-6 h-6 text-white" />,
                   title: "Technology",
                   description: "Software engineers, developers, data scientists, and IT professionals.",
-                  features: ["Software Development", "Data Science", "Cybersecurity", "DevOps", "Product Management", "UI/UX Design"]
+                  features: ["Software Development", "Data Science", "Cybersecurity", "DevOps", "Product Management", "UI/UX Design"],
+                  gradient: "from-blue-500 to-cyan-500",
+                  bgGradient: "from-blue-50 to-cyan-50",
                 },
                 {
-                  icon: <Building className="w-8 h-8 text-green-500" />,
+                  icon: <Building className="w-6 h-6 text-white" />,
                   title: "Finance & Banking",
                   description: "Financial analysts, investment bankers, and banking professionals.",
-                  features: ["Investment Banking", "Risk Management", "Financial Analysis", "Compliance", "Trading", "Fintech"]
+                  features: ["Investment Banking", "Risk Management", "Financial Analysis", "Compliance", "Trading", "Fintech"],
+                  gradient: "from-green-500 to-emerald-500",
+                  bgGradient: "from-green-50 to-emerald-50",
                 },
                 {
-                  icon: <Heart className="w-8 h-8 text-red-500" />,
+                  icon: <Heart className="w-6 h-6 text-white" />,
                   title: "Healthcare",
                   description: "Medical professionals, healthcare administrators, and life sciences experts.",
-                  features: ["Clinical Research", "Medical Devices", "Pharmaceuticals", "Healthcare IT", "Nursing", "Administration"]
+                  features: ["Clinical Research", "Medical Devices", "Pharmaceuticals", "Healthcare IT", "Nursing", "Administration"],
+                  gradient: "from-red-500 to-pink-500",
+                  bgGradient: "from-red-50 to-pink-50",
                 },
                 {
-                  icon: <ShoppingCart className="w-8 h-8 text-purple-500" />,
+                  icon: <ShoppingCart className="w-6 h-6 text-white" />,
                   title: "Retail & E-commerce",
                   description: "Retail managers, e-commerce specialists, and supply chain professionals.",
-                  features: ["Retail Management", "E-commerce", "Supply Chain", "Merchandising", "Digital Marketing", "Operations"]
+                  features: ["Retail Management", "E-commerce", "Supply Chain", "Merchandising", "Digital Marketing", "Operations"],
+                  gradient: "from-purple-500 to-pink-500",
+                  bgGradient: "from-purple-50 to-pink-50",
                 },
                 {
-                  icon: <GraduationCap className="w-8 h-8 text-orange-500" />,
+                  icon: <GraduationCap className="w-6 h-6 text-white" />,
                   title: "Education",
                   description: "Teachers, administrators, and educational technology professionals.",
-                  features: ["Teaching", "Administration", "EdTech", "Curriculum Development", "Student Services", "Research"]
+                  features: ["Teaching", "Administration", "EdTech", "Curriculum Development", "Student Services", "Research"],
+                  gradient: "from-orange-500 to-amber-500",
+                  bgGradient: "from-orange-50 to-amber-50",
                 },
                 {
-                  icon: <Factory className="w-8 h-8 text-gray-500" />,
+                  icon: <Factory className="w-6 h-6 text-white" />,
                   title: "Manufacturing",
                   description: "Engineers, production managers, and quality assurance professionals.",
-                  features: ["Engineering", "Production", "Quality Control", "Supply Chain", "Maintenance", "Safety"]
+                  features: ["Engineering", "Production", "Quality Control", "Supply Chain", "Maintenance", "Safety"],
+                  gradient: "from-gray-500 to-slate-500",
+                  bgGradient: "from-gray-50 to-slate-50",
                 }
               ].map((industry, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  className="bg-gray-50 rounded-xl p-8 hover:shadow-lg transition-all duration-300 group"
-                >
-                  <div className="mb-6">
-                    <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-sm">
-                      {industry.icon}
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-3">{industry.title}</h3>
-                    <p className="text-gray-600 mb-4">{industry.description}</p>
-                  </div>
-                  
-                  <ul className="space-y-2">
-                    {industry.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-center text-sm text-gray-600">
-                        <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </motion.div>
+                <ServiceCard
+                  key={industry.title}
+                  icon={industry.icon}
+                  title={industry.title}
+                  description={industry.description}
+                  features={industry.features}
+                  gradient={industry.gradient}
+                  bgGradient={industry.bgGradient}
+                  animationDelay={0.1 * index}
+                  showFeatures={6}
+                />
               ))}
             </div>
           </div>

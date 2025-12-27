@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnalyticsProvider } from '@/components/providers/AnalyticsProvider';
 import { Header } from '@/components/layout/Header';
@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import AboutPage from './pages/About';
 import ServicesPage from './pages/Services';
 import ContactPage from './pages/Contact';
+import TeamPage from './pages/Team';
 import { Reviews } from './pages/Reviews';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
@@ -17,14 +18,17 @@ import LegalServices from './pages/services/LegalServices';
 import Recruitment from './pages/services/Recruitment';
 import ITServices from './pages/services/ITServices';
 import BrandPromotion from './pages/services/BrandPromotion';
-import JobApplicants from './pages/admin/JobApplicants';
-import AdminReviews from './pages/admin/Reviews';
-import Leads from './pages/admin/ContactSubmissions';
-import Settings from './pages/admin/Settings';
 import LoginPage from './pages/auth/Login';
 import RegisterPage from './pages/auth/Register';
-import AdminDashboard from './pages/admin/Dashboard';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { LoadingSpinner } from './components/ui/LoadingSpinner';
+
+// Lazy load admin pages for better performance
+const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
+const JobApplicants = lazy(() => import('./pages/admin/JobApplicants'));
+const AdminReviews = lazy(() => import('./pages/admin/Reviews'));
+const Leads = lazy(() => import('./pages/admin/ContactSubmissions'));
+const Settings = lazy(() => import('./pages/admin/Settings'));
 
 // Scroll to top on route change
 function ScrollToTop() {
@@ -74,6 +78,7 @@ function App() {
                     <Route path="/about" element={<AboutPage />} />
                     <Route path="/services" element={<ServicesPage />} />
                     <Route path="/contact" element={<ContactPage />} />
+                    <Route path="/team" element={<TeamPage />} />
                     <Route path="/reviews" element={<Reviews />} />
                     <Route path="/case-studies" element={<CaseStudies />} />
                     <Route path="/privacy-policy" element={<PrivacyPolicy />} />
@@ -94,12 +99,14 @@ function App() {
             <Route path="/auth/login" element={<AuthLayout><LoginPage /></AuthLayout>} />
             <Route path="/auth/register" element={<AuthLayout><RegisterPage /></AuthLayout>} />
 
-            {/* Admin routes - protected */}
+            {/* Admin routes - protected with lazy loading */}
             <Route
               path="/admin"
               element={
                 <ProtectedRoute>
-                  <AdminDashboard />
+                  <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
+                    <AdminDashboard />
+                  </Suspense>
                 </ProtectedRoute>
               }
             />
@@ -107,7 +114,9 @@ function App() {
               path="/admin/dashboard"
               element={
                 <ProtectedRoute>
-                  <AdminDashboard />
+                  <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
+                    <AdminDashboard />
+                  </Suspense>
                 </ProtectedRoute>
               }
             />
@@ -115,7 +124,9 @@ function App() {
               path="/admin/job-applicants"
               element={
                 <ProtectedRoute>
-                  <JobApplicants />
+                  <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
+                    <JobApplicants />
+                  </Suspense>
                 </ProtectedRoute>
               }
             />
@@ -123,7 +134,9 @@ function App() {
               path="/admin/reviews"
               element={
                 <ProtectedRoute>
-                  <AdminReviews />
+                  <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
+                    <AdminReviews />
+                  </Suspense>
                 </ProtectedRoute>
               }
             />
@@ -131,7 +144,9 @@ function App() {
               path="/admin/leads"
               element={
                 <ProtectedRoute>
-                  <Leads />
+                  <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
+                    <Leads />
+                  </Suspense>
                 </ProtectedRoute>
               }
             />
@@ -139,7 +154,9 @@ function App() {
               path="/admin/settings"
               element={
                 <ProtectedRoute>
-                  <Settings />
+                  <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
+                    <Settings />
+                  </Suspense>
                 </ProtectedRoute>
               }
             />

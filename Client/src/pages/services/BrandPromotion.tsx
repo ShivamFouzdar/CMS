@@ -2,48 +2,28 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { CallToAction } from '@/components/sections/CallToAction';
+import { ServiceCard } from '@/components/ui/ServiceCard';
+import { fadeIn } from '@/lib/utils';
 import { 
   CheckCircle, 
-  Star, 
-  ArrowRight, 
-  Clock, 
-  Shield, 
-  Users, 
+  ArrowRight,   
   TrendingUp,
   ChevronRight,
-  Quote,
   Plus,
   Minus,
   Target,
   Search,
-  FileText,
-  Lightbulb,
-  GraduationCap,
   Building,
   UserCheck,
   Megaphone,
   Palette,
-  Camera,
-  Video,
-  Globe,
-  Mail,
-  Phone,
-  MessageSquare,
   BarChart3,
   Eye,
-  Sparkles,
   Award,
-  Zap,
   Layers,
   PenTool,
-  Image as ImageIcon,
   Monitor,
-  Smartphone,
   Share2,
-  ThumbsUp,
-  TrendingDown,
-  PieChart,
-  Filter,
   Settings,
   Rocket,
   Heart,
@@ -52,7 +32,8 @@ import {
   Stethoscope,
   Home,
   Briefcase,
-  BookOpen
+  BookOpen,
+  Truck
 } from 'lucide-react';
 
 export default function BrandPromotion() {
@@ -102,7 +83,7 @@ export default function BrandPromotion() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                  <Button href="/contact" variant="primary" size="lg" className="flex items-center">
+                  <Button href="/contact" variant="default" size="lg" className="flex items-center">
                     Get Started Today
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Button>
@@ -131,71 +112,19 @@ export default function BrandPromotion() {
                 initial={{ opacity: 0, x: 60 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
-                className="relative"
+                className="relative group"
               >
-                <div className="bg-white rounded-2xl shadow-2xl p-8 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-indigo-500/10"></div>
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-xl font-semibold text-gray-900">Brand Dashboard</h3>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                        <span className="text-sm text-gray-600">Active</span>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                      <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-2xl font-bold text-purple-600">Brand</div>
-                            <div className="text-sm text-gray-600">Identity</div>
-                          </div>
-                          <Palette className="w-8 h-8 text-purple-500" />
-                        </div>
-                      </div>
-                      <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-4 rounded-lg">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-2xl font-bold text-indigo-600">Digital</div>
-                            <div className="text-sm text-gray-600">Marketing</div>
-                          </div>
-                          <Globe className="w-8 h-8 text-indigo-500" />
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                            <CheckCircle className="w-4 h-4 text-green-600" />
-                          </div>
-                          <span className="text-sm font-medium">Personal Branding</span>
-                        </div>
-                        <span className="text-sm text-green-600 font-medium">Active</span>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                            <TrendingUp className="w-4 h-4 text-purple-600" />
-                          </div>
-                          <span className="text-sm font-medium">Social Media</span>
-                        </div>
-                        <span className="text-sm text-purple-600 font-medium">Growing</span>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                            <Eye className="w-4 h-4 text-indigo-600" />
-                          </div>
-                          <span className="text-sm font-medium">Visibility</span>
-                        </div>
-                        <span className="text-sm text-indigo-600 font-medium">High</span>
-                      </div>
-                    </div>
+                <div className="bg-white rounded-2xl shadow-2xl overflow-hidden transition-all duration-500 group-hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] group-hover:scale-[1.02]">
+                  <div className="relative overflow-hidden">
+                    <img 
+                      src="/brand.png" 
+                      alt="Brand Promotion Services" 
+                      className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-purple-600/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   </div>
                 </div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500 -z-10"></div>
               </motion.div>
             </div>
           </div>
@@ -300,12 +229,12 @@ export default function BrandPromotion() {
               </p>
             </motion.div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {[
                 {
-                  icon: <UserCheck className="w-8 h-8 text-purple-500" />,
+                  icon: <UserCheck className="w-6 h-6 text-white" />,
                   title: "Personal Branding for Professionals",
-                  subtitle: "Build a strong, authentic presence that sets you apart.",
+                  description: "Build a strong, authentic presence that sets you apart. We help you become more visible, credible, and influential.",
                   features: [
                     "Professional CV & Resume Branding",
                     "LinkedIn Profile Optimization",
@@ -314,12 +243,13 @@ export default function BrandPromotion() {
                     "Leadership & Executive Branding",
                     "Social Media Profile Set-up & Growth Strategy"
                   ],
-                  benefit: "We help you become more visible, credible, and influential."
+                  gradient: "from-purple-500 to-pink-500",
+                  bgGradient: "from-purple-50 to-pink-50",
                 },
                 {
-                  icon: <Building className="w-8 h-8 text-indigo-500" />,
+                  icon: <Building className="w-6 h-6 text-white" />,
                   title: "Corporate Brand Development",
-                  subtitle: "For companies looking to grow their influence in the market.",
+                  description: "For companies looking to grow their influence in the market. We position your business as a trusted and modern brand.",
                   features: [
                     "Corporate Identity Development",
                     "Employer Branding Strategy",
@@ -328,12 +258,13 @@ export default function BrandPromotion() {
                     "Employee Branding Programs",
                     "Reputation Management & Review Strategy"
                   ],
-                  benefit: "We position your business as a trusted and modern brand."
+                  gradient: "from-indigo-500 to-purple-500",
+                  bgGradient: "from-indigo-50 to-purple-50",
                 },
                 {
-                  icon: <Share2 className="w-8 h-8 text-purple-500" />,
+                  icon: <Share2 className="w-6 h-6 text-white" />,
                   title: "Digital & Social Media Marketing",
-                  subtitle: "Build a strong online presence backed by strategy.",
+                  description: "Build a strong online presence backed by strategy. We create content that your audience relates to and remembers.",
                   features: [
                     "Social Media Marketing (Facebook, Instagram, LinkedIn, X)",
                     "High-impact Ad Campaigns",
@@ -342,12 +273,13 @@ export default function BrandPromotion() {
                     "SEO Content & Website Optimization",
                     "Lead Generation Campaigns"
                   ],
-                  benefit: "We create content that your audience relates to and remembers."
+                  gradient: "from-purple-500 to-pink-500",
+                  bgGradient: "from-purple-50 to-pink-50",
                 },
                 {
-                  icon: <Palette className="w-8 h-8 text-indigo-500" />,
+                  icon: <Palette className="w-6 h-6 text-white" />,
                   title: "Creative Visual Branding",
-                  subtitle: "Turn your brand into a visual experience that people love.",
+                  description: "Turn your brand into a visual experience that people love. Every design tells your story — powerfully.",
                   features: [
                     "Logo Design & Brand Identity",
                     "Business Cards, Brochures, Corporate Kits",
@@ -355,12 +287,13 @@ export default function BrandPromotion() {
                     "Product Photoshoot & Editing",
                     "UI/UX Design for Websites & Apps"
                   ],
-                  benefit: "Every design tells your story — powerfully."
+                  gradient: "from-indigo-500 to-purple-500",
+                  bgGradient: "from-indigo-50 to-purple-50",
                 },
                 {
-                  icon: <Briefcase className="w-8 h-8 text-purple-500" />,
+                  icon: <Briefcase className="w-6 h-6 text-white" />,
                   title: "Talent Branding for Job Seekers & Entrepreneurs",
-                  subtitle: "This unique CMS-exclusive service boosts your image in the job market.",
+                  description: "This unique CMS-exclusive service boosts your image in the job market. We transform your professional presence and make recruiters notice you.",
                   features: [
                     "Professional Bio + Branding Guide",
                     "Network Positioning Strategy",
@@ -368,38 +301,21 @@ export default function BrandPromotion() {
                     "Career Marketing Materials",
                     "Interview Reputation Management"
                   ],
-                  benefit: "We transform your professional presence and make recruiters notice you."
+                  gradient: "from-purple-500 to-pink-500",
+                  bgGradient: "from-purple-50 to-pink-50",
                 }
               ].map((service, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 group"
-                >
-                  <div className="mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                      {service.icon}
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">{service.title}</h3>
-                    <p className="text-gray-600 mb-4 italic">{service.subtitle}</p>
-                  </div>
-                  
-                  <ul className="space-y-2 mb-4">
-                    {service.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-start text-sm text-gray-600">
-                        <CheckCircle className="w-4 h-4 text-purple-500 mr-2 flex-shrink-0 mt-0.5" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  
-                  <p className="text-sm text-purple-600 font-medium italic mt-4">
-                    {service.benefit}
-                  </p>
-                </motion.div>
+                <ServiceCard
+                  key={service.title}
+                  icon={service.icon}
+                  title={service.title}
+                  description={service.description}
+                  features={service.features}
+                  gradient={service.gradient}
+                  bgGradient={service.bgGradient}
+                  animationDelay={0.1 * index}
+                  showFeatures={6}
+                />
               ))}
             </div>
           </div>
@@ -576,51 +492,141 @@ export default function BrandPromotion() {
       </section>
 
       {/* Industries We Serve */}
-      <section className="py-16 md:py-24 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="max-w-6xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-              className="text-center mb-16"
-            >
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                Industries We Serve
-              </h2>
-              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                Wherever your brand belongs — <strong className="text-purple-600">we help it stand out</strong>
-              </p>
-            </motion.div>
+      <section className="relative py-16 sm:py-20 md:py-24 lg:py-32 overflow-hidden bg-gradient-to-b from-white via-purple-50/30 to-blue-50/30">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 right-10 w-72 h-72 bg-purple-200/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 left-10 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-purple-100/10 to-blue-100/10 rounded-full blur-3xl"></div>
+        </div>
 
-            <div className="grid md:grid-cols-3 lg:grid-cols-5 gap-6">
-              {[
-                { icon: <BookOpen className="w-6 h-6" />, name: "Education & EdTech" },
-                { icon: <Monitor className="w-6 h-6" />, name: "IT & Software" },
-                { icon: <ShoppingCart className="w-6 h-6" />, name: "E-commerce & Retail" },
-                { icon: <Heart className="w-6 h-6" />, name: "Hospitality" },
-                { icon: <Stethoscope className="w-6 h-6" />, name: "Healthcare" },
-                { icon: <Home className="w-6 h-6" />, name: "Real Estate" },
-                { icon: <Factory className="w-6 h-6" />, name: "Manufacturing" },
-                { icon: <TrendingUp className="w-6 h-6" />, name: "Financial Services" },
-                { icon: <Rocket className="w-6 h-6" />, name: "Startups & MSMEs" }
-              ].map((industry, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.4, delay: index * 0.05 }}
-                  viewport={{ once: true }}
-                  className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-6 text-center hover:shadow-lg transition-all duration-300 group cursor-pointer"
-                >
-                  <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center mx-auto mb-3 text-purple-600 group-hover:scale-110 transition-transform duration-300 shadow-sm">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          {/* Section Header */}
+          <motion.div
+            className="text-center max-w-4xl mx-auto mb-12 sm:mb-16 lg:mb-20"
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            variants={{
+              hidden: {},
+              show: {
+                transition: {
+                  staggerChildren: 0.1
+                }
+              }
+            }}
+          >
+            <motion.h2
+              variants={fadeIn('up', 0.2)}
+              className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 bg-gradient-to-r from-gray-900 via-purple-900 to-gray-900 bg-clip-text text-transparent leading-tight"
+            >
+              Industries We Serve
+            </motion.h2>
+            
+            <motion.p
+              variants={fadeIn('up', 0.3)}
+              className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed"
+            >
+              Wherever your brand belongs —{' '}
+              <span className="text-purple-600 font-semibold">we help it stand out</span>
+            </motion.p>
+          </motion.div>
+
+          {/* Industries Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8">
+            {[
+              {
+                icon: <BookOpen className="w-8 h-8 text-white" />,
+                name: "Education & EdTech",
+                gradient: "from-blue-500 to-cyan-500",
+                bgGradient: "from-blue-50 to-cyan-50",
+              },
+              {
+                icon: <Monitor className="w-8 h-8 text-white" />,
+                name: "IT & Software",
+                gradient: "from-purple-500 to-pink-500",
+                bgGradient: "from-purple-50 to-pink-50",
+              },
+              {
+                icon: <ShoppingCart className="w-8 h-8 text-white" />,
+                name: "E-commerce & Retail",
+                gradient: "from-orange-500 to-red-500",
+                bgGradient: "from-orange-50 to-red-50",
+              },
+              {
+                icon: <Heart className="w-8 h-8 text-white" />,
+                name: "Hospitality",
+                gradient: "from-pink-500 to-rose-500",
+                bgGradient: "from-pink-50 to-rose-50",
+              },
+              {
+                icon: <Stethoscope className="w-8 h-8 text-white" />,
+                name: "Healthcare",
+                gradient: "from-green-500 to-emerald-500",
+                bgGradient: "from-green-50 to-emerald-50",
+              },
+              {
+                icon: <Home className="w-8 h-8 text-white" />,
+                name: "Real Estate",
+                gradient: "from-indigo-500 to-blue-500",
+                bgGradient: "from-indigo-50 to-blue-50",
+              },
+              {
+                icon: <Factory className="w-8 h-8 text-white" />,
+                name: "Manufacturing",
+                gradient: "from-gray-600 to-gray-800",
+                bgGradient: "from-gray-50 to-gray-100",
+              },
+              {
+                icon: <TrendingUp className="w-8 h-8 text-white" />,
+                name: "Financial Services",
+                gradient: "from-yellow-500 to-amber-500",
+                bgGradient: "from-yellow-50 to-amber-50",
+              },
+              {
+                icon: <Rocket className="w-8 h-8 text-white" />,
+                name: "Startups & MSMEs",
+                gradient: "from-violet-500 to-purple-500",
+                bgGradient: "from-violet-50 to-purple-50",
+              },
+              {
+                icon: <Truck className="w-8 h-8 text-white" />,
+                name: "Logistics & Supply Chain",
+                gradient: "from-violet-500 to-purple-500",
+                bgGradient: "from-violet-50 to-purple-50",
+              },
+            ].map((industry, index) => (
+              <motion.div
+                key={industry.name}
+                className="group relative"
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, margin: "-50px" }}
+                variants={fadeIn("up", 0.1 * index)}
+              >
+                {/* Card */}
+                <div className="relative h-full bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden cursor-pointer">
+                  {/* Gradient Background on Hover */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${industry.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
+                  
+                  {/* Icon with Gradient Background */}
+                  <div className={`relative mb-4 sm:mb-6 w-14 h-14 sm:w-16 sm:h-16 mx-auto rounded-2xl bg-gradient-to-br ${industry.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
                     {industry.icon}
+                    <div className="absolute inset-0 rounded-2xl bg-white/20 blur-xl group-hover:blur-2xl transition-all duration-500"></div>
                   </div>
-                  <p className="text-sm font-medium text-gray-900">{industry.name}</p>
-                </motion.div>
-              ))}
-            </div>
+
+                  {/* Industry Name */}
+                  <div className="relative z-10 text-center">
+                    <h3 className="text-base sm:text-lg font-bold text-gray-900 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-blue-600 transition-all duration-300">
+                      {industry.name}
+                    </h3>
+                  </div>
+
+                  {/* Decorative Corner Element */}
+                  <div className={`absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br ${industry.gradient} opacity-5 rounded-bl-full group-hover:opacity-10 transition-opacity duration-500`}></div>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>

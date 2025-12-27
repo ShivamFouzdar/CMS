@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { AuthCard, AuthInput, AuthPasswordInput, AuthButton, AuthLink } from '@/components/auth';
-import { Mail, Lock, Shield, Loader2, AlertCircle } from 'lucide-react';
+import { Mail, Lock, Shield, AlertCircle } from 'lucide-react';
 import axios from 'axios';
-import { API_ENDPOINTS } from '@/config/api';
+import { API_ENDPOINTS, API_BASE_URL } from '@/config/api';
 
 export default function LoginPage() {
-  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -42,8 +40,10 @@ export default function LoginPage() {
         password: formData.password,
       });
 
+      console.log('Login response:', response.data);
+
       // Check if 2FA is required
-      if (response.data.success && response.data.data.requires2FA) {
+      if (response.data.success && response.data.data?.requires2FA) {
         setTempToken(response.data.data.tempToken);
         setRequires2FA(true);
         setIsLoading(false);
@@ -51,13 +51,32 @@ export default function LoginPage() {
       }
 
       // Store tokens and complete login
-      if (response.data.success && response.data.data.tokens) {
-        localStorage.setItem('accessToken', response.data.data.tokens.accessToken);
-        localStorage.setItem('refreshToken', response.data.data.tokens.refreshToken);
-        localStorage.setItem('user', JSON.stringify(response.data.data.user));
+      if (response.data.success && response.data.data?.tokens) {
+        const { accessToken, refreshToken } = response.data.data.tokens;
+        const user = response.data.data.user;
         
-        // Redirect to admin dashboard
-        navigate('/admin/dashboard');
+        if (accessToken && user) {
+          localStorage.setItem('accessToken', accessToken);
+          if (refreshToken) {
+            localStorage.setItem('refreshToken', refreshToken);
+          }
+          localStorage.setItem('user', JSON.stringify(user));
+          
+          console.log('Tokens stored successfully');
+          console.log('Stored token:', localStorage.getItem('accessToken'));
+          console.log('Stored user:', localStorage.getItem('user'));
+          
+          // Small delay to ensure all state is updated before redirect
+          setTimeout(() => {
+            window.location.href = '/admin/dashboard';
+          }, 50);
+        } else {
+          console.error('Missing accessToken or user in response:', response.data);
+          setErrors({ general: 'Login response missing required data. Please try again.' });
+        }
+      } else {
+        console.error('Unexpected response structure:', response.data);
+        setErrors({ general: 'Unexpected response from server. Please try again.' });
       }
     } catch (error: any) {
       console.error('Login error:', error);
@@ -80,8 +99,22 @@ export default function LoginPage() {
     setVerifying2FA(true);
 
     try {
+      if (!tempToken) {
+        setErrors({ twoFactor: 'Session expired. Please login again.' });
+        setVerifying2FA(false);
+        return;
+      }
+
+      const verifyLoginUrl = API_ENDPOINTS.twoFactor?.verifyLogin || `${API_BASE_URL}/api/2fa/verify-login`;
+      console.log('Calling 2FA verify-login:', verifyLoginUrl);
+      console.log('Request payload:', { 
+        hasTempToken: !!tempToken, 
+        hasCode: !useBackupCode && !!twoFactorCode,
+        hasBackupCode: useBackupCode && !!twoFactorCode 
+      });
+
       const response = await axios.post(
-        API_ENDPOINTS.twoFactor?.verifyLogin || '/api/2fa/verify-login',
+        verifyLoginUrl,
         {
           tempToken,
           code: useBackupCode ? undefined : twoFactorCode,
@@ -89,18 +122,57 @@ export default function LoginPage() {
         }
       );
 
-      if (response.data.success && response.data.data.tokens) {
-        // Store tokens and complete login
-        localStorage.setItem('accessToken', response.data.data.tokens.accessToken);
-        localStorage.setItem('refreshToken', response.data.data.tokens.refreshToken);
-        localStorage.setItem('user', JSON.stringify(response.data.data.user));
+      console.log('2FA verification response:', response.data);
+
+      if (response.data.success && response.data.data?.tokens) {
+        const tokens = response.data.data.tokens;
+        const user = response.data.data.user;
         
-        // Redirect to admin dashboard
-        navigate('/admin/dashboard');
+        console.log('Tokens received:', { 
+          hasAccessToken: !!tokens.accessToken, 
+          hasRefreshToken: !!tokens.refreshToken,
+          hasUser: !!user 
+        });
+
+        if (tokens.accessToken && user) {
+          // Store tokens
+          localStorage.setItem('accessToken', tokens.accessToken);
+          if (tokens.refreshToken) {
+            localStorage.setItem('refreshToken', tokens.refreshToken);
+          }
+          localStorage.setItem('user', JSON.stringify(user));
+          
+          // Verify storage
+          const storedToken = localStorage.getItem('accessToken');
+          const storedUser = localStorage.getItem('user');
+          
+          console.log('Tokens stored:', { 
+            hasStoredToken: !!storedToken, 
+            hasStoredUser: !!storedUser 
+          });
+
+          if (storedToken && storedUser) {
+            console.log('2FA verification successful, redirecting...');
+            // Small delay to ensure all state is updated
+            setTimeout(() => {
+              window.location.href = '/admin/dashboard';
+            }, 50);
+          } else {
+            console.error('Failed to store tokens in localStorage');
+            setErrors({ twoFactor: 'Failed to save session. Please try again.' });
+          }
+        } else {
+          console.error('Missing accessToken or user in 2FA response:', response.data);
+          setErrors({ twoFactor: 'Verification response missing required data. Please try again.' });
+        }
+      } else {
+        console.error('Unexpected 2FA response structure:', response.data);
+        setErrors({ twoFactor: 'Unexpected response from server. Please try again.' });
       }
     } catch (error: any) {
       console.error('2FA verification error:', error);
-      const errorMessage = error.response?.data?.message || 'Invalid verification code. Please try again.';
+      console.error('Error response:', error.response?.data);
+      const errorMessage = error.response?.data?.message || error.response?.data?.error?.message || 'Invalid verification code. Please try again.';
       setErrors({ twoFactor: errorMessage });
       setTwoFactorCode('');
     } finally {

@@ -1,9 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Briefcase, Download, Eye, Trash2, Users, TrendingUp, 
-  MapPin, Mail, Phone, FileText, Loader2,
-  AlertCircle
+  MapPin, Mail, Phone, FileText
 } from 'lucide-react';
 import { 
   getJobApplications, 
@@ -20,11 +19,18 @@ import { useAsyncOperation } from '@/hooks/useAsyncOperation';
 import { usePagination } from '@/hooks/usePagination';
 import { handleApiError } from '@/utils/errorHandler';
 import { StatCard } from '@/components/ui/StatCard';
+import { Pagination } from '@/components/ui/Pagination';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ErrorMessage } from '@/components/ui/ErrorMessage';
+import { ActionButtons } from '@/components/ui/ActionButtons';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 export default function JobApplicants() {
   const [applications, setApplications] = useState<JobApplication[]>([]);
+  const [allApplications, setAllApplications] = useState<JobApplication[]>([]); // Store all applications for filtering
   const [stats, setStats] = useState<JobApplicationStats | null>(null);
   const [selectedApplication, setSelectedApplication] = useState<JobApplication | null>(null);
+  const [workModeFilter, setWorkModeFilter] = useState<'Work from Home' | 'Office-Based' | 'Hybrid' | 'All'>('Work from Home');
   
   const { page, totalPages, total, setPage, setTotalPages, setTotal } = usePagination({
     initialPage: 1,
@@ -34,10 +40,12 @@ export default function JobApplicants() {
   const { execute: fetchDataExecute, loading, error } = useAsyncOperation({
     onSuccess: (data) => {
       if (data) {
-        setApplications(data.applications || []);
+        setAllApplications(data.applications || []);
         setStats(data.stats);
         setTotalPages(data.meta?.pagination.totalPages || 1);
         setTotal(data.meta?.pagination.total || 0);
+        // Apply work mode filter
+        applyWorkModeFilter(data.applications || [], workModeFilter);
       }
     },
   });
@@ -87,7 +95,41 @@ export default function JobApplicants() {
     },
   });
 
-  const handleViewDetails = async (id: string) => {
+  // Apply work mode filter - memoized
+  const applyWorkModeFilter = useCallback((apps: JobApplication[], filter: typeof workModeFilter) => {
+    if (filter === 'All') {
+      setApplications(apps);
+    } else {
+      const filtered = apps.filter(app => app.workMode === filter);
+      setApplications(filtered);
+    }
+  }, []);
+
+  // Handle work mode filter change - memoized
+  const handleWorkModeFilterClick = useCallback(() => {
+    const modes: Array<'Work from Home' | 'Office-Based' | 'Hybrid' | 'All'> = ['Work from Home', 'Office-Based', 'Hybrid', 'All'];
+    const currentIndex = modes.indexOf(workModeFilter);
+    const nextIndex = (currentIndex + 1) % modes.length;
+    const nextFilter = modes[nextIndex];
+    setWorkModeFilter(nextFilter);
+    applyWorkModeFilter(allApplications, nextFilter);
+  }, [workModeFilter, allApplications, applyWorkModeFilter]);
+
+  // Fetch data on component mount and when page changes
+  useEffect(() => {
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
+
+  // Apply filter when workModeFilter changes (for initial load)
+  useEffect(() => {
+    if (allApplications.length > 0) {
+      applyWorkModeFilter(allApplications, workModeFilter);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workModeFilter]);
+
+  const handleViewDetails = useCallback(async (id: string) => {
     viewDetailsExecute(async () => {
       const response = await getJobApplicationById(id);
       return response.data;
@@ -95,18 +137,18 @@ export default function JobApplicants() {
       const errorInfo = handleApiError(err);
       console.error('Failed to load application details:', errorInfo.message);
     });
-  };
+  }, [viewDetailsExecute]);
 
-  const handleDownloadResume = async (id: string) => {
+  const handleDownloadResume = useCallback(async (id: string) => {
     downloadResumeFileExecute(async () => {
       await downloadResume(id);
     }).catch((err) => {
       const errorInfo = handleApiError(err);
       alert(errorInfo.message);
     });
-  };
+  }, [downloadResumeFileExecute]);
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = useCallback(async (id: string) => {
     if (!confirm('Are you sure you want to delete this application?')) {
       return;
     }
@@ -117,14 +159,12 @@ export default function JobApplicants() {
       const errorInfo = handleApiError(err);
       alert(errorInfo.message);
     });
-  };
+  }, [deleteApplicationExecute]);
 
   if (loading && !stats) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-        </div>
+        <LoadingSpinner size="lg" fullScreen />
       </AdminLayout>
     );
   }
@@ -163,19 +203,33 @@ export default function JobApplicants() {
             />
             <StatCard
               title="This Month"
-              value={Object.values(stats.bySource).reduce((a, b) => a + b, 0)}
+              value={stats.thisMonth || 0}
               icon={TrendingUp}
               gradient="green"
             />
             <StatCard
-              title="Remote Candidates"
-              value={stats.byWorkMode['Work from Home'] || 0}
+              title={
+                workModeFilter === 'All' 
+                  ? 'All Work Modes' 
+                  : workModeFilter === 'Work from Home'
+                  ? 'Remote Candidates'
+                  : workModeFilter === 'Office-Based'
+                  ? 'Office-Based'
+                  : 'Hybrid'
+              }
+              value={
+                workModeFilter === 'All'
+                  ? stats.total || 0
+                  : stats.byWorkMode[workModeFilter] || 0
+              }
               icon={Briefcase}
               gradient="purple"
+              onClick={handleWorkModeFilterClick}
+              subtitle="Click to filter"
             />
             <StatCard
               title="New Today"
-              value={stats.recent.length}
+              value={stats.newToday || 0}
               icon={FileText}
               gradient="yellow"
             />
@@ -183,12 +237,7 @@ export default function JobApplicants() {
         )}
 
         {/* Error Message */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center mb-6">
-            <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
-            <p className="text-red-700">{error}</p>
-          </div>
-        )}
+        <ErrorMessage message={error || ''} />
 
         {/* Applications Table */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
@@ -218,17 +267,12 @@ export default function JobApplicants() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {applications.length === 0 && !loading && (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center">
-                      <div className="flex flex-col items-center justify-center">
-                        <Briefcase className="h-12 w-12 text-gray-400 mb-4" />
-                        <p className="text-gray-500 text-lg font-medium">No job applications yet</p>
-                        <p className="text-gray-400 text-sm mt-2">
-                          Job applications will appear here when candidates submit their forms.
-                        </p>
-                      </div>
-                    </td>
-                  </tr>
+                  <EmptyState
+                    icon={Briefcase}
+                    title="No job applications yet"
+                    description="Job applications will appear here when candidates submit their forms."
+                    colSpan={6}
+                  />
                 )}
                 {applications.map((application) => (
                   <tr key={application.id} className="hover:bg-gray-50">
@@ -261,30 +305,30 @@ export default function JobApplicants() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {new Date(application.submittedAt).toLocaleDateString()}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                      <button
-                        onClick={() => handleViewDetails(application.id)}
-                        className="text-blue-600 hover:text-blue-800"
-                        title="View Details"
-                      >
-                        <Eye className="h-5 w-5" />
-                      </button>
-                      {application.resumePath && (
-                        <button
-                          onClick={() => handleDownloadResume(application.id)}
-                          className="text-green-600 hover:text-green-800"
-                          title="Download Resume"
-                        >
-                          <Download className="h-5 w-5" />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => handleDelete(application.id)}
-                        className="text-red-600 hover:text-red-800"
-                        title="Delete"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </button>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <ActionButtons
+                        actions={[
+                          {
+                            icon: Eye,
+                            onClick: () => handleViewDetails(application.id),
+                            label: 'View Details',
+                            color: 'blue',
+                          },
+                          {
+                            icon: Download,
+                            onClick: () => handleDownloadResume(application.id),
+                            label: 'Download Resume',
+                            color: 'green',
+                            show: !!application.resumePath,
+                          },
+                          {
+                            icon: Trash2,
+                            onClick: () => handleDelete(application.id),
+                            label: 'Delete',
+                            color: 'red',
+                          },
+                        ]}
+                      />
                     </td>
                   </tr>
                 ))}
@@ -293,29 +337,13 @@ export default function JobApplicants() {
           </div>
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 flex items-center justify-between">
-              <div className="text-sm text-gray-700">
-                Showing page {page} of {totalPages} ({total || 0} total)
-              </div>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => setPage(Math.max(1, page - 1))}
-                  disabled={page === 1}
-                  className="px-4 py-2 text-sm bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => setPage(Math.min(totalPages, page + 1))}
-                  disabled={page === totalPages}
-                  className="px-4 py-2 text-sm bg-white border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          )}
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            total={total}
+            onPageChange={setPage}
+            itemName="applications"
+          />
         </div>
 
         {/* Application Details Modal */}

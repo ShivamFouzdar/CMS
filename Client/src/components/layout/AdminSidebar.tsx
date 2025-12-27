@@ -30,6 +30,11 @@ const navItems: NavItem[] = [
   { name: 'Settings', path: '/admin/settings', icon: Settings },
 ];
 
+// Debug: Log nav items to ensure they're loaded
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  console.log('Admin Sidebar Nav Items:', navItems);
+}
+
 interface AdminSidebarProps {
   user?: {
     firstName?: string;

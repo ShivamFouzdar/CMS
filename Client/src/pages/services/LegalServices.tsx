@@ -2,256 +2,25 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { CallToAction } from '@/components/sections/CallToAction';
+import { ServiceCard } from '@/components/ui/ServiceCard';
 import { 
-  CheckCircle, 
   Star, 
   ArrowRight, 
   Clock, 
   Shield, 
   Users, 
-  TrendingUp,
   ChevronRight,
   Quote,
   Scale,
-  Mail,
-  MessageSquare,
-  BarChart3,
-  Briefcase,
-  Phone,
-  Database,
-  Settings,
   Target,
   Plus,
   Minus,
   Globe,
-  Zap,
   Award,
-  Monitor,
   Search,
   FileText,
-  PieChart,
-  Lightbulb,
-  BookOpen,
   GraduationCap,
-  Microscope,
-  Calculator,
-  ChartBar,
-  TrendingDown,
-  Eye,
-  Filter,
-  Layers,
-  Cpu,
-  Network,
-  GitBranch,
-  Code,
-  Database as DatabaseIcon,
-  Cloud,
-  Lock,
-  Unlock,
-  RefreshCw,
-  Download,
-  Upload,
-  Share2,
-  Copy,
-  Edit,
-  Trash2,
-  Save,
-  Send,
-  CheckSquare,
-  AlertCircle,
-  ThumbsUp,
-  ThumbsDown,
-  Coffee,
-  Moon,
-  Sun,
-  Gavel,
-  FileCheck,
-  Clipboard,
-  PenTool,
-  Archive,
-  FolderOpen,
-  Document,
-  Scroll,
-  Building,
-  UserCheck,
-  AlertTriangle,
-  CheckCircle2,
-  XCircle,
-  Info,
-  HelpCircle,
-  ExternalLink,
-  Calendar,
-  Clock as ClockIcon,
-  Timer,
-  Stopwatch,
-  Hourglass,
-  Calendar as CalendarIcon,
-  MapPin,
-  Phone as PhoneIcon,
-  Mail as MailIcon,
-  MessageCircle,
-  Video,
-  Camera,
-  Mic,
-  Headphones,
-  Volume2,
-  VolumeX,
-  Play,
-  Pause,
-  SkipForward,
-  SkipBack,
-  RotateCcw,
-  RotateCw,
-  Maximize,
-  Minimize,
-  Move,
-  Copy as CopyIcon,
-  Scissors,
-  Clipboard as ClipboardIcon,
-  Bookmark,
-  Tag,
-  Flag,
-  Heart,
-  Smile,
-  Frown,
-  Meh,
-  ThumbsUp as ThumbsUpIcon,
-  ThumbsDown as ThumbsDownIcon,
-  Star as StarIcon,
-  Award as AwardIcon,
-  Trophy,
-  Medal,
-  Ribbon,
-  Crown,
-  Gem,
-  Diamond,
-  Zap as ZapIcon,
-  Flash,
-  Bolt,
-  Sparkles,
-  Wand2,
-  Magic,
-  Sparkle,
-  Star as StarIcon2,
-  Sun as SunIcon,
-  Moon as MoonIcon,
-  Cloud as CloudIcon,
-  CloudRain,
-  CloudSnow,
-  CloudLightning,
-  Wind,
-  Droplets,
-  Flame,
-  Snowflake,
-  Umbrella,
-  TreePine,
-  Leaf,
-  Flower2,
-  Bug,
-  Fish,
-  Bird,
-  Cat,
-  Dog,
-  Rabbit,
-  Squirrel,
-  Whale,
-  Dolphin,
-  Penguin,
-  Butterfly,
-  Bee,
-  Ant,
-  Spider,
-  Snail,
-  Octopus,
-  Crab,
-  Lobster,
-  Shrimp,
-  Fish as FishIcon,
-  Turtle,
-  Lizard,
-  Snake,
-  Frog,
-  Crocodile,
-  Elephant,
-  Giraffe,
-  Lion,
-  Tiger,
-  Bear,
-  Wolf,
-  Fox,
-  Deer,
-  Horse,
-  Cow,
-  Pig,
-  Sheep,
-  Goat,
-  Chicken,
-  Duck,
-  Goose,
-  Turkey,
-  Eagle,
-  Hawk,
-  Owl,
-  Parrot,
-  Peacock,
-  Flamingo,
-  Swan,
-  Pelican,
-  Stork,
-  Crane,
-  Heron,
-  Kingfisher,
-  Woodpecker,
-  Robin,
-  Cardinal,
-  Bluebird,
-  Canary,
-  Finch,
-  Sparrow,
-  Wren,
-  Jay,
-  Magpie,
-  Crow,
-  Raven,
-  Pigeon,
-  Dove,
-  Hummingbird,
-  Toucan,
-  Kiwi,
-  Ostrich,
-  Emu,
-  Cassowary,
-  Rhea,
-  Secretary,
-  SecretaryBird,
-  Vulture,
-  Condor,
-  Albatross,
-  Petrel,
-  Shearwater,
-  Fulmar,
-  Gannet,
-  Booby,
-  Cormorant,
-  Shag,
-  Anhinga,
-  Frigatebird,
-  Tropicbird,
-  Gannet as GannetIcon,
-  Booby as BoobyIcon,
-  Cormorant as CormorantIcon,
-  Shag as ShagIcon,
-  Anhinga as AnhingaIcon,
-  Frigatebird as FrigatebirdIcon,
-  Tropicbird as TropicbirdIcon,
-  Gannet as GannetIcon2,
-  Booby as BoobyIcon2,
-  Cormorant as CormorantIcon2,
-  Shag as ShagIcon2,
-  Anhinga as AnhingaIcon2,
-  Frigatebird as FrigatebirdIcon2,
-  Tropicbird as TropicbirdIcon2
-} from 'lucide-react';
+  Building} from 'lucide-react';
 
 export default function LegalServices() {
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
@@ -296,7 +65,7 @@ export default function LegalServices() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                  <Button href="/contact" variant="primary" size="lg" className="flex items-center">
+                  <Button href="/contact" variant="default" size="lg" className="flex items-center">
                     Get Started Today
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Button>
@@ -325,71 +94,19 @@ export default function LegalServices() {
                 initial={{ opacity: 0, x: 60 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
-                className="relative"
+                className="relative group"
               >
-                <div className="bg-white rounded-2xl shadow-2xl p-8 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-orange-500/10"></div>
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-xl font-semibold text-gray-900">Legal Dashboard</h3>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                        <span className="text-sm text-gray-600">Active</span>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                      <div className="bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-lg">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-2xl font-bold text-red-600">47</div>
-                            <div className="text-sm text-gray-600">Active Cases</div>
-                          </div>
-                          <Gavel className="w-8 h-8 text-red-500" />
-                        </div>
-                      </div>
-                      <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-2xl font-bold text-orange-600">98%</div>
-                            <div className="text-sm text-gray-600">Compliance Rate</div>
-                          </div>
-                          <Shield className="w-8 h-8 text-orange-500" />
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                            <CheckCircle className="w-4 h-4 text-green-600" />
-                          </div>
-                          <span className="text-sm font-medium">Contract Review</span>
-                        </div>
-                        <span className="text-sm text-green-600 font-medium">Processing</span>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                            <FileText className="w-4 h-4 text-blue-600" />
-                          </div>
-                          <span className="text-sm font-medium">Document Prep</span>
-                        </div>
-                        <span className="text-sm text-blue-600 font-medium">Active</span>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                            <Scale className="w-4 h-4 text-purple-600" />
-                          </div>
-                          <span className="text-sm font-medium">Legal Research</span>
-                        </div>
-                        <span className="text-sm text-purple-600 font-medium">Ongoing</span>
-                      </div>
-                    </div>
+                <div className="bg-white rounded-2xl shadow-2xl overflow-hidden transition-all duration-500 group-hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] group-hover:scale-[1.02]">
+                  <div className="relative overflow-hidden">
+                    <img 
+                      src="/leagal.png" 
+                      alt="Legal Services" 
+                      className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-indigo-600/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   </div>
                 </div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500 -z-10"></div>
               </motion.div>
             </div>
           </div>
@@ -416,70 +133,68 @@ export default function LegalServices() {
               </p>
             </motion.div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {[
                 {
-                  icon: <FileText className="w-8 h-8 text-red-500" />,
+                  icon: <FileText className="w-6 h-6 text-white" />,
                   title: "Document Preparation",
                   description: "Professional legal document drafting and preparation services.",
-                  features: ["Contract Drafting", "Legal Agreements", "Policy Documents", "Compliance Forms", "Legal Letters", "Court Filings"]
+                  features: ["Contract Drafting", "Legal Agreements", "Policy Documents", "Compliance Forms", "Legal Letters", "Court Filings"],
+                  gradient: "from-red-500 to-orange-500",
+                  bgGradient: "from-red-50 to-orange-50",
                 },
                 {
-                  icon: <Scale className="w-8 h-8 text-blue-500" />,
+                  icon: <Scale className="w-6 h-6 text-white" />,
                   title: "Contract Management",
                   description: "Complete contract lifecycle management and review services.",
-                  features: ["Contract Review", "Risk Assessment", "Renewal Management", "Amendment Drafting", "Compliance Monitoring", "Archive Management"]
+                  features: ["Contract Review", "Risk Assessment", "Renewal Management", "Amendment Drafting", "Compliance Monitoring", "Archive Management"],
+                  gradient: "from-blue-500 to-cyan-500",
+                  bgGradient: "from-blue-50 to-cyan-50",
                 },
                 {
-                  icon: <Shield className="w-8 h-8 text-green-500" />,
+                  icon: <Shield className="w-6 h-6 text-white" />,
                   title: "Compliance Support",
                   description: "Comprehensive compliance management and regulatory support.",
-                  features: ["Regulatory Compliance", "Audit Preparation", "Policy Development", "Training Programs", "Risk Assessment", "Monitoring Systems"]
+                  features: ["Regulatory Compliance", "Audit Preparation", "Policy Development", "Training Programs", "Risk Assessment", "Monitoring Systems"],
+                  gradient: "from-green-500 to-emerald-500",
+                  bgGradient: "from-green-50 to-emerald-50",
                 },
                 {
-                  icon: <Search className="w-8 h-8 text-purple-500" />,
+                  icon: <Search className="w-6 h-6 text-white" />,
                   title: "Legal Research",
                   description: "In-depth legal research and analysis services.",
-                  features: ["Case Law Research", "Statute Analysis", "Precedent Review", "Legal Opinions", "Due Diligence", "Risk Analysis"]
+                  features: ["Case Law Research", "Statute Analysis", "Precedent Review", "Legal Opinions", "Due Diligence", "Risk Analysis"],
+                  gradient: "from-purple-500 to-pink-500",
+                  bgGradient: "from-purple-50 to-pink-50",
                 },
                 {
-                  icon: <Building className="w-8 h-8 text-orange-500" />,
+                  icon: <Building className="w-6 h-6 text-white" />,
                   title: "Corporate Legal",
                   description: "Corporate legal services and business formation support.",
-                  features: ["Business Formation", "Corporate Governance", "M&A Support", "IPO Preparation", "Board Documentation", "Shareholder Agreements"]
+                  features: ["Business Formation", "Corporate Governance", "M&A Support", "IPO Preparation", "Board Documentation", "Shareholder Agreements"],
+                  gradient: "from-orange-500 to-red-500",
+                  bgGradient: "from-orange-50 to-red-50",
                 },
                 {
-                  icon: <Users className="w-8 h-8 text-pink-500" />,
+                  icon: <Users className="w-6 h-6 text-white" />,
                   title: "Employment Law",
                   description: "Employment law compliance and HR legal support.",
-                  features: ["Employment Contracts", "HR Policies", "Labor Law Compliance", "Dispute Resolution", "Termination Procedures", "Workplace Safety"]
+                  features: ["Employment Contracts", "HR Policies", "Labor Law Compliance", "Dispute Resolution", "Termination Procedures", "Workplace Safety"],
+                  gradient: "from-pink-500 to-rose-500",
+                  bgGradient: "from-pink-50 to-rose-50",
                 }
               ].map((service, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 group"
-                >
-                  <div className="mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-red-50 to-orange-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                      {service.icon}
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-3">{service.title}</h3>
-                    <p className="text-gray-600 mb-4">{service.description}</p>
-                  </div>
-                  
-                  <ul className="space-y-2">
-                    {service.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-center text-sm text-gray-600">
-                        <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </motion.div>
+                <ServiceCard
+                  key={service.title}
+                  icon={service.icon}
+                  title={service.title}
+                  description={service.description}
+                  features={service.features}
+                  gradient={service.gradient}
+                  bgGradient={service.bgGradient}
+                  animationDelay={0.1 * index}
+                  showFeatures={6}
+                />
               ))}
             </div>
           </div>
@@ -647,70 +362,68 @@ export default function LegalServices() {
               </p>
             </motion.div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {[
                 {
-                  icon: <Building className="w-8 h-8 text-red-500" />,
+                  icon: <Building className="w-6 h-6 text-white" />,
                   title: "Corporate Law",
                   description: "Business formation, governance, and corporate transactions.",
-                  features: ["Business Formation", "Corporate Governance", "M&A Transactions", "IPO Support", "Board Documentation", "Shareholder Rights"]
+                  features: ["Business Formation", "Corporate Governance", "M&A Transactions", "IPO Support", "Board Documentation", "Shareholder Rights"],
+                  gradient: "from-red-500 to-orange-500",
+                  bgGradient: "from-red-50 to-orange-50",
                 },
                 {
-                  icon: <FileText className="w-8 h-8 text-blue-500" />,
+                  icon: <FileText className="w-6 h-6 text-white" />,
                   title: "Contract Law",
                   description: "Contract drafting, review, and management services.",
-                  features: ["Contract Drafting", "Contract Review", "Negotiation Support", "Risk Assessment", "Compliance Monitoring", "Dispute Resolution"]
+                  features: ["Contract Drafting", "Contract Review", "Negotiation Support", "Risk Assessment", "Compliance Monitoring", "Dispute Resolution"],
+                  gradient: "from-blue-500 to-cyan-500",
+                  bgGradient: "from-blue-50 to-cyan-50",
                 },
                 {
-                  icon: <Users className="w-8 h-8 text-green-500" />,
+                  icon: <Users className="w-6 h-6 text-white" />,
                   title: "Employment Law",
                   description: "Employment compliance and HR legal support.",
-                  features: ["Employment Contracts", "HR Policies", "Labor Compliance", "Workplace Safety", "Dispute Resolution", "Termination Procedures"]
+                  features: ["Employment Contracts", "HR Policies", "Labor Compliance", "Workplace Safety", "Dispute Resolution", "Termination Procedures"],
+                  gradient: "from-green-500 to-emerald-500",
+                  bgGradient: "from-green-50 to-emerald-50",
                 },
                 {
-                  icon: <Shield className="w-8 h-8 text-purple-500" />,
+                  icon: <Shield className="w-6 h-6 text-white" />,
                   title: "Compliance & Regulatory",
                   description: "Regulatory compliance and risk management.",
-                  features: ["Regulatory Compliance", "Risk Assessment", "Audit Support", "Policy Development", "Training Programs", "Monitoring Systems"]
+                  features: ["Regulatory Compliance", "Risk Assessment", "Audit Support", "Policy Development", "Training Programs", "Monitoring Systems"],
+                  gradient: "from-purple-500 to-pink-500",
+                  bgGradient: "from-purple-50 to-pink-50",
                 },
                 {
-                  icon: <Scale className="w-8 h-8 text-orange-500" />,
+                  icon: <Scale className="w-6 h-6 text-white" />,
                   title: "Litigation Support",
                   description: "Legal research and litigation preparation services.",
-                  features: ["Case Research", "Document Review", "Discovery Support", "Expert Witness", "Trial Preparation", "Settlement Negotiation"]
+                  features: ["Case Research", "Document Review", "Discovery Support", "Expert Witness", "Trial Preparation", "Settlement Negotiation"],
+                  gradient: "from-orange-500 to-amber-500",
+                  bgGradient: "from-orange-50 to-amber-50",
                 },
                 {
-                  icon: <Globe className="w-8 h-8 text-pink-500" />,
+                  icon: <Globe className="w-6 h-6 text-white" />,
                   title: "International Law",
                   description: "Cross-border legal issues and international compliance.",
-                  features: ["International Contracts", "Cross-border M&A", "Trade Compliance", "Immigration Law", "Tax Planning", "Regulatory Affairs"]
+                  features: ["International Contracts", "Cross-border M&A", "Trade Compliance", "Immigration Law", "Tax Planning", "Regulatory Affairs"],
+                  gradient: "from-pink-500 to-rose-500",
+                  bgGradient: "from-pink-50 to-rose-50",
                 }
               ].map((area, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  className="bg-gray-50 rounded-xl p-8 hover:shadow-lg transition-all duration-300 group"
-                >
-                  <div className="mb-6">
-                    <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-sm">
-                      {area.icon}
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-3">{area.title}</h3>
-                    <p className="text-gray-600 mb-4">{area.description}</p>
-                  </div>
-                  
-                  <ul className="space-y-2">
-                    {area.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-center text-sm text-gray-600">
-                        <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </motion.div>
+                <ServiceCard
+                  key={area.title}
+                  icon={area.icon}
+                  title={area.title}
+                  description={area.description}
+                  features={area.features}
+                  gradient={area.gradient}
+                  bgGradient={area.bgGradient}
+                  animationDelay={0.1 * index}
+                  showFeatures={6}
+                />
               ))}
             </div>
           </div>

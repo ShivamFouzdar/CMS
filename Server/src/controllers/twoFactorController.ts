@@ -27,37 +27,65 @@ export const enableTwoFactor = asyncHandler(async (req: Request, res: Response) 
     throw createError('User not found', 404);
   }
 
-  // Check if 2FA is already enabled
-  if (user.twoFactor?.enabled) {
-    throw createError('Two-factor authentication is already enabled', 400);
+  if (!user.email) {
+    throw createError('User email is required for 2FA setup', 400);
   }
 
-  // Setup 2FA
-  const setup = await setupTwoFactor(user.email, 'CareerMap Solutions');
+  // Check if 2FA is already enabled
+  if (user.twoFactor?.enabled === true) {
+    throw createError('Two-factor authentication is already enabled. Please disable it first if you want to set it up again.', 400);
+  }
 
-  // Hash backup codes before storing
-  const hashedBackupCodes = await hashBackupCodes(setup.backupCodes);
+  try {
+    // Setup 2FA
+    const setup = await setupTwoFactor(user.email, 'CareerMap Solutions');
 
-  // Store secret and backup codes (but don't enable yet - user needs to verify first)
-  user.twoFactor = {
-    enabled: false,
-    secret: setup.secret, // Store plain secret temporarily (will be encrypted in production)
-    backupCodes: hashedBackupCodes,
-  };
-  await user.save();
+    if (!setup.secret || !setup.qrCode) {
+      throw createError('Failed to generate 2FA setup data', 500);
+    }
 
-  const response: ApiResponse = {
-    success: true,
-    data: {
-      secret: setup.secret,
-      qrCode: setup.qrCode,
-      backupCodes: setup.backupCodes, // Return plain codes for user to save
-    },
-    message: '2FA setup initiated. Please verify with a code from your authenticator app.',
-    timestamp: new Date().toISOString(),
-  };
+    // Hash backup codes before storing
+    const hashedBackupCodes = await hashBackupCodes(setup.backupCodes);
 
-  res.status(200).json(response);
+    // Store secret and backup codes (but don't enable yet - user needs to verify first)
+    // If there's an existing partial setup, replace it
+    if (!user.twoFactor) {
+      user.twoFactor = {
+        enabled: false,
+        secret: setup.secret,
+        backupCodes: hashedBackupCodes,
+      };
+    } else {
+      user.twoFactor.enabled = false;
+      user.twoFactor.secret = setup.secret;
+      user.twoFactor.backupCodes = hashedBackupCodes;
+      // Clear verification timestamp if it exists
+      if (user.twoFactor.verifiedAt) {
+        (user.twoFactor as any).verifiedAt = undefined;
+      }
+    }
+    
+    await user.save();
+
+    const response: ApiResponse = {
+      success: true,
+      data: {
+        secret: setup.secret,
+        qrCode: setup.qrCode,
+        backupCodes: setup.backupCodes, // Return plain codes for user to save
+      },
+      message: '2FA setup initiated. Please verify with a code from your authenticator app.',
+      timestamp: new Date().toISOString(),
+    };
+
+    res.status(200).json(response);
+  } catch (error) {
+    console.error('Error in enableTwoFactor:', error);
+    throw createError(
+      error instanceof Error ? error.message : 'Failed to enable 2FA',
+      500
+    );
+  }
 });
 
 /**

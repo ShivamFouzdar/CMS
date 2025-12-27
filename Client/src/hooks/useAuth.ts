@@ -59,7 +59,21 @@ export function useAuth(): UseAuthReturn {
   };
 
   useEffect(() => {
+    // Initialize auth state immediately on mount
     refreshUser();
+    
+    // Listen for storage changes (e.g., when login sets tokens in another tab)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'accessToken' || e.key === 'user') {
+        refreshUser();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   const logout = () => {

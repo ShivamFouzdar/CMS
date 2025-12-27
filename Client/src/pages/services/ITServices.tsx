@@ -2,258 +2,27 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { CallToAction } from '@/components/sections/CallToAction';
+import { ServiceCard } from '@/components/ui/ServiceCard';
 import { 
   CheckCircle, 
   Star, 
   ArrowRight, 
-  Clock, 
   Shield, 
-  Users, 
-  TrendingUp,
   ChevronRight,
   Quote,
   Code,
-  Mail,
-  MessageSquare,
-  BarChart3,
-  Briefcase,
-  Phone,
   Database,
   Settings,
-  Target,
   Plus,
   Minus,
-  Globe,
-  Zap,
-  Award,
-  Monitor,
   Search,
-  FileText,
-  PieChart,
-  Lightbulb,
-  BookOpen,
-  GraduationCap,
-  Microscope,
-  Calculator,
-  TrendingDown,
-  Eye,
-  Filter,
-  Layers,
-  Cpu,
   Network,
-  Code as CodeIcon,
-  Database as DatabaseIcon,
   Cloud,
-  Lock,
-  Unlock,
-  RefreshCw,
-  Download,
-  Upload,
-  Share2,
-  Copy,
-  Edit,
-  Trash2,
-  Save,
-  Send,
-  CheckSquare,
-  AlertCircle,
-  ThumbsUp,
-  ThumbsDown,
-  Coffee,
-  Moon,
-  Sun,
-  Gavel,
-  FileCheck,
-  Clipboard,
   PenTool,
-  Archive,
-  FolderOpen,
-  Document,
-  Scroll,
-  Building,
-  UserCheck,
-  AlertTriangle,
-  CheckCircle2,
-  XCircle,
-  Info,
-  HelpCircle,
-  ExternalLink,
-  Calendar,
-  Clock as ClockIcon,
-  Timer,
-  Stopwatch,
-  Hourglass,
-  Calendar as CalendarIcon,
-  MapPin,
-  Phone as PhoneIcon,
-  Mail as MailIcon,
-  MessageCircle,
-  Video,
-  Camera,
-  Mic,
-  Headphones,
-  Volume2,
-  VolumeX,
-  Play,
-  Pause,
-  SkipForward,
-  SkipBack,
-  RotateCcw,
-  RotateCw,
-  Maximize,
-  Minimize,
-  Move,
-  Copy as CopyIcon,
-  Scissors,
-  Clipboard as ClipboardIcon,
-  Bookmark,
-  Tag,
-  Flag,
-  Heart,
-  Smile,
-  Frown,
-  Meh,
-  ThumbsUp as ThumbsUpIcon,
-  ThumbsDown as ThumbsDownIcon,
-  Star as StarIcon,
-  Award as AwardIcon,
-  Trophy,
-  Medal,
-  Ribbon,
-  Crown,
-  Gem,
-  Diamond,
-  Zap as ZapIcon,
-  Flash,
-  Bolt,
-  Sparkles,
-  Wand2,
-  Magic,
-  Sparkle,
-  Star as StarIcon2,
-  Sun as SunIcon,
-  Moon as MoonIcon,
-  Cloud as CloudIcon,
-  CloudRain,
-  CloudSnow,
-  CloudLightning,
-  Wind,
-  Droplets,
-  Flame,
-  Snowflake,
-  Umbrella,
-  TreePine,
-  Leaf,
-  Flower2,
-  Bug,
-  Fish,
-  Bird,
-  Cat,
-  Dog,
-  Rabbit,
-  Squirrel,
-  Whale,
-  Dolphin,
-  Penguin,
-  Butterfly,
-  Bee,
-  Ant,
-  Spider,
-  Snail,
-  Octopus,
-  Crab,
-  Lobster,
-  Shrimp,
-  Fish as FishIcon,
-  Turtle,
-  Lizard,
-  Snake,
-  Frog,
-  Crocodile,
-  Elephant,
-  Giraffe,
-  Lion,
-  Tiger,
-  Bear,
-  Wolf,
-  Fox,
-  Deer,
-  Horse,
-  Cow,
-  Pig,
-  Sheep,
-  Goat,
-  Chicken,
-  Duck,
-  Goose,
-  Turkey,
-  Eagle,
-  Hawk,
-  Owl,
-  Parrot,
-  Peacock,
-  Flamingo,
-  Swan,
-  Pelican,
-  Stork,
-  Crane,
-  Heron,
-  Kingfisher,
-  Woodpecker,
-  Robin,
-  Cardinal,
-  Bluebird,
-  Canary,
-  Finch,
-  Sparrow,
-  Wren,
-  Jay,
-  Magpie,
-  Crow,
-  Raven,
-  Pigeon,
-  Dove,
-  Hummingbird,
-  Toucan,
-  Kiwi,
-  Ostrich,
-  Emu,
-  Cassowary,
-  Rhea,
-  Secretary,
-  SecretaryBird,
-  Vulture,
-  Condor,
-  Albatross,
-  Petrel,
-  Shearwater,
-  Fulmar,
-  Gannet,
-  Booby,
-  Cormorant,
-  Shag,
-  Anhinga,
-  Frigatebird,
-  Tropicbird,
-  Gannet as GannetIcon,
-  Booby as BoobyIcon,
-  Cormorant as CormorantIcon,
-  Shag as ShagIcon,
-  Anhinga as AnhingaIcon,
-  Frigatebird as FrigatebirdIcon,
-  Tropicbird as TropicbirdIcon,
-  Gannet as GannetIcon2,
-  Booby as BoobyIcon2,
-  Cormorant as CormorantIcon2,
-  Shag as ShagIcon2,
-  Anhinga as AnhingaIcon2,
-  Frigatebird as FrigatebirdIcon2,
-  Tropicbird as TropicbirdIcon2
-} from 'lucide-react';
+  ExternalLink} from 'lucide-react';
 
 export default function ITServices() {
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
-  const [selectedProject, setSelectedProject] = useState<number | null>(null);
 
   const toggleFAQ = (index: number) => {
     setOpenFAQ(openFAQ === index ? null : index);
@@ -263,35 +32,35 @@ export default function ITServices() {
     {
       id: 1,
       title: "E-Commerce Platform",
-      description: "Full-stack MERN e-commerce solution with React frontend, Express.js API, and MongoDB database",
+      description: "Full-stack e-commerce solution with React frontend, Express.js API, and MongoDB database",
       image: "/api/placeholder/400/300",
       liveUrl: "https://example-ecommerce.com"
     },
     {
       id: 2,
       title: "Task Management App",
-      description: "Complete MERN stack task management system with real-time updates and user authentication",
+      description: "Complete Full stack task management system with real-time updates and user authentication",
       image: "/api/placeholder/400/300",
       liveUrl: "https://example-tasks.com"
     },
     {
       id: 3,
       title: "Social Media Dashboard",
-      description: "MERN-based social media management platform with analytics and scheduling features",
+      description: "Social media management platform with analytics and scheduling features",
       image: "/api/placeholder/400/300",
       liveUrl: "https://example-social.com"
     },
     {
       id: 4,
       title: "Blog Platform",
-      description: "Full-featured MERN blog platform with admin panel, comments, and content management",
+      description: "Full-featured  blog platform with admin panel, comments, and content management",
       image: "/api/placeholder/400/300",
       liveUrl: "https://example-blog.com"
     },
     {
       id: 5,
       title: "Inventory Management",
-      description: "MERN stack inventory management system with real-time tracking and reporting",
+      description: "Inventory management system with real-time tracking and reporting",
       image: "/api/placeholder/400/300",
       liveUrl: "https://example-inventory.com"
     },
@@ -323,11 +92,11 @@ export default function ITServices() {
               >
                 <div className="inline-flex items-center px-4 py-2 bg-cyan-100 text-cyan-800 rounded-full text-sm font-medium mb-6">
                   <Code className="w-4 h-4 mr-2" />
-                  Full-Stack MERN Development
+                  Full-Stack Development
                 </div>
                 
                 <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                  Expert MERN Stack 
+                  Expert Full Stack 
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-blue-600">
                     {" "}Development
                   </span>
@@ -340,7 +109,7 @@ export default function ITServices() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                  <Button href="#projects" variant="primary" size="lg" className="flex items-center">
+                  <Button href="#projects" variant="default" size="lg" className="flex items-center">
                     View Our Projects
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Button>
@@ -351,7 +120,7 @@ export default function ITServices() {
 
                 <div className="grid grid-cols-3 gap-6">
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-cyan-600 mb-1">MERN</div>
+                    <div className="text-3xl font-bold text-cyan-600 mb-1">FULL</div>
                     <div className="text-sm text-gray-600">Stack Expert</div>
                   </div>
                   <div className="text-center">
@@ -369,71 +138,19 @@ export default function ITServices() {
                 initial={{ opacity: 0, x: 60 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
-                className="relative"
+                className="relative group"
               >
-                <div className="bg-white rounded-2xl shadow-2xl p-8 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-blue-500/10"></div>
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-xl font-semibold text-gray-900">MERN Stack Dashboard</h3>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                        <span className="text-sm text-gray-600">Active</span>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                      <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 p-4 rounded-lg">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-2xl font-bold text-cyan-600">React</div>
-                            <div className="text-sm text-gray-600">Frontend</div>
-                          </div>
-                          <Code className="w-8 h-8 text-cyan-500" />
-                        </div>
-                      </div>
-                      <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-2xl font-bold text-blue-600">Node.js</div>
-                            <div className="text-sm text-gray-600">Backend</div>
-                          </div>
-                          <Cloud className="w-8 h-8 text-blue-500" />
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                            <Database className="w-4 h-4 text-green-600" />
-                          </div>
-                          <span className="text-sm font-medium">MongoDB</span>
-                        </div>
-                        <span className="text-sm text-green-600 font-medium">Database</span>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                            <Settings className="w-4 h-4 text-blue-600" />
-                          </div>
-                          <span className="text-sm font-medium">Express.js</span>
-                        </div>
-                        <span className="text-sm text-blue-600 font-medium">Framework</span>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                            <CheckCircle className="w-4 h-4 text-purple-600" />
-                          </div>
-                          <span className="text-sm font-medium">Full-Stack</span>
-                        </div>
-                        <span className="text-sm text-purple-600 font-medium">Complete</span>
-                      </div>
-                    </div>
+                <div className="bg-white rounded-2xl shadow-2xl overflow-hidden transition-all duration-500 group-hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] group-hover:scale-[1.02]">
+                  <div className="relative overflow-hidden">
+                    <img 
+                      src="/IT.png" 
+                      alt="IT Services" 
+                      className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-cyan-600/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   </div>
                 </div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-2xl opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500 -z-10"></div>
               </motion.div>
             </div>
           </div>
@@ -523,77 +240,75 @@ export default function ITServices() {
               className="text-center mb-16"
             >
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                MERN Stack Services
+                Full Stack Services
               </h2>
               <p className="text-lg text-gray-600 max-w-3xl mx-auto">
                 Specialized full-stack development services using the MERN technology stack
               </p>
             </motion.div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {[
                 {
-                  icon: <Code className="w-8 h-8 text-cyan-500" />,
+                  icon: <Code className="w-6 h-6 text-white" />,
                   title: "React Frontend Development",
                   description: "Modern React applications with hooks, context, and state management.",
-                  features: ["React Components", "Redux/Context", "React Router", "Material-UI", "Responsive Design", "Performance Optimization"]
+                  features: ["React Components", "Redux/Context", "React Router", "Material-UI", "Responsive Design", "Performance Optimization"],
+                  gradient: "from-cyan-500 to-blue-500",
+                  bgGradient: "from-cyan-50 to-blue-50",
                 },
                 {
-                  icon: <Settings className="w-8 h-8 text-blue-500" />,
+                  icon: <Settings className="w-6 h-6 text-white" />,
                   title: "Express.js Backend",
                   description: "Robust Node.js backend with Express.js framework and RESTful APIs.",
-                  features: ["RESTful APIs", "Middleware", "Authentication", "Error Handling", "Validation", "Security"]
+                  features: ["RESTful APIs", "Middleware", "Authentication", "Error Handling", "Validation", "Security"],
+                  gradient: "from-blue-500 to-indigo-500",
+                  bgGradient: "from-blue-50 to-indigo-50",
                 },
                 {
-                  icon: <Database className="w-8 h-8 text-purple-500" />,
+                  icon: <Database className="w-6 h-6 text-white" />,
                   title: "MongoDB Database",
                   description: "NoSQL database design and optimization for scalable applications.",
-                  features: ["Schema Design", "Indexing", "Aggregation", "Data Modeling", "Performance Tuning", "Backup & Recovery"]
+                  features: ["Schema Design", "Indexing", "Aggregation", "Data Modeling", "Performance Tuning", "Backup & Recovery"],
+                  gradient: "from-purple-500 to-pink-500",
+                  bgGradient: "from-purple-50 to-pink-50",
                 },
                 {
-                  icon: <Network className="w-8 h-8 text-green-500" />,
+                  icon: <Network className="w-6 h-6 text-white" />,
                   title: "Full-Stack Integration",
                   description: "Seamless integration of all MERN components for complete applications.",
-                  features: ["API Integration", "State Management", "Authentication Flow", "Data Synchronization", "Real-time Updates", "Error Handling"]
+                  features: ["API Integration", "State Management", "Authentication Flow", "Data Synchronization", "Real-time Updates", "Error Handling"],
+                  gradient: "from-green-500 to-emerald-500",
+                  bgGradient: "from-green-50 to-emerald-50",
                 },
                 {
-                  icon: <Cloud className="w-8 h-8 text-red-500" />,
+                  icon: <Cloud className="w-6 h-6 text-white" />,
                   title: "Deployment & Hosting",
                   description: "MERN stack deployment on cloud platforms with CI/CD pipelines.",
-                  features: ["Heroku/Vercel", "MongoDB Atlas", "Environment Setup", "Domain Configuration", "SSL Certificates", "Performance Monitoring"]
+                  features: ["Heroku/Vercel", "MongoDB Atlas", "Environment Setup", "Domain Configuration", "SSL Certificates", "Performance Monitoring"],
+                  gradient: "from-red-500 to-orange-500",
+                  bgGradient: "from-red-50 to-orange-50",
                 },
                 {
-                  icon: <Shield className="w-8 h-8 text-orange-500" />,
+                  icon: <Shield className="w-6 h-6 text-white" />,
                   title: "Security & Authentication",
                   description: "Secure authentication and authorization systems for MERN applications.",
-                  features: ["JWT Authentication", "Password Hashing", "Session Management", "CORS Configuration", "Input Validation", "Security Headers"]
+                  features: ["JWT Authentication", "Password Hashing", "Session Management", "CORS Configuration", "Input Validation", "Security Headers"],
+                  gradient: "from-orange-500 to-amber-500",
+                  bgGradient: "from-orange-50 to-amber-50",
                 }
               ].map((service, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  className="bg-gray-50 rounded-xl p-8 hover:shadow-lg transition-all duration-300 group"
-                >
-                  <div className="mb-6">
-                    <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-sm">
-                      {service.icon}
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-3">{service.title}</h3>
-                    <p className="text-gray-600 mb-4">{service.description}</p>
-                  </div>
-                  
-                  <ul className="space-y-2">
-                    {service.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-center text-sm text-gray-600">
-                        <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </motion.div>
+                <ServiceCard
+                  key={service.title}
+                  icon={service.icon}
+                  title={service.title}
+                  description={service.description}
+                  features={service.features}
+                  gradient={service.gradient}
+                  bgGradient={service.bgGradient}
+                  animationDelay={0.1 * index}
+                  showFeatures={6}
+                />
               ))}
             </div>
           </div>
@@ -855,10 +570,6 @@ export default function ITServices() {
                   answer: "MERN stack offers several advantages: it uses JavaScript throughout the entire stack, has a large community and ecosystem, provides rapid development, offers excellent scalability, and includes powerful tools for both frontend and backend development."
                 },
                 {
-                  question: "How long does a typical MERN project take?",
-                  answer: "MERN projects typically take 4-12 weeks depending on complexity. Simple applications take 4-6 weeks, while complex full-stack applications with advanced features can take 8-12 weeks. We provide detailed timelines during project planning."
-                },
-                {
                   question: "Do you provide MongoDB database design and optimization?",
                   answer: "Yes, we specialize in MongoDB schema design, indexing strategies, aggregation pipelines, and performance optimization. We ensure your database is properly structured for scalability and efficiency."
                 },
@@ -929,9 +640,9 @@ export default function ITServices() {
 
       {/* Contact CTA */}
       <CallToAction
-        title="Ready to Build Your MERN Stack Application?"
+        title="Ready to Build Your Application?"
         description="Get started with our expert MERN stack development services today and create powerful full-stack applications."
-        buttonText="Start Your MERN Project"
+        buttonText="Start Your Project"
         buttonHref="/contact"
       />
     </div>

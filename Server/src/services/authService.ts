@@ -29,6 +29,7 @@ export interface AuthUser {
   role: string;
   permissions: string[];
   isEmailVerified: boolean;
+  twoFactorEnabled?: boolean;
 }
 
 export interface LoginCredentials {
@@ -226,11 +227,15 @@ export const loginUser = async (credentials: LoginCredentials): Promise<LoginRes
  * Get current user
  */
 export const getCurrentUser = async (userId: string): Promise<AuthUser> => {
-  const user = await User.findById(userId);
+  // Explicitly select twoFactor.enabled field (even though it's not select: false, this ensures it's included)
+  const user = await User.findById(userId).select('+twoFactor.enabled');
 
   if (!user || !user.isActive) {
     throw createError('User not found or inactive', 404);
   }
+
+  // Check 2FA status - handle both cases where twoFactor might be undefined or enabled might be false
+  const is2FAEnabled = user.twoFactor?.enabled === true;
 
   return {
     id: (user._id as any).toString(),
@@ -240,6 +245,7 @@ export const getCurrentUser = async (userId: string): Promise<AuthUser> => {
     role: user.role,
     permissions: user.permissions,
     isEmailVerified: user.isEmailVerified,
+    twoFactorEnabled: is2FAEnabled,
   };
 };
 

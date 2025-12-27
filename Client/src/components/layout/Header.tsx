@@ -28,6 +28,7 @@ const navItems: NavItem[] = [
     dropdownItems: services
   },
   { name: 'About', href: '/about' },
+  { name: 'Team', href: '/team' },
   { name: 'Contact', href: '/contact' },
 ];
 
@@ -101,9 +102,13 @@ export function Header() {
           <div className="flex items-center flex-shrink-0">
             <a 
               href="/" 
-              className="text-lg sm:text-xl lg:text-2xl font-bold text-white hover:text-purple-300 transition-colors duration-300"
+              className="flex items-center transition-opacity duration-300 hover:opacity-80"
             >
-              CareerMap <span className="text-purple-300">Solutions</span>
+              <img 
+                src="/logo2.png" 
+                alt="CareerMap Solutions" 
+                className="h-18 sm:h-24 lg:h-28 w-auto"
+              />
             </a>
           </div>
 

@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { 
   UserCheck, Eye, Trash2, Users, MessageSquare, 
-  Phone, Building, Loader2, AlertCircle, CheckCircle, Clock, XCircle, TrendingUp, X, Mail
+  Phone, Building, TrendingUp, X, Mail, Clock, CheckCircle
 } from 'lucide-react';
 import { 
   getContactSubmissions, 
@@ -18,6 +18,12 @@ import { AdminLayout } from '@/components/layout/AdminLayout';
 import { useAsyncOperation } from '@/hooks/useAsyncOperation';
 import { usePagination } from '@/hooks/usePagination';
 import { handleApiError } from '@/utils/errorHandler';
+import { Pagination } from '@/components/ui/Pagination';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ErrorMessage } from '@/components/ui/ErrorMessage';
+import { ActionButtons } from '@/components/ui/ActionButtons';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 
 export default function ContactSubmissions() {
   const [submissions, setSubmissions] = useState<ContactSubmission[]>([]);
@@ -74,7 +80,7 @@ export default function ContactSubmissions() {
     },
   });
 
-  const { execute: deleteSubmission } = useAsyncOperation({
+  const { execute: deleteSubmissionExecute } = useAsyncOperation({
     onSuccess: () => {
       fetchData();
       if (selectedSubmission?.id) {
@@ -83,13 +89,23 @@ export default function ContactSubmissions() {
     },
   });
 
-  const { execute: updateStatus } = useAsyncOperation({
+  const { execute: updateStatusExecute } = useAsyncOperation({
     onSuccess: () => {
       fetchData();
+      // Update selected submission if it's the one being updated
+      if (selectedSubmission) {
+        getContactSubmissionById(selectedSubmission.id)
+          .then((response) => {
+            setSelectedSubmission(response.data);
+          })
+          .catch((err) => {
+            console.error('Failed to refresh selected submission:', err);
+          });
+      }
     },
   });
 
-  const handleViewDetails = async (id: string) => {
+  const handleViewDetails = useCallback(async (id: string) => {
     viewDetailsExecute(async () => {
       const response = await getContactSubmissionById(id);
       return response.data;
@@ -97,9 +113,9 @@ export default function ContactSubmissions() {
       const errorInfo = handleApiError(err);
       console.error('Failed to load contact details:', errorInfo.message);
     });
-  };
+  }, [viewDetailsExecute]);
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = useCallback(async (id: string) => {
     if (!confirm('Are you sure you want to delete this contact submission?')) {
       return;
     }
@@ -110,11 +126,16 @@ export default function ContactSubmissions() {
       const errorInfo = handleApiError(err);
       alert(errorInfo.message);
     });
-  };
+  }, [deleteSubmissionExecute]);
 
-  const handleStatusUpdate = async (id: string, status: string) => {
+  const handleStatusUpdate = useCallback(async (id: string, status: string) => {
     updateStatusExecute(async () => {
       await updateContactStatus(id, status);
+      // Update the submission in the list immediately
+      setSubmissions(prev => prev.map(sub => 
+        sub.id === id ? { ...sub, status: status as any } : sub
+      ));
+      // Update selected submission if it's the one being updated
       if (selectedSubmission?.id === id) {
         const updated = await getContactSubmissionById(id);
         setSelectedSubmission(updated.data);
@@ -123,44 +144,22 @@ export default function ContactSubmissions() {
       const errorInfo = handleApiError(err);
       alert(errorInfo.message);
     });
-  };
+  }, [updateStatusExecute, selectedSubmission]);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'new':
-        return 'bg-blue-100 text-blue-800';
-      case 'in_progress':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      case 'closed':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
+  // Handle status click to cycle through statuses - memoized
+  const handleStatusClick = useCallback((id: string, currentStatus: string) => {
+    const statuses: Array<'new' | 'in_progress' | 'completed' | 'closed'> = ['new', 'in_progress', 'completed', 'closed'];
+    const currentIndex = statuses.indexOf(currentStatus as any);
+    const nextIndex = (currentIndex + 1) % statuses.length;
+    const nextStatus = statuses[nextIndex];
+    handleStatusUpdate(id, nextStatus);
+  }, [handleStatusUpdate]);
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'new':
-        return <Clock className="h-4 w-4" />;
-      case 'in_progress':
-        return <AlertCircle className="h-4 w-4" />;
-      case 'completed':
-        return <CheckCircle className="h-4 w-4" />;
-      case 'closed':
-        return <XCircle className="h-4 w-4" />;
-      default:
-        return <Clock className="h-4 w-4" />;
-    }
-  };
 
   if (loading && !stats) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-        </div>
+        <LoadingSpinner size="lg" fullScreen />
       </AdminLayout>
     );
   }
@@ -254,12 +253,7 @@ export default function ContactSubmissions() {
         )}
 
         {/* Error Message */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center mb-6">
-            <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
-            <p className="text-red-700">{error}</p>
-          </div>
-        )}
+        <ErrorMessage message={error || ''} />
 
         {/* Leads Table */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
@@ -290,19 +284,13 @@ export default function ContactSubmissions() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {submissions.length === 0 && !loading && (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-16 text-center">
-                      <div className="flex flex-col items-center justify-center">
-                        <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mb-6">
-                          <UserCheck className="h-10 w-10 text-gray-400" />
-                        </div>
-                        <p className="text-gray-700 text-xl font-semibold mb-2">No leads yet</p>
-                        <p className="text-gray-500 text-sm max-w-md">
-                          Contact form leads will appear here when visitors submit inquiries through your website.
-                        </p>
-                      </div>
-                    </td>
-                  </tr>
+                  <EmptyState
+                    icon={UserCheck}
+                    title="No leads yet"
+                    description="Contact form leads will appear here when visitors submit inquiries through your website."
+                    colSpan={5}
+                    className="px-6 py-16"
+                  />
                 )}
                 {submissions.map((submission) => (
                   <tr key={submission.id} className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/50 transition-all duration-200 border-b border-gray-100">
@@ -336,10 +324,10 @@ export default function ContactSubmissions() {
                       </span>
                     </td>
                     <td className="px-6 py-5">
-                      <span className={`px-3 py-1.5 text-xs font-semibold rounded-lg flex items-center gap-1.5 w-fit shadow-sm ${getStatusColor(submission.status)}`}>
-                        {getStatusIcon(submission.status)}
-                        <span className="capitalize">{submission.status.replace('_', ' ')}</span>
-                      </span>
+                      <StatusBadge
+                        status={submission.status}
+                        onClick={() => handleStatusClick(submission.id, submission.status)}
+                      />
                     </td>
                     <td className="px-6 py-5 text-sm text-gray-600 font-medium">
                       {new Date(submission.submittedAt).toLocaleDateString('en-GB', { 
@@ -349,22 +337,23 @@ export default function ContactSubmissions() {
                       })}
                     </td>
                     <td className="px-6 py-5 text-right">
-                      <div className="flex items-center justify-end gap-3">
-                        <button
-                          onClick={() => handleViewDetails(submission.id)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 hover:shadow-sm"
-                          title="View Details"
-                        >
-                          <Eye className="h-5 w-5" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(submission.id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200 hover:shadow-sm"
-                          title="Delete"
-                        >
-                          <Trash2 className="h-5 w-5" />
-                        </button>
-                      </div>
+                      <ActionButtons
+                        actions={[
+                          {
+                            icon: Eye,
+                            onClick: () => handleViewDetails(submission.id),
+                            label: 'View Details',
+                            color: 'blue',
+                          },
+                          {
+                            icon: Trash2,
+                            onClick: () => handleDelete(submission.id),
+                            label: 'Delete',
+                            color: 'red',
+                          },
+                        ]}
+                        className="gap-3"
+                      />
                     </td>
                   </tr>
                 ))}
@@ -373,29 +362,14 @@ export default function ContactSubmissions() {
           </div>
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="bg-gradient-to-r from-gray-50 to-blue-50 px-6 py-4 border-t-2 border-gray-200 flex items-center justify-between">
-              <div className="text-sm font-medium text-gray-700">
-                Showing <span className="font-bold text-gray-900">page {page}</span> of <span className="font-bold text-gray-900">{totalPages}</span> ({total} total leads)
-              </div>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => setPage(Math.max(1, page - 1))}
-                  disabled={page === 1}
-                  className="px-5 py-2 text-sm font-medium bg-white border-2 border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 shadow-sm hover:shadow-md"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => setPage(Math.min(totalPages, page + 1))}
-                  disabled={page === totalPages}
-                  className="px-5 py-2 text-sm font-medium bg-white border-2 border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 shadow-sm hover:shadow-md"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          )}
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            total={total}
+            onPageChange={setPage}
+            itemName="leads"
+            className="bg-gradient-to-r from-gray-50 to-blue-50 border-t-2 border-gray-200"
+          />
         </div>
 
         {/* Lead Details Modal */}

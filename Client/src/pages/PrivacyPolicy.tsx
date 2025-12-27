@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import { fadeIn } from '@/lib/utils';
 import { ArrowLeft, Shield, Lock, Eye, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -16,7 +15,7 @@ export function PrivacyPolicy() {
           <div className="absolute -bottom-10 -left-10 w-40 h-40 sm:w-80 sm:h-80 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
         </div>
 
-        <div className="container mx-auto px-3 sm:px-4 lg:px-6 relative z-10">
+        <div className="container mx-auto px-3 sm:px-4 lg:px-6 relative z-10 py-4">
           {/* Back Button */}
           <motion.button
             onClick={() => navigate(-1)}
@@ -53,7 +52,7 @@ export function PrivacyPolicy() {
       </section>
 
       {/* Content Section */}
-      <section className="py-8 md:py-12 lg:py-16">
+      <section className="py-8 md:py-4 lg:py-8">
         <div className="container mx-auto px-3 sm:px-4 lg:px-6">
           <div className="max-w-6xl mx-auto">
             {/* Introduction */}
@@ -247,21 +246,6 @@ export function PrivacyPolicy() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.6 }}
             >
-              <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-blue-200">
-                <h3 className="text-xl sm:text-2xl font-semibold text-blue-900 mb-4">
-                  Questions About This Privacy Policy?
-                </h3>
-                <p className="text-gray-700 mb-6">
-                  If you have any questions or concerns about our privacy practices, please don't hesitate to contact us.
-                </p>
-                <a
-                  href="mailto:privacy@careermapsolutions.com"
-                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105"
-                >
-                  <Mail className="w-5 h-5 mr-2" />
-                  Contact Privacy Team
-                </a>
-              </div>
             </motion.div>
           </div>
         </div>

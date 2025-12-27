@@ -18,7 +18,8 @@ import {
   Key,
   Server,
   FileText,
-  Palette
+  Palette,
+  X
 } from 'lucide-react';
 import { TwoFactorSetup } from '@/components/auth/TwoFactorSetup';
 import { AdminLayout } from '@/components/layout/AdminLayout';
@@ -114,15 +115,68 @@ export default function Settings() {
       const token = localStorage.getItem('accessToken');
       if (!token) return;
 
-      // Check user data for 2FA status
+      console.log('Fetching 2FA status from API...');
+
+      // Fetch current user data from API to get 2FA status
+      const response = await axios.get(
+        API_ENDPOINTS.users?.me || '/api/users/me',
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      console.log('2FA status API response:', response.data);
+
+      if (response?.data?.success && response.data.data?.user) {
+        const user = response.data.data.user;
+        // Check if 2FA is enabled - prioritize twoFactorEnabled field from API
+        const is2FAEnabled = user.twoFactorEnabled === true || user.twoFactor?.enabled === true;
+        
+        console.log('2FA enabled status:', is2FAEnabled, 'from user object:', {
+          twoFactorEnabled: user.twoFactorEnabled,
+          twoFactor: user.twoFactor
+        });
+        
+        setTwoFactorStatus(is2FAEnabled);
+        setSecuritySettings(prev => ({ ...prev, twoFactorEnabled: is2FAEnabled }));
+        
+        // Update localStorage user data with 2FA status
+        const userData = localStorage.getItem('user');
+        if (userData) {
+          const storedUser = JSON.parse(userData);
+          storedUser.twoFactorEnabled = is2FAEnabled;
+          if (!storedUser.twoFactor) {
+            storedUser.twoFactor = {};
+          }
+          storedUser.twoFactor.enabled = is2FAEnabled;
+          localStorage.setItem('user', JSON.stringify(storedUser));
+        }
+      } else {
+        console.warn('Invalid API response structure:', response?.data);
+        // Fallback: check localStorage user data
+        const userData = localStorage.getItem('user');
+        if (userData) {
+          const user = JSON.parse(userData);
+          const is2FAEnabled = user.twoFactorEnabled === true || user.twoFactor?.enabled === true;
+          setTwoFactorStatus(is2FAEnabled);
+          setSecuritySettings(prev => ({ ...prev, twoFactorEnabled: is2FAEnabled }));
+        }
+      }
+    } catch (err: any) {
+      console.error('Error fetching 2FA status:', err);
+      console.error('Error response:', err.response?.data);
+      // Fallback: check localStorage user data
       const userData = localStorage.getItem('user');
       if (userData) {
-        const user = JSON.parse(userData);
-        // You can add 2FA status to user object or fetch from API
-        setTwoFactorStatus(securitySettings.twoFactorEnabled);
+        try {
+          const user = JSON.parse(userData);
+          const is2FAEnabled = user.twoFactorEnabled === true || user.twoFactor?.enabled === true;
+          setTwoFactorStatus(is2FAEnabled);
+          setSecuritySettings(prev => ({ ...prev, twoFactorEnabled: is2FAEnabled }));
+        } catch (parseErr) {
+          console.error('Error parsing user data:', parseErr);
+        }
       }
-    } catch (err) {
-      console.error('Error fetching 2FA status:', err);
     }
   };
 
@@ -269,7 +323,8 @@ export default function Settings() {
     }
 
     const password = prompt('Enter your password to disable 2FA:');
-    if (!password) {
+    if (!password || password.trim() === '') {
+      setError('Password is required to disable 2FA');
       setSecuritySettings(prev => ({ ...prev, twoFactorEnabled: true }));
       return;
     }
@@ -279,10 +334,21 @@ export default function Settings() {
 
     try {
       const token = localStorage.getItem('accessToken');
+      if (!token) {
+        setError('Authentication token not found. Please log in again.');
+        setSaving(false);
+        return;
+      }
+
       const response = await axios.post(
-        API_ENDPOINTS.twoFactor?.disable || '/api/2fa/disable',
-        { password },
-        { headers: { Authorization: `Bearer ${token}` } }
+        API_ENDPOINTS.twoFactor.disable,
+        { password: password.trim() },
+        { 
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          } 
+        }
       );
 
       if (response.data.success) {
@@ -292,7 +358,11 @@ export default function Settings() {
         setTimeout(() => setSuccess(null), 3000);
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to disable 2FA');
+      const errorMessage = err.response?.data?.error?.message || 
+                          err.response?.data?.message || 
+                          err.message || 
+                          'Failed to disable 2FA';
+      setError(errorMessage);
       setSecuritySettings(prev => ({ ...prev, twoFactorEnabled: true }));
     } finally {
       setSaving(false);

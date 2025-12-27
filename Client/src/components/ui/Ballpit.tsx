@@ -598,6 +598,15 @@ function processPointerInteraction() {
 
 function onTouchStart(e: TouchEvent) {
   if (e.touches.length > 0) {
+    // Don't prevent default for links (tel:, mailto:, etc.) or buttons
+    const target = e.target as HTMLElement;
+    const isLink = target.closest('a[href]');
+    const isButton = target.closest('button');
+    if (isLink || isButton) {
+      // Allow link/button to work normally
+      return;
+    }
+    
     e.preventDefault();
     pointerPosition.set(e.touches[0].clientX, e.touches[0].clientY);
     for (const [elem, data] of pointerMap) {
@@ -617,6 +626,15 @@ function onTouchStart(e: TouchEvent) {
 
 function onTouchMove(e: TouchEvent) {
   if (e.touches.length > 0) {
+    // Don't prevent default for links (tel:, mailto:, etc.) or buttons
+    const target = e.target as HTMLElement;
+    const isLink = target.closest('a[href]');
+    const isButton = target.closest('button');
+    if (isLink || isButton) {
+      // Allow link/button scrolling/navigation to work normally
+      return;
+    }
+    
     e.preventDefault();
     pointerPosition.set(e.touches[0].clientX, e.touches[0].clientY);
     for (const [elem, data] of pointerMap) {
@@ -636,7 +654,16 @@ function onTouchMove(e: TouchEvent) {
   }
 }
 
-function onTouchEnd() {
+function onTouchEnd(e: TouchEvent) {
+  // Don't prevent default for links (tel:, mailto:, etc.) or buttons
+  const target = e.target as HTMLElement;
+  const isLink = target.closest('a[href]');
+  const isButton = target.closest('button');
+  if (isLink || isButton) {
+    // Allow link/button to work normally
+    return;
+  }
+  
   for (const [, data] of pointerMap) {
     if (data.touching) {
       data.touching = false;
@@ -649,6 +676,15 @@ function onTouchEnd() {
 }
 
 function onPointerClick(e: PointerEvent) {
+  // Don't interfere with buttons or links
+  const target = e.target as HTMLElement;
+  const isLink = target.closest('a[href]');
+  const isButton = target.closest('button');
+  if (isLink || isButton) {
+    // Allow link/button to work normally
+    return;
+  }
+  
   pointerPosition.set(e.clientX, e.clientY);
   for (const [elem, data] of pointerMap) {
     const rect = elem.getBoundingClientRect();

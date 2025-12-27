@@ -84,6 +84,9 @@ export const getAllJobApplications = async (
   try {
     const skip = (page - 1) * limit;
 
+    console.log('Querying database for job applications...');
+    console.log('Page:', page, 'Limit:', limit, 'Skip:', skip);
+
     const [applicants, total] = await Promise.all([
       Applicant.find({})
         .sort({ submittedAt: -1 })
@@ -92,6 +95,8 @@ export const getAllJobApplications = async (
         .lean(),
       Applicant.countDocuments({}),
     ]);
+
+    console.log('Found applicants:', applicants.length, 'Total:', total);
 
     const data = applicants.map((applicant) => ({
       id: (applicant._id as any).toString(),
@@ -109,6 +114,8 @@ export const getAllJobApplications = async (
       submittedAt: applicant.submittedAt.toISOString(),
     })) as JobApplicationData[];
 
+    console.log('Mapped data count:', data.length);
+
     return {
       data,
       total,
@@ -117,6 +124,8 @@ export const getAllJobApplications = async (
     };
   } catch (error) {
     console.error('Error fetching job applications:', error);
+    console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     throw createError('Failed to fetch job applications', 500);
   }
 };
@@ -161,9 +170,31 @@ export const getJobApplicationById = async (id: string): Promise<JobApplicationD
  */
 export const getJobApplicationStatistics = async () => {
   try {
-    const [total, allApplicants] = await Promise.all([
+    // Get start of today (00:00:00) and end of today (23:59:59)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999);
+
+    // Get start of this month
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const [total, allApplicants, newToday, thisMonth] = await Promise.all([
       Applicant.countDocuments({}),
       Applicant.find({}).sort({ submittedAt: -1 }).limit(5).lean(),
+      Applicant.countDocuments({
+        submittedAt: {
+          $gte: today,
+          $lte: endOfToday,
+        },
+      }),
+      Applicant.countDocuments({
+        submittedAt: {
+          $gte: startOfMonth,
+        },
+      }),
     ]);
 
     const byExperience = await Applicant.aggregate([
@@ -198,6 +229,8 @@ export const getJobApplicationStatistics = async () => {
 
     return {
       total,
+      newToday,
+      thisMonth,
       byExperience: byExperienceMap,
       byWorkMode: byWorkModeMap,
       bySource: bySourceMap,
