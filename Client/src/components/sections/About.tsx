@@ -139,7 +139,7 @@ export function About({ showFullContent = false, showHeader = true }: AboutProps
 
           {/* Modern Stats Grid */}
           <motion.div 
-            className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-16"
+            className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-12 sm:mb-16"
             initial="hidden"
             whileInView="show"
             viewport={{ once: true }}
@@ -158,19 +158,19 @@ export function About({ showFullContent = false, showHeader = true }: AboutProps
                 variants={fadeIn('up', 0.2)}
                 className="group relative"
               >
-                <div className={`relative h-full bg-gradient-to-br ${stat.bgGradient} rounded-2xl p-6 border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-500 text-center overflow-hidden`}>
-                  <div className={`absolute top-0 right-0 w-20 h-20 bg-gradient-to-br ${stat.gradient} opacity-10 rounded-bl-full group-hover:opacity-20 transition-opacity`}></div>
+                <div className={`relative h-full bg-gradient-to-br ${stat.bgGradient} rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-500 text-center overflow-hidden`}>
+                  <div className={`absolute top-0 right-0 w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br ${stat.gradient} opacity-10 rounded-bl-full group-hover:opacity-20 transition-opacity`}></div>
                   
-                  <div className={`relative z-10 inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br ${stat.gradient} mb-4 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
-                    <div className="text-white">
+                  <div className={`relative z-10 inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br ${stat.gradient} mb-3 sm:mb-4 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
+                    <div className="text-white scale-75 sm:scale-100">
                       {stat.icon}
                     </div>
                   </div>
                   
-                  <div className={`text-4xl sm:text-5xl font-extrabold bg-gradient-to-br ${stat.gradient} bg-clip-text text-transparent mb-2`}>
+                  <div className={`text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-extrabold bg-gradient-to-br ${stat.gradient} bg-clip-text text-transparent mb-1 sm:mb-2`}>
                     {stat.value}
                   </div>
-                  <div className="text-sm font-semibold text-gray-700">{stat.label}</div>
+                  <div className="text-xs xs:text-sm font-semibold text-gray-700 leading-tight">{stat.label}</div>
                 </div>
               </motion.div>
             ))}

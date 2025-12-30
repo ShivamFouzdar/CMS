@@ -89,7 +89,7 @@ export function JobApplicationTrigger() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="inline-flex items-center justify-center h-12 sm:h-14 px-8 sm:px-10 py-4 sm:py-5 text-base sm:text-lg lg:text-xl bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 hover:from-yellow-500 hover:via-pink-600 hover:to-purple-700 text-white shadow-2xl hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] transition-all duration-300 rounded-xl font-semibold w-full sm:w-auto backdrop-blur-sm"
+        className="inline-flex items-center justify-center h-12 sm:h-14 min-h-[48px] px-6 sm:px-8 md:px-10 py-3 sm:py-4 text-sm sm:text-base md:text-lg lg:text-xl bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 hover:from-yellow-500 hover:via-pink-600 hover:to-purple-700 text-white shadow-2xl hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] transition-all duration-300 rounded-xl font-semibold w-full sm:w-auto backdrop-blur-sm touch-manipulation"
       >
         Find Your Job →
       </button>

@@ -247,7 +247,7 @@ export function Contact({ showHeader = true }: ContactProps) {
                         required
                         value={formData.name}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-400 transition-all duration-200"
+                        className="w-full px-4 py-3 min-h-[44px] bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-400 transition-all duration-200 text-base"
                         placeholder="John Doe"
                       />
                     </div>
@@ -264,7 +264,7 @@ export function Contact({ showHeader = true }: ContactProps) {
                           required
                           value={formData.email}
                           onChange={handleChange}
-                          className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-400 transition-all duration-200"
+                          className="w-full px-4 py-3 min-h-[44px] bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-400 transition-all duration-200 text-base"
                           placeholder="your@email.com"
                         />
                       </div>
@@ -277,7 +277,7 @@ export function Contact({ showHeader = true }: ContactProps) {
                           name="phone"
                           value={formData.phone}
                           onChange={handleChange}
-                          className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-400 transition-all duration-200"
+                          className="w-full px-4 py-3 min-h-[44px] bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-400 transition-all duration-200 text-base"
                           placeholder="+91 90129 50370"
                         />
                       </div>
@@ -290,7 +290,7 @@ export function Contact({ showHeader = true }: ContactProps) {
                         name="service"
                         value={formData.service}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 transition-all duration-200 appearance-none"
+                        className="w-full px-4 py-3 min-h-[44px] bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 transition-all duration-200 appearance-none text-base"
                       >
                         <option value="">Select a service</option>
                         {services.map((service) => (
@@ -310,7 +310,7 @@ export function Contact({ showHeader = true }: ContactProps) {
                         required
                         value={formData.message}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-400 transition-all duration-200 resize-none"
+                        className="w-full px-4 py-3 min-h-[120px] bg-gray-50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900 placeholder-gray-400 transition-all duration-200 resize-none text-base"
                         placeholder="Tell us about your project..."
                       ></textarea>
                     </div>
@@ -318,7 +318,7 @@ export function Contact({ showHeader = true }: ContactProps) {
                     <Button
                       type="submit"
                       size="lg"
-                      className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-4 px-6 rounded-xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] flex items-center justify-center gap-2"
+                      className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-4 px-6 rounded-xl font-bold text-base sm:text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] flex items-center justify-center gap-2 min-h-[52px] touch-manipulation"
                       disabled={status === 'submitting'}
                     >
                       {status === 'submitting' ? (
@@ -379,7 +379,7 @@ export function Contact({ showHeader = true }: ContactProps) {
                               setTimeout(() => setEmailCopied(false), 1500);
                             } catch {}
                           }}
-                          className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:text-purple-600 hover:border-purple-300 transition-colors text-xs font-medium flex items-center gap-1"
+                          className="px-3 py-2 rounded-lg border border-gray-200 text-gray-600 hover:text-purple-600 hover:border-purple-300 transition-colors text-xs font-medium flex items-center gap-1 min-h-[44px] touch-manipulation"
                         >
                           {emailCopied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
                           {emailCopied ? 'Copied' : 'Copy'}
@@ -390,7 +390,7 @@ export function Contact({ showHeader = true }: ContactProps) {
                             e.stopPropagation();
                             window.location.href = 'mailto:info@careermapsolutions.com';
                           }}
-                          className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 active:scale-95 transition-all text-sm font-semibold shadow-md hover:shadow-lg min-h-[44px] touch-manipulation cursor-pointer"
+                          className="inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 active:scale-95 transition-all text-sm font-semibold shadow-md hover:shadow-lg min-h-[44px] min-w-[100px] touch-manipulation cursor-pointer"
                           aria-label="Send email to info@careermapsolutions.com"
                         >
                           Email Us
@@ -421,7 +421,7 @@ export function Contact({ showHeader = true }: ContactProps) {
                               setTimeout(() => setPhoneCopied(false), 1500);
                             } catch {}
                           }}
-                          className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:text-green-600 hover:border-green-300 transition-colors text-xs font-medium flex items-center gap-1"
+                          className="px-3 py-2 rounded-lg border border-gray-200 text-gray-600 hover:text-green-600 hover:border-green-300 transition-colors text-xs font-medium flex items-center gap-1 min-h-[44px] touch-manipulation"
                         >
                           {phoneCopied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
                           {phoneCopied ? 'Copied' : 'Copy'}
@@ -432,7 +432,7 @@ export function Contact({ showHeader = true }: ContactProps) {
                             e.stopPropagation();
                             window.location.href = 'tel:+919012950370';
                           }}
-                          className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 active:scale-95 transition-all text-sm font-semibold shadow-md hover:shadow-lg min-h-[44px] touch-manipulation cursor-pointer"
+                          className="inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 active:scale-95 transition-all text-sm font-semibold shadow-md hover:shadow-lg min-h-[44px] min-w-[100px] touch-manipulation cursor-pointer"
                           aria-label="Call +91 90129 50370"
                         >
                           Call Now

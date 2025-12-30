@@ -607,11 +607,13 @@ function onTouchStart(e: TouchEvent) {
       return;
     }
     
-    e.preventDefault();
+    // Check if touch is inside any Ballpit element
+    let isInsideBallpit = false;
     pointerPosition.set(e.touches[0].clientX, e.touches[0].clientY);
     for (const [elem, data] of pointerMap) {
       const rect = elem.getBoundingClientRect();
       if (isInside(rect)) {
+        isInsideBallpit = true;
         data.touching = true;
         updatePointerData(data, rect);
         if (!data.hover) {
@@ -620,6 +622,11 @@ function onTouchStart(e: TouchEvent) {
         }
         data.onMove(data);
       }
+    }
+    
+    // Only prevent default if actually interacting with a Ballpit element
+    if (isInsideBallpit) {
+      e.preventDefault();
     }
   }
 }
@@ -635,12 +642,14 @@ function onTouchMove(e: TouchEvent) {
       return;
     }
     
-    e.preventDefault();
+    // Check if touch is inside any Ballpit element
+    let isInsideBallpit = false;
     pointerPosition.set(e.touches[0].clientX, e.touches[0].clientY);
     for (const [elem, data] of pointerMap) {
       const rect = elem.getBoundingClientRect();
       updatePointerData(data, rect);
       if (isInside(rect)) {
+        isInsideBallpit = true;
         if (!data.hover) {
           data.hover = true;
           data.touching = true;
@@ -648,8 +657,15 @@ function onTouchMove(e: TouchEvent) {
         }
         data.onMove(data);
       } else if (data.hover && data.touching) {
+        // Still tracking if we were previously inside
+        isInsideBallpit = true;
         data.onMove(data);
       }
+    }
+    
+    // Only prevent default if actually interacting with a Ballpit element
+    if (isInsideBallpit) {
+      e.preventDefault();
     }
   }
 }

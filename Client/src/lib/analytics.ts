@@ -12,10 +12,10 @@ interface AnalyticsEvent {
 // Google Analytics configuration
 declare global {
   interface Window {
-    gtag: (...args: any[]) => void;
-    dataLayer: any[];
-    hj: (...args: any[]) => void;
-    _hjSettings: {
+    gtag?: (...args: any[]) => void;
+    dataLayer?: any[];
+    hj?: (...args: any[]) => void;
+    _hjSettings?: {
       hjid: string;
       hjsv: number;
     };
@@ -38,7 +38,7 @@ export function initAnalytics() {
   if (!isBrowser) return;
 
   // Initialize Google Analytics if available
-  if (isGAvailable) {
+  if (isGAvailable && window.gtag) {
     window.dataLayer = window.dataLayer || [];
     window.gtag('js', new Date());
     window.gtag('config', import.meta.env.VITE_GA_MEASUREMENT_ID || '', {
@@ -76,7 +76,7 @@ export function trackPageView(path?: string, title?: string) {
   const pageTitle = title || document.title;
 
   // Google Analytics
-  if (isGAvailable) {
+  if (isGAvailable && window.gtag) {
     window.gtag('event', 'page_view', {
       page_path: pagePath,
       page_title: pageTitle,
@@ -84,7 +84,7 @@ export function trackPageView(path?: string, title?: string) {
   }
 
   // Hotjar
-  if (isHotjarAvailable) {
+  if (isHotjarAvailable && window.hj) {
     window.hj('stateChange', pagePath);
   }
 
@@ -104,7 +104,7 @@ export function trackEvent(event: AnalyticsEvent) {
   const { action, category, label, value, ...rest } = event;
 
   // Google Analytics
-  if (isGAvailable) {
+  if (isGAvailable && window.gtag) {
     window.gtag('event', action, {
       event_category: category,
       event_label: label,
@@ -114,7 +114,7 @@ export function trackEvent(event: AnalyticsEvent) {
   }
 
   // Hotjar
-  if (isHotjarAvailable) {
+  if (isHotjarAvailable && window.hj) {
     window.hj('event', `${category}_${action}`, {
       label,
       value,

@@ -44,9 +44,9 @@ function ScrollToTop() {
 // Layout with header and footer
 function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50" style={{ touchAction: 'pan-y pinch-zoom' }}>
       <Header />
-      <main className="flex-grow">
+      <main className="flex-grow" style={{ touchAction: 'pan-y pinch-zoom' }}>
         <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
           {children}
         </div>

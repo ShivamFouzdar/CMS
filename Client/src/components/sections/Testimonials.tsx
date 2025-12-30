@@ -100,13 +100,13 @@ export function Testimonials() {
 
         {/* Scrollable Testimonials Carousel */}
         <div className="relative">
-          <div className="overflow-x-auto scrollbar-hide">
-            <div className="flex gap-4 sm:gap-6 pb-4" style={{ width: 'max-content' }}>
+          <div className="overflow-x-auto scrollbar-hide overscroll-x-contain touch-pan-x" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div className="flex gap-3 sm:gap-4 md:gap-6 pb-4" style={{ width: 'max-content' }}>
               {/* Regular Testimonial Cards */}
               {testimonials.map((testimonial, index) => (
                 <motion.div
                   key={testimonial.id}
-                  className="bg-white p-4 rounded-lg border border-gray-100 hover:border-purple-200 transition-all duration-300 hover:shadow-md w-60 h-60 sm:w-60 sm:h-60 flex flex-col cursor-pointer group"
+                  className="bg-white p-4 rounded-lg border border-gray-100 hover:border-purple-200 transition-all duration-300 hover:shadow-md w-[280px] sm:w-60 h-auto min-h-[240px] sm:min-h-[240px] flex flex-col cursor-pointer group touch-manipulation flex-shrink-0"
                   initial="hidden"
                   whileInView="show"
                   viewport={{ once: true }}
@@ -165,7 +165,7 @@ export function Testimonials() {
 
               {/* View All Reviews Card */}
               <motion.div
-                className="bg-gradient-to-br from-purple-600 to-purple-800 p-4 rounded-lg border border-purple-700 hover:border-purple-500 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/25 w-60 h-60 sm:w-60 sm:h-60 flex flex-col cursor-pointer group"
+                className="bg-gradient-to-br from-purple-600 to-purple-800 p-4 rounded-lg border border-purple-700 hover:border-purple-500 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/25 w-[280px] sm:w-60 h-auto min-h-[240px] sm:min-h-[240px] flex flex-col cursor-pointer group touch-manipulation flex-shrink-0"
                 initial="hidden"
                 whileInView="show"
                 viewport={{ once: true }}

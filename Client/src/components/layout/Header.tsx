@@ -193,7 +193,7 @@ export function Header() {
             </a>
             <a
               href="#contact"
-              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white text-sm font-medium rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-300 transform hover:scale-105 shadow-lg"
+              className="px-4 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white text-sm font-medium rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-300 transform hover:scale-105 shadow-lg min-h-[44px] touch-manipulation inline-flex items-center justify-center"
             >
               Get Started
             </a>
@@ -201,7 +201,7 @@ export function Header() {
 
           {/* Mobile menu button */}
           <button
-            className="lg:hidden p-2 text-white hover:text-purple-300 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-transparent rounded-md"
+            className="lg:hidden p-2.5 text-white hover:text-purple-300 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-transparent rounded-md min-h-[44px] min-w-[44px] touch-manipulation flex items-center justify-center"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle menu"
             aria-expanded={mobileMenuOpen}
@@ -255,7 +255,7 @@ export function Header() {
                   <div key={item.name}>
                     <motion.a
                       href={item.href}
-                      className="py-3 px-4 text-gray-200 hover:text-white hover:bg-purple-900/30 transition-all duration-300 font-medium rounded-lg group flex items-center justify-between"
+                      className="py-3.5 px-4 text-gray-200 hover:text-white hover:bg-purple-900/30 transition-all duration-300 font-medium rounded-lg group flex items-center justify-between min-h-[48px] touch-manipulation"
                       onClick={() => setMobileMenuOpen(false)}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -282,7 +282,7 @@ export function Header() {
                           <motion.a
                             key={dropdownItem.name}
                             href={dropdownItem.href}
-                            className="block py-2 px-3 text-sm text-gray-300 hover:text-white hover:bg-purple-800/30 transition-all duration-300 rounded-lg"
+                            className="block py-3 px-4 text-sm text-gray-300 hover:text-white hover:bg-purple-800/30 transition-all duration-300 rounded-lg min-h-[44px] touch-manipulation"
                             onClick={() => setMobileMenuOpen(false)}
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -307,7 +307,7 @@ export function Header() {
               >
                 <a
                   href="#contact"
-                  className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg text-center font-medium hover:from-purple-700 hover:to-purple-800 transition-all duration-300 transform hover:scale-105 block"
+                  className="w-full py-3.5 px-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg text-center font-medium hover:from-purple-700 hover:to-purple-800 transition-all duration-300 transform hover:scale-105 block min-h-[48px] touch-manipulation flex items-center justify-center"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Get Started Today

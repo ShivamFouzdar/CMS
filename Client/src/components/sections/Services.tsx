@@ -151,64 +151,130 @@ export function Services({ showAll = false }: ServicesProps) {
           </motion.div>
         )}
 
-        {/* Modern Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-12">
-          {services.slice(0, showAll ? services.length : 3).map((service, index) => (
-            <motion.div
-              key={service.title}
-              className="group relative"
-              initial="hidden"
-              whileInView="show"
-              viewport={{ once: true, margin: "-50px" }}
-              variants={fadeIn("up", 0.1 * index)}
-            >
-              {/* Card with modern design */}
-              <div className="relative h-full bg-white rounded-3xl p-8 border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden">
-                {/* Gradient Background on Hover */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${service.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
-                
-                {/* Icon with Gradient Background */}
-                <div className={`relative mb-6 w-16 h-16 rounded-2xl bg-gradient-to-br ${service.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
-                  {service.icon}
-                  <div className="absolute inset-0 rounded-2xl bg-white/20 blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-                </div>
+        {/* Modern Services Grid - Horizontal scroll on mobile, grid on desktop */}
+        <div className="md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6 lg:gap-8 mb-8 sm:mb-12">
+          {/* Mobile: Horizontal scrollable container */}
+          <div className="md:hidden overflow-x-auto scrollbar-hide overscroll-x-contain touch-pan-x pb-4 -mx-4 px-4" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div className="flex gap-4" style={{ width: 'max-content' }}>
+              {services.slice(0, showAll ? services.length : 3).map((service, index) => (
+                <motion.div
+                  key={service.title}
+                  className="group relative flex-shrink-0"
+                  initial="hidden"
+                  whileInView="show"
+                  viewport={{ once: true, margin: "-50px" }}
+                  variants={fadeIn("up", 0.1 * index)}
+                  style={{ width: '85vw', maxWidth: '380px', minWidth: '320px' }}
+                >
+                  {/* Card with modern design */}
+                  <div className="relative h-full bg-white rounded-2xl p-6 border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden w-full">
+                    {/* Gradient Background on Hover */}
+                    <div className={`absolute inset-0 bg-gradient-to-br ${service.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
+                    
+                    {/* Icon with Gradient Background */}
+                    <div className={`relative mb-6 w-16 h-16 rounded-2xl bg-gradient-to-br ${service.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
+                      {service.icon}
+                      <div className="absolute inset-0 rounded-2xl bg-white/20 blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                    </div>
 
-                {/* Content */}
-                <div className="relative z-10">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-blue-600 transition-all duration-300">
-                    {service.title}
-                  </h3>
+                    {/* Content */}
+                    <div className="relative z-10">
+                      <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-blue-600 transition-all duration-300">
+                        {service.title}
+                      </h3>
+                      
+                      <p className="text-gray-600 mb-6 leading-relaxed line-clamp-3">
+                        {service.description}
+                      </p>
+
+                      {/* Features List */}
+                      <ul className="space-y-3 mb-8">
+                        {service.features.slice(0, 3).map((feature, i) => (
+                          <li key={i} className="flex items-center gap-3">
+                            <div className={`flex-shrink-0 w-6 h-6 rounded-lg bg-gradient-to-br ${service.gradient} flex items-center justify-center shadow-md`}>
+                              <Check className="w-3.5 h-3.5 text-white" />
+                            </div>
+                            <span className="text-sm text-gray-700 font-medium">{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+
+                      {/* CTA Button */}
+                      <a href={service.href} className="inline-flex items-center gap-2 group/btn min-h-[44px] touch-manipulation">
+                        <span className={`text-sm font-semibold bg-gradient-to-r ${service.gradient} bg-clip-text text-transparent group-hover/btn:gap-3 transition-all duration-300`}>
+                          Learn More
+                        </span>
+                        <ArrowRight className={`w-4 h-4 sm:w-5 sm:h-5 bg-gradient-to-r ${service.gradient} bg-clip-text text-transparent group-hover/btn:translate-x-1 transition-transform duration-300`} />
+                      </a>
+                    </div>
+
+                    {/* Decorative Corner Element */}
+                    <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${service.gradient} opacity-5 rounded-bl-full group-hover:opacity-10 transition-opacity duration-500`}></div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Desktop: Grid layout */}
+          <div className="hidden md:contents">
+            {services.slice(0, showAll ? services.length : 3).map((service, index) => (
+              <motion.div
+                key={service.title}
+                className="group relative"
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, margin: "-50px" }}
+                variants={fadeIn("up", 0.1 * index)}
+              >
+                {/* Card with modern design */}
+                <div className="relative h-full bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden">
+                  {/* Gradient Background on Hover */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${service.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
                   
-                  <p className="text-gray-600 mb-6 leading-relaxed line-clamp-3">
-                    {service.description}
-                  </p>
+                  {/* Icon with Gradient Background */}
+                  <div className={`relative mb-6 w-16 h-16 rounded-2xl bg-gradient-to-br ${service.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
+                    {service.icon}
+                    <div className="absolute inset-0 rounded-2xl bg-white/20 blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                  </div>
 
-                  {/* Features List */}
-                  <ul className="space-y-3 mb-8">
-                    {service.features.slice(0, 3).map((feature, i) => (
-                      <li key={i} className="flex items-center gap-3">
-                        <div className={`flex-shrink-0 w-6 h-6 rounded-lg bg-gradient-to-br ${service.gradient} flex items-center justify-center shadow-md`}>
-                          <Check className="w-3.5 h-3.5 text-white" />
-                        </div>
-                        <span className="text-sm text-gray-700 font-medium">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  {/* Content */}
+                  <div className="relative z-10">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-blue-600 transition-all duration-300">
+                      {service.title}
+                    </h3>
+                    
+                    <p className="text-gray-600 mb-6 leading-relaxed line-clamp-3">
+                      {service.description}
+                    </p>
 
-                  {/* CTA Button */}
-                  <a href={service.href} className="inline-flex items-center gap-2 group/btn">
-                    <span className={`text-sm font-semibold bg-gradient-to-r ${service.gradient} bg-clip-text text-transparent group-hover/btn:gap-3 transition-all duration-300`}>
-                      Learn More
-                    </span>
-                    <ArrowRight className={`w-5 h-5 bg-gradient-to-r ${service.gradient} bg-clip-text text-transparent group-hover/btn:translate-x-1 transition-transform duration-300`} />
-                  </a>
+                    {/* Features List */}
+                    <ul className="space-y-3 mb-8">
+                      {service.features.slice(0, 3).map((feature, i) => (
+                        <li key={i} className="flex items-center gap-3">
+                          <div className={`flex-shrink-0 w-6 h-6 rounded-lg bg-gradient-to-br ${service.gradient} flex items-center justify-center shadow-md`}>
+                            <Check className="w-3.5 h-3.5 text-white" />
+                          </div>
+                          <span className="text-sm text-gray-700 font-medium">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    {/* CTA Button */}
+                    <a href={service.href} className="inline-flex items-center gap-2 group/btn min-h-[44px] touch-manipulation">
+                      <span className={`text-sm font-semibold bg-gradient-to-r ${service.gradient} bg-clip-text text-transparent group-hover/btn:gap-3 transition-all duration-300`}>
+                        Learn More
+                      </span>
+                      <ArrowRight className={`w-4 h-4 sm:w-5 sm:h-5 bg-gradient-to-r ${service.gradient} bg-clip-text text-transparent group-hover/btn:translate-x-1 transition-transform duration-300`} />
+                    </a>
+                  </div>
+
+                  {/* Decorative Corner Element */}
+                  <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${service.gradient} opacity-5 rounded-bl-full group-hover:opacity-10 transition-opacity duration-500`}></div>
                 </div>
-
-                {/* Decorative Corner Element */}
-                <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${service.gradient} opacity-5 rounded-bl-full group-hover:opacity-10 transition-opacity duration-500`}></div>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            ))}
+          </div>
         </div>
 
         {/* View All Button */}
@@ -222,10 +288,10 @@ export function Services({ showAll = false }: ServicesProps) {
           >
             <a
               href="/services"
-              className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 via-purple-700 to-blue-600 hover:from-purple-700 hover:via-purple-800 hover:to-blue-700 text-white font-semibold rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+              className="inline-flex items-center justify-center gap-3 px-6 sm:px-8 py-3 sm:py-4 min-h-[48px] bg-gradient-to-r from-purple-600 via-purple-700 to-blue-600 hover:from-purple-700 hover:via-purple-800 hover:to-blue-700 text-white font-semibold rounded-xl sm:rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 touch-manipulation"
             >
-              <span>View All Services</span>
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              <span className="text-sm sm:text-base">View All Services</span>
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
             </a>
           </motion.div>
         )}
@@ -253,18 +319,18 @@ export function Services({ showAll = false }: ServicesProps) {
             </div>
             
             {/* Content Overlay */}
-            <div className="relative z-10 flex items-center justify-center min-h-[500px] p-12 sm:p-16 lg:p-20">
-              <div className="text-center max-w-3xl mx-auto">
-                <h3 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-6">
+            <div className="relative z-10 flex items-center justify-center min-h-[400px] sm:min-h-[500px] p-6 sm:p-12 md:p-16 lg:p-20">
+              <div className="text-center max-w-3xl mx-auto px-4">
+                <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-4 sm:mb-6">
                   Ready to Transform Your Business?
                 </h3>
-                <p className="text-xl text-gray-300 mb-10 leading-relaxed">
+                <p className="text-base sm:text-lg md:text-xl text-gray-300 mb-6 sm:mb-8 md:mb-10 leading-relaxed">
                   Let's discuss how we can create a custom solution tailored to your unique needs and goals.
                 </p>
                 <Button
                   href="/contact"
                   size="lg"
-                  className="bg-white text-gray-900 hover:bg-gray-100 px-10 py-6 text-lg font-bold rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105"
+                  className="bg-white text-gray-900 hover:bg-gray-100 px-6 sm:px-8 md:px-10 py-4 sm:py-5 md:py-6 text-base sm:text-lg font-bold rounded-xl sm:rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 min-h-[48px] touch-manipulation"
                 >
                   Get Started Today
                 </Button>

@@ -113,7 +113,7 @@ export function Industries() {
         </motion.div>
 
         {/* Industries Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8">
+        <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 xs:gap-4 sm:gap-5 md:gap-6 lg:gap-8">
           {industries.map((industry, index) => (
             <motion.div
               key={industry.name}
@@ -124,25 +124,27 @@ export function Industries() {
               variants={fadeIn("up", 0.1 * index)}
             >
               {/* Card */}
-              <div className="relative h-full bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden cursor-pointer">
+              <div className="relative h-full bg-white rounded-xl sm:rounded-2xl md:rounded-3xl p-4 sm:p-6 md:p-8 border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden cursor-pointer touch-manipulation min-h-[120px] sm:min-h-[140px]">
                 {/* Gradient Background on Hover */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${industry.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
                 
                 {/* Icon with Gradient Background */}
-                <div className={`relative mb-4 sm:mb-6 w-14 h-14 sm:w-16 sm:h-16 mx-auto rounded-2xl bg-gradient-to-br ${industry.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
-                  {industry.icon}
-                  <div className="absolute inset-0 rounded-2xl bg-white/20 blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                <div className={`relative mb-3 sm:mb-4 md:mb-6 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 mx-auto rounded-xl sm:rounded-2xl bg-gradient-to-br ${industry.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
+                  <div className="scale-75 sm:scale-90 md:scale-100">
+                    {industry.icon}
+                  </div>
+                  <div className="absolute inset-0 rounded-xl sm:rounded-2xl bg-white/20 blur-xl group-hover:blur-2xl transition-all duration-500"></div>
                 </div>
 
                 {/* Industry Name */}
                 <div className="relative z-10 text-center">
-                  <h3 className="text-base sm:text-lg font-bold text-gray-900 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-blue-600 transition-all duration-300">
+                  <h3 className="text-xs xs:text-sm sm:text-base md:text-lg font-bold text-gray-900 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-blue-600 transition-all duration-300 leading-tight">
                     {industry.name}
                   </h3>
                 </div>
 
                 {/* Decorative Corner Element */}
-                <div className={`absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br ${industry.gradient} opacity-5 rounded-bl-full group-hover:opacity-10 transition-opacity duration-500`}></div>
+                <div className={`absolute top-0 right-0 w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 bg-gradient-to-br ${industry.gradient} opacity-5 rounded-bl-full group-hover:opacity-10 transition-opacity duration-500`}></div>
               </div>
             </motion.div>
           ))}
