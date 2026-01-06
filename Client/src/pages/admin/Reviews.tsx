@@ -61,11 +61,9 @@ export default function Reviews() {
   });
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/auth/login');
-      return;
+    if (isAuthenticated) {
+      fetchReviews();
     }
-    fetchReviews();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
 
@@ -136,8 +134,8 @@ export default function Reviews() {
     return reviews.filter(review => {
       const lowerSearchTerm = debouncedSearchTerm.toLowerCase();
       const matchesSearch = review.name.toLowerCase().includes(lowerSearchTerm) ||
-                           review.email.toLowerCase().includes(lowerSearchTerm) ||
-                           review.content.toLowerCase().includes(lowerSearchTerm);
+        review.email.toLowerCase().includes(lowerSearchTerm) ||
+        review.content.toLowerCase().includes(lowerSearchTerm);
 
       let matchesFilter = true;
       if (filterPublished === 'published') {
@@ -169,8 +167,8 @@ export default function Reviews() {
   }
 
   return (
-      <AdminLayout>
-        <div className="p-4 sm:p-6 lg:p-8">
+    <AdminLayout>
+      <div className="p-4 sm:p-6 lg:p-8">
         {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Reviews Management</h1>
@@ -178,272 +176,269 @@ export default function Reviews() {
         </div>
 
         <div className="max-w-7xl mx-auto">
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-lg shadow p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Reviews</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{stats.total}</p>
+          {/* Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Reviews</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{stats.total}</p>
+                </div>
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <MessageSquare className="w-5 h-5 text-blue-600" />
+                </div>
               </div>
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <MessageSquare className="w-5 h-5 text-blue-600" />
+            </div>
+
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Published</p>
+                  <p className="text-2xl font-bold text-green-600 mt-1">{stats.published}</p>
+                </div>
+                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                  <Eye className="w-5 h-5 text-green-600" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Pending</p>
+                  <p className="text-2xl font-bold text-yellow-600 mt-1">{stats.pending}</p>
+                </div>
+                <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                  <EyeOff className="w-5 h-5 text-yellow-600" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Verified</p>
+                  <p className="text-2xl font-bold text-purple-600 mt-1">{stats.verified}</p>
+                </div>
+                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <CheckCircle className="w-5 h-5 text-purple-600" />
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Published</p>
-                <p className="text-2xl font-bold text-green-600 mt-1">{stats.published}</p>
+          {/* Filters */}
+          <div className="bg-white rounded-lg shadow p-4 mb-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Search by name, email, or content..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
               </div>
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                <Eye className="w-5 h-5 text-green-600" />
+              <div className="flex gap-2">
+                <select
+                  value={filterPublished}
+                  onChange={(e) => setFilterPublished(e.target.value as any)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                >
+                  <option value="all">All Reviews</option>
+                  <option value="published">Published</option>
+                  <option value="pending">Pending</option>
+                </select>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Pending</p>
-                <p className="text-2xl font-bold text-yellow-600 mt-1">{stats.pending}</p>
-              </div>
-              <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                <EyeOff className="w-5 h-5 text-yellow-600" />
-              </div>
+          {/* Reviews List */}
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredReviews.map((review) => (
+                    <tr key={review._id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{review.name}</div>
+                        <div className="text-sm text-gray-500">{review.role}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              className={`w-4 h-4 ${star <= review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
+                            />
+                          ))}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{review.category}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex gap-2">
+                          {review.isPublished ? (
+                            <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Published</span>
+                          ) : (
+                            <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">Pending</span>
+                          )}
+                          {review.isVerified && (
+                            <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">Verified</span>
+                          )}
+                          {review.isFeatured && (
+                            <span className="px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded-full">Featured</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(review.date || review.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => {
+                              setSelectedReview(review);
+                              setShowDetails(true);
+                            }}
+                            className="text-blue-600 hover:text-blue-900"
+                          >
+                            View
+                          </button>
+                          {!review.isPublished && (
+                            <button
+                              onClick={() => handleStatusUpdate(review._id, { isPublished: true })}
+                              className="text-green-600 hover:text-green-900"
+                            >
+                              Publish
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleDelete(review._id)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
+
+            {filteredReviews.length === 0 && (
+              <tbody>
+                <EmptyState
+                  icon={MessageSquare}
+                  title="No reviews found"
+                  description="Try adjusting your search or filter criteria."
+                  colSpan={6}
+                />
+              </tbody>
+            )}
           </div>
 
-          <div className="bg-white rounded-lg shadow p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Verified</p>
-                <p className="text-2xl font-bold text-purple-600 mt-1">{stats.verified}</p>
-              </div>
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                <CheckCircle className="w-5 h-5 text-purple-600" />
-              </div>
-            </div>
-          </div>
-        </div>
+          {/* Review Details Modal */}
+          {showDetails && selectedReview && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold text-gray-900">Review Details</h2>
+                    <button
+                      onClick={() => setShowDetails(false)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <XCircle className="w-6 h-6" />
+                    </button>
+                  </div>
 
-        {/* Filters */}
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search by name, email, or content..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
-            <div className="flex gap-2">
-              <select
-                value={filterPublished}
-                onChange={(e) => setFilterPublished(e.target.value as any)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              >
-                <option value="all">All Reviews</option>
-                <option value="published">Published</option>
-                <option value="pending">Pending</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* Reviews List */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredReviews.map((review) => (
-                  <tr key={review._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{review.name}</div>
-                      <div className="text-sm text-gray-500">{review.role}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="font-semibold text-gray-700">Name</h3>
+                      <p className="text-gray-900">{selectedReview.name}</p>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-700">Email</h3>
+                      <p className="text-gray-900">{selectedReview.email}</p>
+                    </div>
+                    {selectedReview.role && (
+                      <div>
+                        <h3 className="font-semibold text-gray-700">Role</h3>
+                        <p className="text-gray-900">{selectedReview.role}</p>
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="font-semibold text-gray-700">Rating</h3>
                       <div className="flex">
                         {[1, 2, 3, 4, 5].map((star) => (
                           <Star
                             key={star}
-                            className={`w-4 h-4 ${star <= review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
+                            className={`w-6 h-6 ${star <= selectedReview.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
                           />
                         ))}
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{review.category}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex gap-2">
-                        {review.isPublished ? (
-                          <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Published</span>
-                        ) : (
-                          <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">Pending</span>
-                        )}
-                        {review.isVerified && (
-                          <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">Verified</span>
-                        )}
-                        {review.isFeatured && (
-                          <span className="px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded-full">Featured</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(review.date || review.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => {
-                            setSelectedReview(review);
-                            setShowDetails(true);
-                          }}
-                          className="text-blue-600 hover:text-blue-900"
-                        >
-                          View
-                        </button>
-                        {!review.isPublished && (
-                          <button
-                            onClick={() => handleStatusUpdate(review._id, { isPublished: true })}
-                            className="text-green-600 hover:text-green-900"
-                          >
-                            Publish
-                          </button>
-                        )}
-                        <button
-                          onClick={() => handleDelete(review._id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {filteredReviews.length === 0 && (
-            <tbody>
-              <EmptyState
-                icon={MessageSquare}
-                title="No reviews found"
-                description="Try adjusting your search or filter criteria."
-                colSpan={6}
-              />
-            </tbody>
-          )}
-        </div>
-
-        {/* Review Details Modal */}
-      {showDetails && selectedReview && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-900">Review Details</h2>
-                <button
-                  onClick={() => setShowDetails(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <XCircle className="w-6 h-6" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-semibold text-gray-700">Name</h3>
-                  <p className="text-gray-900">{selectedReview.name}</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-700">Email</h3>
-                  <p className="text-gray-900">{selectedReview.email}</p>
-                </div>
-                {selectedReview.role && (
-                  <div>
-                    <h3 className="font-semibold text-gray-700">Role</h3>
-                    <p className="text-gray-900">{selectedReview.role}</p>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-700">Category</h3>
+                      <p className="text-gray-900">{selectedReview.category}</p>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-700">Review Content</h3>
+                      <p className="text-gray-900">{selectedReview.content}</p>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-700">Submitted</h3>
+                      <p className="text-gray-900">
+                        {new Date(selectedReview.date || selectedReview.createdAt).toLocaleString()}
+                      </p>
+                    </div>
                   </div>
-                )}
-                <div>
-                  <h3 className="font-semibold text-gray-700">Rating</h3>
-                  <div className="flex">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        className={`w-6 h-6 ${star <= selectedReview.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
-                      />
-                    ))}
+
+                  <div className="mt-6 flex gap-3">
+                    <button
+                      onClick={() => handleStatusUpdate(selectedReview._id, { isPublished: !selectedReview.isPublished })}
+                      className={`flex-1 px-4 py-2 rounded-lg font-medium ${selectedReview.isPublished
+                          ? 'bg-yellow-600 text-white hover:bg-yellow-700'
+                          : 'bg-green-600 text-white hover:bg-green-700'
+                        }`}
+                    >
+                      {selectedReview.isPublished ? 'Unpublish' : 'Publish'}
+                    </button>
+                    <button
+                      onClick={() => handleStatusUpdate(selectedReview._id, { isVerified: !selectedReview.isVerified })}
+                      className={`flex-1 px-4 py-2 rounded-lg font-medium ${selectedReview.isVerified
+                          ? 'bg-gray-600 text-white hover:bg-gray-700'
+                          : 'bg-blue-600 text-white hover:bg-blue-700'
+                        }`}
+                    >
+                      {selectedReview.isVerified ? 'Unverify' : 'Verify'}
+                    </button>
+                    <button
+                      onClick={() => handleStatusUpdate(selectedReview._id, { isFeatured: !selectedReview.isFeatured })}
+                      className={`flex-1 px-4 py-2 rounded-lg font-medium ${selectedReview.isFeatured
+                          ? 'bg-gray-600 text-white hover:bg-gray-700'
+                          : 'bg-purple-600 text-white hover:bg-purple-700'
+                        }`}
+                    >
+                      {selectedReview.isFeatured ? 'Unfeature' : 'Feature'}
+                    </button>
                   </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-gray-700">Category</h3>
-                  <p className="text-gray-900">{selectedReview.category}</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-700">Review Content</h3>
-                  <p className="text-gray-900">{selectedReview.content}</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-700">Submitted</h3>
-                  <p className="text-gray-900">
-                    {new Date(selectedReview.date || selectedReview.createdAt).toLocaleString()}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-6 flex gap-3">
-                <button
-                  onClick={() => handleStatusUpdate(selectedReview._id, { isPublished: !selectedReview.isPublished })}
-                  className={`flex-1 px-4 py-2 rounded-lg font-medium ${
-                    selectedReview.isPublished
-                      ? 'bg-yellow-600 text-white hover:bg-yellow-700'
-                      : 'bg-green-600 text-white hover:bg-green-700'
-                  }`}
-                >
-                  {selectedReview.isPublished ? 'Unpublish' : 'Publish'}
-                </button>
-                <button
-                  onClick={() => handleStatusUpdate(selectedReview._id, { isVerified: !selectedReview.isVerified })}
-                  className={`flex-1 px-4 py-2 rounded-lg font-medium ${
-                    selectedReview.isVerified
-                      ? 'bg-gray-600 text-white hover:bg-gray-700'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
-                  }`}
-                >
-                  {selectedReview.isVerified ? 'Unverify' : 'Verify'}
-                </button>
-                <button
-                  onClick={() => handleStatusUpdate(selectedReview._id, { isFeatured: !selectedReview.isFeatured })}
-                  className={`flex-1 px-4 py-2 rounded-lg font-medium ${
-                    selectedReview.isFeatured
-                      ? 'bg-gray-600 text-white hover:bg-gray-700'
-                      : 'bg-purple-600 text-white hover:bg-purple-700'
-                  }`}
-                >
-                  {selectedReview.isFeatured ? 'Unfeature' : 'Feature'}
-                </button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
         </div>
       </div>
     </AdminLayout>
