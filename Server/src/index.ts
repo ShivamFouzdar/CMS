@@ -36,6 +36,8 @@ app.use((req, res, next): void => {
     'http://localhost:5173',
     'http://localhost:8001',
     'http://localhost:5174',
+    'https://careermapsolution.com',
+    'https://www.careermapsolution.com',
   ]);
 
   if (origin && allowedOrigins.has(origin)) {
@@ -85,7 +87,7 @@ const startServer = async () => {
     try {
       await initializeDatabase();
       await createIndexes();
-      
+
       // Seed database with initial data (only in development)
       if (process.env['NODE_ENV'] === 'development') {
         await seedDatabase();
@@ -94,17 +96,17 @@ const startServer = async () => {
     } catch (dbError) {
       console.warn('⚠️  Database initialization failed, continuing without database:', dbError);
     }
-    
+
     // Initialize email service
     initializeEmailService();
-    
+
     // Start server
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📍 Health check: http://localhost:${PORT}/health`);
       console.log(`📍 API: http://localhost:${PORT}/api`);
     });
-    
+
   } catch (error) {
     console.error('❌ Failed to start server:', error);
     process.exit(1);

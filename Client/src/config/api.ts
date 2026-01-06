@@ -8,11 +8,11 @@
 
 // Get API base URL from environment variable or use default
 // Defaults to relative path for production, full URL for development
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
-  (import.meta.env.DEV ? 'http://localhost:5000' : '/api');
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.DEV ? 'http://localhost:5000' : '');
 
 // Get app base URL for SEO and absolute URLs (different from API base URL)
-export const APP_BASE_URL = import.meta.env.VITE_APP_BASE_URL || 
+export const APP_BASE_URL = import.meta.env.VITE_APP_BASE_URL ||
   (import.meta.env.DEV ? 'http://localhost:5005' : 'https://careermapsolutions.com');
 
 // API endpoints
@@ -88,7 +88,7 @@ export const apiCall = async <T>(
   options: RequestInit = {}
 ): Promise<T> => {
   const token = localStorage.getItem('accessToken');
-  
+
   const defaultOptions: RequestInit = {
     headers: {
       'Content-Type': 'application/json',

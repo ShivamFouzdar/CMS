@@ -1,348 +1,12 @@
 import { Request, Response } from 'express';
 import { asyncHandler, createError, sanitizeInput } from '@/utils/helpers';
 import { ApiResponse } from '@/types';
+import * as servicesService from '@/services/servicesService';
 
 /**
  * Services Controller
  * Handles services data and management
  */
-
-// Service interface
-interface Service {
-  id: string;
-  name: string;
-  slug: string;
-  description: string;
-  shortDescription: string;
-  icon: string;
-  features: string[];
-  benefits: string[];
-  process: Array<{
-    step: number;
-    title: string;
-    description: string;
-  }>;
-  pricing?: {
-    basic: number;
-    premium: number;
-    enterprise: number;
-  };
-  category: string;
-  isActive: boolean;
-  isFeatured?: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// Mock services data (replace with database in production)
-let services: Service[] = [
-  {
-    id: 'bpo-services',
-    name: 'BPO Services',
-    slug: 'bpo',
-    description: 'Comprehensive Business Process Outsourcing solutions to streamline your operations and reduce costs while maintaining high quality standards.',
-    shortDescription: 'Streamline operations with our comprehensive BPO solutions',
-    icon: 'Briefcase',
-    category: 'outsourcing',
-    features: [
-      'Customer Support',
-      'Data Entry & Processing',
-      'Back Office Operations',
-      'Call Center Services',
-      'Document Management',
-      'Quality Assurance'
-    ],
-    benefits: [
-      'Cost Reduction',
-      'Improved Efficiency',
-      '24/7 Support',
-      'Scalable Solutions',
-      'Expert Team',
-      'Advanced Technology'
-    ],
-    process: [
-      {
-        step: 1,
-        title: 'Consultation',
-        description: 'We analyze your business needs and requirements'
-      },
-      {
-        step: 2,
-        title: 'Customization',
-        description: 'Tailored solutions designed for your specific processes'
-      },
-      {
-        step: 3,
-        title: 'Implementation',
-        description: 'Seamless integration with your existing systems'
-      },
-      {
-        step: 4,
-        title: 'Monitoring',
-        description: 'Continuous monitoring and optimization for best results'
-      }
-    ],
-    isActive: true,
-    isFeatured: true,
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z',
-  },
-  {
-    id: 'it-services',
-    name: 'IT Services',
-    slug: 'it',
-    description: 'Full-stack MERN development and comprehensive IT solutions to modernize your business with cutting-edge technology.',
-    shortDescription: 'Modernize your business with our MERN stack development',
-    icon: 'Code',
-    category: 'technology',
-    features: [
-      'React Frontend Development',
-      'Express.js Backend',
-      'MongoDB Database Design',
-      'Node.js Server Development',
-      'Full-Stack Integration',
-      'Deployment & DevOps'
-    ],
-    benefits: [
-      'Modern Technology Stack',
-      'Scalable Architecture',
-      'Fast Development',
-      'Cross-Platform Compatibility',
-      'Real-time Applications',
-      'Cloud Integration'
-    ],
-    process: [
-      {
-        step: 1,
-        title: 'Planning',
-        description: 'Technical architecture and project planning'
-      },
-      {
-        step: 2,
-        title: 'Development',
-        description: 'Agile development using MERN stack'
-      },
-      {
-        step: 3,
-        title: 'Testing',
-        description: 'Comprehensive testing and quality assurance'
-      },
-      {
-        step: 4,
-        title: 'Deployment',
-        description: 'Production deployment and ongoing support'
-      }
-    ],
-    isActive: true,
-    isFeatured: true,
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z',
-  },
-  {
-    id: 'recruitment',
-    name: 'Recruitment',
-    slug: 'recruitment',
-    description: 'Expert talent acquisition services to help you find the right candidates for your organization.',
-    shortDescription: 'Find the right talent for your organization',
-    icon: 'Users',
-    category: 'hr',
-    features: [
-      'Executive Search',
-      'Technical Recruitment',
-      'Temporary Staffing',
-      'Background Verification',
-      'Interview Coordination',
-      'Onboarding Support'
-    ],
-    benefits: [
-      'Access to Top Talent',
-      'Reduced Time-to-Hire',
-      'Cost-Effective Solutions',
-      'Industry Expertise',
-      'Quality Assurance',
-      'Long-term Partnership'
-    ],
-    process: [
-      {
-        step: 1,
-        title: 'Requirement Analysis',
-        description: 'Understanding your hiring needs and culture'
-      },
-      {
-        step: 2,
-        title: 'Sourcing',
-        description: 'Active sourcing from multiple channels'
-      },
-      {
-        step: 3,
-        title: 'Screening',
-        description: 'Comprehensive candidate screening and assessment'
-      },
-      {
-        step: 4,
-        title: 'Placement',
-        description: 'Final selection and successful placement'
-      }
-    ],
-    isActive: true,
-    isFeatured: false,
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z',
-  },
-  {
-    id: 'legal-services',
-    name: 'Legal Services',
-    slug: 'legal',
-    description: 'Professional legal process outsourcing to support your legal operations with expert knowledge and efficiency.',
-    shortDescription: 'Professional legal process outsourcing solutions',
-    icon: 'Scale',
-    category: 'legal',
-    features: [
-      'Contract Review',
-      'Legal Research',
-      'Document Drafting',
-      'Compliance Management',
-      'Litigation Support',
-      'Intellectual Property'
-    ],
-    benefits: [
-      'Expert Legal Knowledge',
-      'Cost Reduction',
-      'Faster Turnaround',
-      'Quality Assurance',
-      'Confidentiality',
-      'Scalable Services'
-    ],
-    process: [
-      {
-        step: 1,
-        title: 'Case Analysis',
-        description: 'Thorough analysis of legal requirements'
-      },
-      {
-        step: 2,
-        title: 'Research',
-        description: 'Comprehensive legal research and documentation'
-      },
-      {
-        step: 3,
-        title: 'Drafting',
-        description: 'Professional document drafting and review'
-      },
-      {
-        step: 4,
-        title: 'Delivery',
-        description: 'Timely delivery with quality assurance'
-      }
-    ],
-    isActive: true,
-    isFeatured: false,
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z',
-  },
-  {
-    id: 'kpo-services',
-    name: 'KPO Services',
-    slug: 'kpo',
-    description: 'Knowledge Process Outsourcing solutions leveraging domain expertise to deliver high-value analytical and research services.',
-    shortDescription: 'High-value analytical and research services',
-    icon: 'Brain',
-    category: 'analytics',
-    features: [
-      'Market Research',
-      'Data Analytics',
-      'Financial Analysis',
-      'Business Intelligence',
-      'Risk Assessment',
-      'Strategic Planning'
-    ],
-    benefits: [
-      'Domain Expertise',
-      'Advanced Analytics',
-      'Strategic Insights',
-      'Cost Efficiency',
-      'Quality Deliverables',
-      'Competitive Advantage'
-    ],
-    process: [
-      {
-        step: 1,
-        title: 'Requirement Gathering',
-        description: 'Understanding your analytical needs'
-      },
-      {
-        step: 2,
-        title: 'Data Collection',
-        description: 'Comprehensive data gathering and validation'
-      },
-      {
-        step: 3,
-        title: 'Analysis',
-        description: 'Advanced analytical processing and insights'
-      },
-      {
-        step: 4,
-        title: 'Reporting',
-        description: 'Detailed reports and actionable recommendations'
-      }
-    ],
-    isActive: true,
-    isFeatured: true,
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z',
-  },
-  {
-    id: 'customer-support',
-    name: 'Customer Support',
-    slug: 'support',
-    description: '24/7 customer support services to enhance customer satisfaction and build lasting relationships.',
-    shortDescription: '24/7 customer support for enhanced satisfaction',
-    icon: 'Headphones',
-    category: 'support',
-    features: [
-      '24/7 Support',
-      'Multi-channel Support',
-      'Technical Support',
-      'Customer Onboarding',
-      'Issue Resolution',
-      'Customer Feedback'
-    ],
-    benefits: [
-      'Round-the-Clock Support',
-      'Improved Satisfaction',
-      'Reduced Response Time',
-      'Expert Support Team',
-      'Cost-Effective',
-      'Scalable Solutions'
-    ],
-    process: [
-      {
-        step: 1,
-        title: 'Setup',
-        description: 'Support infrastructure and team setup'
-      },
-      {
-        step: 2,
-        title: 'Training',
-        description: 'Comprehensive training on your products/services'
-      },
-      {
-        step: 3,
-        title: 'Launch',
-        description: 'Go-live with full support coverage'
-      },
-      {
-        step: 4,
-        title: 'Optimization',
-        description: 'Continuous improvement and optimization'
-      }
-    ],
-    isActive: true,
-    isFeatured: false,
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z',
-  },
-];
 
 /**
  * Get all active services
@@ -350,26 +14,16 @@ let services: Service[] = [
  */
 export const getServices = asyncHandler(async (req: Request, res: Response) => {
   const { category, featured } = req.query;
-  
-  let filteredServices = services.filter(service => service.isActive);
 
-  // Filter by category if provided
-  if (category) {
-    filteredServices = filteredServices.filter(service => 
-      service.slug === category.toString()
-    );
-  }
-
-  // Filter featured services if requested
-  if (featured === 'true') {
-    // In a real app, you'd have a featured field
-    filteredServices = filteredServices.slice(0, 3);
-  }
+  const services = await servicesService.getServices(
+    category?.toString(),
+    featured === 'true'
+  );
 
   const response: ApiResponse = {
     success: true,
-    data: filteredServices,
-    message: `Retrieved ${filteredServices.length} services`,
+    data: services,
+    message: `Retrieved ${services.length} services`,
     timestamp: new Date().toISOString(),
   };
 
@@ -382,12 +36,12 @@ export const getServices = asyncHandler(async (req: Request, res: Response) => {
  */
 export const getServiceBySlug = asyncHandler(async (req: Request, res: Response) => {
   const { slug } = req.params;
-  
-  const service = services.find(s => s.slug === slug && s.isActive);
-  
-  if (!service) {
-    throw createError('Service not found', 404);
+
+  if (!slug) {
+    throw createError('Slug is required', 400);
   }
+
+  const service = await servicesService.getServiceBySlug(slug);
 
   const response: ApiResponse = {
     success: true,
@@ -405,12 +59,12 @@ export const getServiceBySlug = asyncHandler(async (req: Request, res: Response)
  */
 export const getServiceById = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  
-  const service = services.find(s => s.id === id && s.isActive);
-  
-  if (!service) {
-    throw createError('Service not found', 404);
+
+  if (!id) {
+    throw createError('ID is required', 400);
   }
+
+  const service = await servicesService.getServiceById(id);
 
   const response: ApiResponse = {
     success: true,
@@ -434,12 +88,6 @@ export const createService = asyncHandler(async (req: Request, res: Response) =>
     throw createError('Name, slug, description, shortDescription, and category are required', 400);
   }
 
-  // Check if slug already exists
-  const existingService = services.find(s => s.slug === slug);
-  if (existingService) {
-    throw createError('Service with this slug already exists', 400);
-  }
-
   // Sanitize inputs
   const sanitizedData = {
     name: sanitizeInput(name),
@@ -450,21 +98,10 @@ export const createService = asyncHandler(async (req: Request, res: Response) =>
     features: features ? features.map((f: string) => sanitizeInput(f)) : [],
     benefits: benefits ? benefits.map((b: string) => sanitizeInput(b)) : [],
     process: process || [],
+    icon: 'Briefcase', // Default icon, should be updated to accept icon from body if needed
   };
 
-  // Create new service
-  const newService: Service = {
-    id: slug,
-    ...sanitizedData,
-    icon: 'Briefcase', // Default icon
-    isActive: true,
-    isFeatured: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-
-  // Store service (in production, save to database)
-  services.push(newService);
+  const newService = await servicesService.createService(sanitizedData);
 
   const response: ApiResponse = {
     success: true,
@@ -483,34 +120,24 @@ export const createService = asyncHandler(async (req: Request, res: Response) =>
 export const updateService = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const updateData = req.body;
-  
-  const serviceIndex = services.findIndex(s => s.id === id);
-  
-  if (serviceIndex === -1) {
-    throw createError('Service not found', 404);
-  }
 
   // Sanitize update data
-  const currentService = services[serviceIndex];
-  if (currentService) {
-    const sanitizedData = {
-      ...updateData,
-      name: updateData.name ? sanitizeInput(updateData.name) : currentService.name,
-      description: updateData.description ? sanitizeInput(updateData.description) : currentService.description,
-      shortDescription: updateData.shortDescription ? sanitizeInput(updateData.shortDescription) : currentService.shortDescription,
-    };
+  const sanitizedData: any = { ...updateData };
+  if (updateData.name) sanitizedData.name = sanitizeInput(updateData.name);
+  if (updateData.description) sanitizedData.description = sanitizeInput(updateData.description);
+  if (updateData.shortDescription) sanitizedData.shortDescription = sanitizeInput(updateData.shortDescription);
+  if (updateData.slug) sanitizedData.slug = sanitizeInput(updateData.slug);
+  if (updateData.category) sanitizedData.category = sanitizeInput(updateData.category);
 
-    // Update service
-    services[serviceIndex] = {
-      ...currentService,
-      ...sanitizedData,
-      updatedAt: new Date().toISOString(),
-    };
+  if (!id) {
+    throw createError('ID is required', 400);
   }
+
+  const updatedService = await servicesService.updateService(id, sanitizedData);
 
   const response: ApiResponse = {
     success: true,
-    data: services[serviceIndex],
+    data: updatedService,
     message: 'Service updated successfully',
     timestamp: new Date().toISOString(),
   };
@@ -524,22 +151,12 @@ export const updateService = asyncHandler(async (req: Request, res: Response) =>
  */
 export const deleteService = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  
-  const serviceIndex = services.findIndex(s => s.id === id);
-  
-  if (serviceIndex === -1) {
-    throw createError('Service not found', 404);
+
+  if (!id) {
+    throw createError('ID is required', 400);
   }
 
-  // Soft delete - set isActive to false
-  const currentService = services[serviceIndex];
-  if (currentService) {
-    services[serviceIndex] = {
-      ...currentService,
-      isActive: false,
-      updatedAt: new Date().toISOString(),
-    };
-  }
+  await servicesService.deleteService(id);
 
   const response: ApiResponse = {
     success: true,
@@ -555,15 +172,7 @@ export const deleteService = asyncHandler(async (req: Request, res: Response) =>
  * GET /api/services/categories
  */
 export const getServiceCategories = asyncHandler(async (_req: Request, res: Response) => {
-  const categories = services
-    .filter(service => service.isActive)
-    .map(service => ({
-      id: service.id,
-      name: service.name,
-      slug: service.slug,
-      shortDescription: service.shortDescription,
-      icon: service.icon,
-    }));
+  const categories = await servicesService.getServiceCategories();
 
   const response: ApiResponse = {
     success: true,
@@ -581,10 +190,8 @@ export const getServiceCategories = asyncHandler(async (_req: Request, res: Resp
  */
 export const getFeaturedServices = asyncHandler(async (req: Request, res: Response) => {
   const { limit = 3 } = req.query;
-  
-  const featuredServices = services
-    .filter(service => service.isActive && service.isFeatured)
-    .slice(0, parseInt(limit.toString()));
+
+  const featuredServices = await servicesService.getFeaturedServices(parseInt(limit.toString()));
 
   const response: ApiResponse = {
     success: true,
@@ -602,15 +209,12 @@ export const getFeaturedServices = asyncHandler(async (req: Request, res: Respon
  */
 export const getServicesByCategory = asyncHandler(async (req: Request, res: Response) => {
   const { category } = req.params;
-  
+
   if (!category) {
     throw createError('Category parameter is required', 400);
   }
-  
-  const categoryServices = services.filter(service => 
-    service.category && service.category.toLowerCase() === category.toLowerCase() && 
-    service.isActive
-  );
+
+  const categoryServices = await servicesService.getServicesByCategory(category);
 
   const response: ApiResponse = {
     success: true,
@@ -627,17 +231,7 @@ export const getServicesByCategory = asyncHandler(async (req: Request, res: Resp
  * GET /api/services/stats
  */
 export const getServiceStats = asyncHandler(async (_req: Request, res: Response) => {
-  const stats = {
-    totalServices: services.length,
-    activeServices: services.filter(s => s.isActive).length,
-    featuredServices: services.filter(s => s.isFeatured).length,
-    categoryDistribution: services.reduce((acc, service) => {
-      if (service.category) {
-        acc[service.category] = (acc[service.category] || 0) + 1;
-      }
-      return acc;
-    }, {} as Record<string, number>)
-  };
+  const stats = await servicesService.getServiceStatistics();
 
   const response: ApiResponse = {
     success: true,
@@ -655,26 +249,16 @@ export const getServiceStats = asyncHandler(async (_req: Request, res: Response)
  */
 export const activateService = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  
-  const serviceIndex = services.findIndex(s => s.id === id);
-  
-  if (serviceIndex === -1) {
-    throw createError('Service not found', 404);
+
+  if (!id) {
+    throw createError('ID is required', 400);
   }
 
-  // Activate service
-  const currentService = services[serviceIndex];
-  if (currentService) {
-    services[serviceIndex] = {
-      ...currentService,
-      isActive: true,
-      updatedAt: new Date().toISOString(),
-    };
-  }
+  const service = await servicesService.updateServiceStatus(id, true);
 
   const response: ApiResponse = {
     success: true,
-    data: services[serviceIndex],
+    data: service,
     message: 'Service activated successfully',
     timestamp: new Date().toISOString(),
   };
@@ -688,26 +272,16 @@ export const activateService = asyncHandler(async (req: Request, res: Response) 
  */
 export const deactivateService = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  
-  const serviceIndex = services.findIndex(s => s.id === id);
-  
-  if (serviceIndex === -1) {
-    throw createError('Service not found', 404);
+
+  if (!id) {
+    throw createError('ID is required', 400);
   }
 
-  // Deactivate service
-  const currentService = services[serviceIndex];
-  if (currentService) {
-    services[serviceIndex] = {
-      ...currentService,
-      isActive: false,
-      updatedAt: new Date().toISOString(),
-    };
-  }
+  const service = await servicesService.updateServiceStatus(id, false);
 
   const response: ApiResponse = {
     success: true,
-    data: services[serviceIndex],
+    data: service,
     message: 'Service deactivated successfully',
     timestamp: new Date().toISOString(),
   };
@@ -721,26 +295,16 @@ export const deactivateService = asyncHandler(async (req: Request, res: Response
  */
 export const featureService = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  
-  const serviceIndex = services.findIndex(s => s.id === id);
-  
-  if (serviceIndex === -1) {
-    throw createError('Service not found', 404);
+
+  if (!id) {
+    throw createError('ID is required', 400);
   }
 
-  // Feature service
-  const currentService = services[serviceIndex];
-  if (currentService) {
-    services[serviceIndex] = {
-      ...currentService,
-      isFeatured: true,
-      updatedAt: new Date().toISOString(),
-    };
-  }
+  const service = await servicesService.updateServiceFeatured(id, true);
 
   const response: ApiResponse = {
     success: true,
-    data: services[serviceIndex],
+    data: service,
     message: 'Service featured successfully',
     timestamp: new Date().toISOString(),
   };
@@ -754,26 +318,16 @@ export const featureService = asyncHandler(async (req: Request, res: Response) =
  */
 export const unfeatureService = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  
-  const serviceIndex = services.findIndex(s => s.id === id);
-  
-  if (serviceIndex === -1) {
-    throw createError('Service not found', 404);
+
+  if (!id) {
+    throw createError('ID is required', 400);
   }
 
-  // Unfeature service
-  const currentService = services[serviceIndex];
-  if (currentService) {
-    services[serviceIndex] = {
-      ...currentService,
-      isFeatured: false,
-      updatedAt: new Date().toISOString(),
-    };
-  }
+  const service = await servicesService.updateServiceFeatured(id, false);
 
   const response: ApiResponse = {
     success: true,
-    data: services[serviceIndex],
+    data: service,
     message: 'Service unfeatured successfully',
     timestamp: new Date().toISOString(),
   };

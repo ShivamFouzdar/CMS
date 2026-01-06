@@ -1,3 +1,4 @@
+import { Service } from '@/models';
 import { createError } from '@/utils/helpers';
 
 /**
@@ -5,9 +6,8 @@ import { createError } from '@/utils/helpers';
  * Handles business logic for services management
  */
 
-// Service interface
-interface Service {
-  id: string;
+// Service interface (aligned with Model)
+interface ServiceData {
   name: string;
   slug: string;
   description: string;
@@ -26,142 +26,39 @@ interface Service {
     enterprise: number;
   };
   category: string;
-  isActive: boolean;
+  isActive?: boolean;
   isFeatured?: boolean;
-  createdAt: string;
-  updatedAt: string;
 }
-
-// Mock services data
-let services: Service[] = [
-  {
-    id: 'bpo-services',
-    name: 'BPO Services',
-    slug: 'bpo',
-    description: 'Comprehensive Business Process Outsourcing solutions to streamline your operations and reduce costs while maintaining high quality standards.',
-    shortDescription: 'Streamline operations with our comprehensive BPO solutions',
-    icon: 'Briefcase',
-    category: 'outsourcing',
-    features: [
-      'Customer Support',
-      'Data Entry & Processing',
-      'Back Office Operations',
-      'Call Center Services',
-      'Document Management',
-      'Quality Assurance',
-    ],
-    benefits: [
-      'Cost Reduction',
-      'Improved Efficiency',
-      '24/7 Support',
-      'Scalable Solutions',
-      'Expert Team',
-      'Advanced Technology',
-    ],
-    process: [
-      {
-        step: 1,
-        title: 'Consultation',
-        description: 'We analyze your business needs and requirements',
-      },
-      {
-        step: 2,
-        title: 'Customization',
-        description: 'Tailored solutions designed for your specific processes',
-      },
-      {
-        step: 3,
-        title: 'Implementation',
-        description: 'Seamless integration with your existing systems',
-      },
-      {
-        step: 4,
-        title: 'Monitoring',
-        description: 'Continuous monitoring and optimization for best results',
-      },
-    ],
-    isActive: true,
-    isFeatured: true,
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z',
-  },
-  {
-    id: 'it-services',
-    name: 'IT Services',
-    slug: 'it',
-    description: 'Full-stack MERN development and comprehensive IT solutions to modernize your business with cutting-edge technology.',
-    shortDescription: 'Modernize your business with our MERN stack development',
-    icon: 'Code',
-    category: 'technology',
-    features: [
-      'React Frontend Development',
-      'Express.js Backend',
-      'MongoDB Database Design',
-      'Node.js Server Development',
-      'Full-Stack Integration',
-      'Deployment & DevOps',
-    ],
-    benefits: [
-      'Modern Technology Stack',
-      'Scalable Architecture',
-      'Fast Development',
-      'Cross-Platform Compatibility',
-      'Real-time Applications',
-      'Cloud Integration',
-    ],
-    process: [
-      {
-        step: 1,
-        title: 'Planning',
-        description: 'Technical architecture and project planning',
-      },
-      {
-        step: 2,
-        title: 'Development',
-        description: 'Agile development using MERN stack',
-      },
-      {
-        step: 3,
-        title: 'Testing',
-        description: 'Comprehensive testing and quality assurance',
-      },
-      {
-        step: 4,
-        title: 'Deployment',
-        description: 'Production deployment and ongoing support',
-      },
-    ],
-    isActive: true,
-    isFeatured: true,
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z',
-  },
-];
 
 /**
  * Get all active services
  */
-export const getServices = async (category?: string, featured?: boolean): Promise<Service[]> => {
-  let filteredServices = services.filter(service => service.isActive);
+export const getServices = async (category?: string, featured?: boolean) => {
+  const query: any = { isActive: true };
 
-  // Filter by category if provided
   if (category) {
-    filteredServices = filteredServices.filter(service => service.slug === category);
+    query.slug = category;
   }
 
-  // Filter featured services if requested
-  if (featured === true) {
-    filteredServices = filteredServices.filter(service => service.isFeatured).slice(0, 3);
+  if (featured) {
+    query.isFeatured = true;
   }
 
-  return filteredServices;
+  // If featured is specifically requested as true, limit to 3, otherwise return all matching
+  const servicesQuery = Service.find(query).sort({ order: 1, createdAt: -1 });
+
+  if (featured) {
+    servicesQuery.limit(3);
+  }
+
+  return await servicesQuery;
 };
 
 /**
  * Get service by slug
  */
-export const getServiceBySlug = async (slug: string): Promise<Service> => {
-  const service = services.find(s => s.slug === slug && s.isActive);
+export const getServiceBySlug = async (slug: string) => {
+  const service = await Service.findOne({ slug, isActive: true });
 
   if (!service) {
     throw createError('Service not found', 404);
@@ -173,8 +70,8 @@ export const getServiceBySlug = async (slug: string): Promise<Service> => {
 /**
  * Get service by ID
  */
-export const getServiceById = async (id: string): Promise<Service> => {
-  const service = services.find(s => s.id === id && s.isActive);
+export const getServiceById = async (id: string) => {
+  const service = await Service.findOne({ _id: id, isActive: true });
 
   if (!service) {
     throw createError('Service not found', 404);
@@ -184,100 +81,122 @@ export const getServiceById = async (id: string): Promise<Service> => {
 };
 
 /**
+ * Create new service
+ */
+export const createService = async (data: ServiceData) => {
+  // Check if slug already exists
+  const existingService = await Service.findOne({ slug: data.slug });
+  if (existingService) {
+    throw createError('Service with this slug already exists', 400);
+  }
+
+  const service = await Service.create({
+    ...data,
+    isActive: true,
+    isFeatured: false,
+  });
+
+  return service;
+};
+
+/**
+ * Update service
+ */
+export const updateService = async (id: string, data: Partial<ServiceData>) => {
+  const service = await Service.findById(id);
+
+  if (!service) {
+    throw createError('Service not found', 404);
+  }
+
+  // If updating slug, check if it exists
+  if (data.slug && data.slug !== service.slug) {
+    const existingService = await Service.findOne({ slug: data.slug });
+    if (existingService) {
+      throw createError('Service with this slug already exists', 400);
+    }
+  }
+
+  Object.assign(service, data);
+  await service.save();
+
+  return service;
+};
+
+/**
+ * Delete service (Soft delete)
+ */
+export const deleteService = async (id: string) => {
+  const service = await Service.findById(id);
+
+  if (!service) {
+    throw createError('Service not found', 404);
+  }
+
+  service.isActive = false;
+  await service.save();
+
+  return { message: 'Service deleted successfully' };
+};
+
+/**
  * Get service categories
  */
 export const getServiceCategories = async () => {
-  return services
-    .filter(service => service.isActive)
-    .map(service => ({
-      id: service.id,
-      name: service.name,
-      slug: service.slug,
-      shortDescription: service.shortDescription,
-      icon: service.icon,
-    }));
+  return await Service.getCategories();
 };
 
 /**
  * Get featured services
  */
-export const getFeaturedServices = async (limit: number = 3): Promise<Service[]> => {
-  return services
-    .filter(service => service.isActive && service.isFeatured)
-    .slice(0, limit);
+export const getFeaturedServices = async (limit: number = 3) => {
+  return await Service.getFeatured(limit);
 };
 
 /**
  * Get services by category
  */
-export const getServicesByCategory = async (category: string): Promise<Service[]> => {
-  return services.filter(service =>
-    service.category && service.category.toLowerCase() === category.toLowerCase() && service.isActive
-  );
+export const getServicesByCategory = async (category: string) => {
+  return await Service.getByCategory(category);
 };
 
 /**
  * Get service statistics
  */
 export const getServiceStatistics = async () => {
-  return {
-    totalServices: services.length,
-    activeServices: services.filter(s => s.isActive).length,
-    featuredServices: services.filter(s => s.isFeatured).length,
-    categoryDistribution: services.reduce((acc, service) => {
-      if (service.category) {
-        acc[service.category] = (acc[service.category] || 0) + 1;
-      }
-      return acc;
-    }, {} as Record<string, number>),
-  };
+  return await Service.getStats();
 };
 
 /**
  * Update service status (activate/deactivate)
  */
-export const updateServiceStatus = async (id: string, isActive: boolean): Promise<Service> => {
-  const serviceIndex = services.findIndex(s => s.id === id);
+export const updateServiceStatus = async (id: string, isActive: boolean) => {
+  const service = await Service.findById(id);
 
-  if (serviceIndex === -1) {
+  if (!service) {
     throw createError('Service not found', 404);
   }
 
-  const currentService = services[serviceIndex];
-  if (!currentService) {
-    throw createError('Service not found', 404);
-  }
+  service.isActive = isActive;
+  await service.save();
 
-  services[serviceIndex] = {
-    ...currentService,
-    isActive,
-    updatedAt: new Date().toISOString(),
-  };
-
-  return services[serviceIndex]!;
+  return service;
 };
 
 /**
  * Update service featured status
  */
-export const updateServiceFeatured = async (id: string, isFeatured: boolean): Promise<Service> => {
-  const serviceIndex = services.findIndex(s => s.id === id);
+export const updateServiceFeatured = async (id: string, isFeatured: boolean) => {
+  const service = await Service.findById(id);
 
-  if (serviceIndex === -1) {
+  if (!service) {
     throw createError('Service not found', 404);
   }
 
-  const currentService = services[serviceIndex];
-  if (!currentService) {
-    throw createError('Service not found', 404);
-  }
+  service.isFeatured = isFeatured;
+  await service.save();
 
-  services[serviceIndex] = {
-    ...currentService,
-    isFeatured,
-    updatedAt: new Date().toISOString(),
-  };
-
-  return services[serviceIndex]!;
+  return service;
 };
+
 

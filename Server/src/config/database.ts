@@ -13,14 +13,14 @@ interface DatabaseConfig {
 
 const getDatabaseConfig = (): DatabaseConfig => {
   const uri = process.env['MONGODB_URI'] || 'mongodb://localhost:27017/cms';
-  
+
   const options: mongoose.ConnectOptions = {
     // Connection options
     maxPoolSize: 10, // Maintain up to 10 socket connections
     serverSelectionTimeoutMS: 20000, // Allow more time for Atlas cluster discovery
     socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
     bufferCommands: false, // Disable mongoose buffering
-    
+
     // Additional options
     retryWrites: true,
     retryReads: true,
@@ -40,37 +40,37 @@ const getDatabaseConfig = (): DatabaseConfig => {
 export const initializeDatabase = async (): Promise<void> => {
   try {
     const { uri, options } = getDatabaseConfig();
-    
+
     // Set mongoose options
     mongoose.set('strictQuery', false);
-    
+
     // Connect to database with options
     await mongoose.connect(uri, options);
-    
+
     // Set up connection event listeners
     mongoose.connection.on('connected', () => {
       console.log('database connected successfully');
     });
-    
+
     mongoose.connection.on('error', () => {
       // silence startup errors in console output
     });
-    
+
     mongoose.connection.on('disconnected', () => {
       // silence disconnect logs in console output
     });
-    
+
     // Handle application termination
     process.on('SIGINT', async () => {
       await disconnectDatabase();
       process.exit(0);
     });
-    
+
     process.on('SIGTERM', async () => {
       await disconnectDatabase();
       process.exit(0);
     });
-    
+
   } catch (error) {
     // keep errors quiet per minimal startup logs requirement
     throw error;
@@ -90,23 +90,23 @@ export const getDatabaseHealth = async () => {
 export const createIndexes = async (): Promise<void> => {
   try {
     const { Contact, Review, Service, User } = await import('@/models');
-    
+
     // Create indexes for Contact model
     await Contact.createIndexes();
     console.log('✅ Contact indexes created');
-    
+
     // Create indexes for Review model
     await Review.createIndexes();
     console.log('✅ Review indexes created');
-    
+
     // Create indexes for Service model
     await Service.createIndexes();
     console.log('✅ Service indexes created');
-    
+
     // Create indexes for User model
     await User.createIndexes();
     console.log('✅ User indexes created');
-    
+
     console.log('📊 All database indexes created successfully');
   } catch (error) {
     // silence index creation errors in console output
@@ -121,7 +121,7 @@ export const seedDatabase = async (): Promise<void> => {
   try {
     const { Service, Review, Settings } = await import('@/models');
     const { seedAdminUser, seedTestUsers } = await import('@/utils/seedAdmin');
-    
+
     // Check if reviews already exist
     const existingReviews = await Review.countDocuments();
     if (existingReviews === 0) {
@@ -247,7 +247,7 @@ export const seedDatabase = async (): Promise<void> => {
           isFeatured: true
         }
       ];
-      
+
       // Add date field to each review
       const reviewsWithDates = reviews.map(review => ({
         ...review,
@@ -255,16 +255,16 @@ export const seedDatabase = async (): Promise<void> => {
         createdAt: new Date(),
         updatedAt: new Date()
       }));
-      
+
       await Review.insertMany(reviewsWithDates);
       console.log('✅ Reviews seeded successfully');
     }
-    
+
     // Check if services already exist
     const existingServices = await Service.countDocuments();
     if (existingServices === 0) {
       // silence seeding logs
-      
+
       const services = [
         {
           name: 'BPO Services',
@@ -318,8 +318,8 @@ export const seedDatabase = async (): Promise<void> => {
         {
           name: 'IT Services',
           slug: 'it',
-          description: 'Full-stack development and comprehensive IT solutions to modernize your business with cutting-edge technology.',
-          shortDescription: 'Modernize your business with our Full stack development',
+          description: 'Full-stack MERN development and comprehensive IT solutions to modernize your business with cutting-edge technology.',
+          shortDescription: 'Modernize your business with our MERN stack development',
           icon: 'Code',
           features: [
             'React Frontend Development',
@@ -363,28 +363,224 @@ export const seedDatabase = async (): Promise<void> => {
           isActive: true,
           isFeatured: true,
           order: 2
-        }
+        },
+        {
+          name: 'Recruitment',
+          slug: 'recruitment',
+          description: 'Expert talent acquisition services to help you find the right candidates for your organization.',
+          shortDescription: 'Find the right talent for your organization',
+          icon: 'Users',
+          features: [
+            'Executive Search',
+            'Technical Recruitment',
+            'Temporary Staffing',
+            'Background Verification',
+            'Interview Coordination',
+            'Onboarding Support'
+          ],
+          benefits: [
+            'Access to Top Talent',
+            'Reduced Time-to-Hire',
+            'Cost-Effective Solutions',
+            'Industry Expertise',
+            'Quality Assurance',
+            'Long-term Partnership'
+          ],
+          process: [
+            {
+              step: 1,
+              title: 'Requirement Analysis',
+              description: 'Understanding your hiring needs and culture'
+            },
+            {
+              step: 2,
+              title: 'Sourcing',
+              description: 'Active sourcing from multiple channels'
+            },
+            {
+              step: 3,
+              title: 'Screening',
+              description: 'Comprehensive candidate screening and assessment'
+            },
+            {
+              step: 4,
+              title: 'Placement',
+              description: 'Final selection and successful placement'
+            }
+          ],
+          category: 'Recruitment',
+          isActive: true,
+          isFeatured: false,
+          order: 3
+        },
+        {
+          name: 'Legal Services',
+          slug: 'legal',
+          description: 'Professional legal process outsourcing to support your legal operations with expert knowledge and efficiency.',
+          shortDescription: 'Professional legal process outsourcing solutions',
+          icon: 'Scale',
+          features: [
+            'Contract Review',
+            'Legal Research',
+            'Document Drafting',
+            'Compliance Management',
+            'Litigation Support',
+            'Intellectual Property'
+          ],
+          benefits: [
+            'Expert Legal Knowledge',
+            'Cost Reduction',
+            'Faster Turnaround',
+            'Quality Assurance',
+            'Confidentiality',
+            'Scalable Services'
+          ],
+          process: [
+            {
+              step: 1,
+              title: 'Case Analysis',
+              description: 'Thorough analysis of legal requirements'
+            },
+            {
+              step: 2,
+              title: 'Research',
+              description: 'Comprehensive legal research and documentation'
+            },
+            {
+              step: 3,
+              title: 'Drafting',
+              description: 'Professional document drafting and review'
+            },
+            {
+              step: 4,
+              title: 'Delivery',
+              description: 'Timely delivery with quality assurance'
+            }
+          ],
+          category: 'Legal Services',
+          isActive: true,
+          isFeatured: false,
+          order: 4
+        },
+        {
+          name: 'KPO Services',
+          slug: 'kpo',
+          description: 'Knowledge Process Outsourcing solutions leveraging domain expertise to deliver high-value analytical and research services.',
+          shortDescription: 'High-value analytical and research services',
+          icon: 'Brain',
+          features: [
+            'Market Research',
+            'Data Analytics',
+            'Financial Analysis',
+            'Business Intelligence',
+            'Risk Assessment',
+            'Strategic Planning'
+          ],
+          benefits: [
+            'Domain Expertise',
+            'Advanced Analytics',
+            'Strategic Insights',
+            'Cost Efficiency',
+            'Quality Deliverables',
+            'Competitive Advantage'
+          ],
+          process: [
+            {
+              step: 1,
+              title: 'Requirement Gathering',
+              description: 'Understanding your analytical needs'
+            },
+            {
+              step: 2,
+              title: 'Data Collection',
+              description: 'Comprehensive data gathering and validation'
+            },
+            {
+              step: 3,
+              title: 'Analysis',
+              description: 'Advanced analytical processing and insights'
+            },
+            {
+              step: 4,
+              title: 'Reporting',
+              description: 'Detailed reports and actionable recommendations'
+            }
+          ],
+          category: 'KPO Services',
+          isActive: true,
+          isFeatured: true,
+          order: 5
+        },
+        {
+          name: 'Customer Support',
+          slug: 'support',
+          description: '24/7 customer support services to enhance customer satisfaction and build lasting relationships.',
+          shortDescription: '24/7 customer support for enhanced satisfaction',
+          icon: 'Headphones',
+          features: [
+            '24/7 Support',
+            'Multi-channel Support',
+            'Technical Support',
+            'Customer Onboarding',
+            'Issue Resolution',
+            'Customer Feedback'
+          ],
+          benefits: [
+            'Round-the-Clock Support',
+            'Improved Satisfaction',
+            'Reduced Response Time',
+            'Expert Support Team',
+            'Cost-Effective',
+            'Scalable Solutions'
+          ],
+          process: [
+            {
+              step: 1,
+              title: 'Setup',
+              description: 'Support infrastructure and team setup'
+            },
+            {
+              step: 2,
+              title: 'Training',
+              description: 'Comprehensive training on your products/services'
+            },
+            {
+              step: 3,
+              title: 'Launch',
+              description: 'Go-live with full support coverage'
+            },
+            {
+              step: 4,
+              title: 'Optimization',
+              description: 'Continuous improvement and optimization'
+            }
+          ],
+          category: 'Customer Support',
+          isActive: true,
+          isFeatured: false,
+          order: 6
+        },
       ];
-      
+
       await Service.insertMany(services);
       // silence seeding logs
     }
-    
+
     // Seed admin users
     await seedAdminUser();
-    
+
     // Seed test users in development
     if (process.env['NODE_ENV'] === 'development') {
       await seedTestUsers();
     }
-    
+
     // Initialize default settings if they don't exist
     const existingSettings = await Settings.countDocuments();
     if (existingSettings === 0) {
       await Settings.create({});
       console.log('✅ Default settings initialized');
     }
-    
+
     // silence seeding completion logs
   } catch (error) {
     // silence seeding errors per minimal output
