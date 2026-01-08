@@ -3,6 +3,7 @@ import { asyncHandler, createError } from '@/utils/helpers';
 import { sendSuccess } from '@/utils/response.utils';
 import { UserService } from '@/services/user.service';
 import { AuthService } from '@/services/auth.service';
+import { AuthenticatedRequest } from '@/types';
 
 /**
  * Users Controller
@@ -96,7 +97,7 @@ export const logoutUser = asyncHandler(async (_req: Request, res: Response) => {
  *         description: Profile retrieved
  */
 export const getCurrentUser = asyncHandler(async (req: Request, res: Response) => {
-  const userId = (req as any).user?.id;
+  const userId = (req as AuthenticatedRequest).user?.id;
   if (!userId) throw createError('User not authenticated', 401);
 
   const user = await userService.getUserById(userId);
@@ -116,7 +117,7 @@ export const getCurrentUser = asyncHandler(async (req: Request, res: Response) =
  *         description: Profile updated
  */
 export const updateUserProfile = asyncHandler(async (req: Request, res: Response) => {
-  const userId = (req as any).user?.id;
+  const userId = (req as AuthenticatedRequest).user?.id;
   if (!userId) throw createError('User not authenticated', 401);
 
   const user = await userService.updateProfile(userId, req.body);
@@ -136,7 +137,7 @@ export const updateUserProfile = asyncHandler(async (req: Request, res: Response
  *         description: Preferences updated
  */
 export const updateUserPreferences = asyncHandler(async (req: Request, res: Response) => {
-  const userId = (req as any).user?.id;
+  const userId = (req as AuthenticatedRequest).user?.id;
   if (!userId) throw createError('User not authenticated', 401);
 
   const user = await userService.updatePreferences(userId, req.body);
@@ -156,7 +157,7 @@ export const updateUserPreferences = asyncHandler(async (req: Request, res: Resp
  *         description: Password changed
  */
 export const changePassword = asyncHandler(async (req: Request, res: Response) => {
-  const userId = (req as any).user?.id;
+  const userId = (req as AuthenticatedRequest).user?.id;
   if (!userId) throw createError('User not authenticated', 401);
 
   const { currentPassword, newPassword } = req.body;

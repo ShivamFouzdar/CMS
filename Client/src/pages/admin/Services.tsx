@@ -18,7 +18,7 @@ import { useNotification } from '@/context/NotificationContext';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { StatCard } from '@/components/ui/StatCard';
 
-const ALLOWED_SERVICE_SLUGS = ['bpo', 'kpo', 'legal', 'recruitment', 'it', 'brand-promotion', 'support'];
+
 
 export default function AdminServices() {
     const [services, setServices] = useState<Service[]>([]);
@@ -121,19 +121,17 @@ export default function AdminServices() {
     };
 
     const filteredServices = services
-        .filter(service => ALLOWED_SERVICE_SLUGS.includes(service.slug))
         .filter(service =>
             service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             service.description.toLowerCase().includes(searchTerm.toLowerCase())
         );
 
     const stats = useMemo(() => {
-        const activeSlugs = services.filter(s => ALLOWED_SERVICE_SLUGS.includes(s.slug));
         return {
-            total: activeSlugs.length,
-            active: activeSlugs.filter(s => s.isActive).length,
-            featured: activeSlugs.filter(s => s.isFeatured).length,
-            inactive: activeSlugs.filter(s => !s.isActive).length,
+            total: services.length,
+            active: services.filter(s => s.isActive).length,
+            featured: services.filter(s => s.isFeatured).length,
+            inactive: services.filter(s => !s.isActive).length,
         };
     }, [services]);
 

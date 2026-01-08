@@ -60,7 +60,26 @@ export const getServices = asyncHandler(async (req: Request, res: Response) => {
 });
 
 /**
- * Get all services for Admin (includes inactive)
+ * @swagger
+ * /api/services/admin/all:
+ *   get:
+ *     summary: Get all services (Admin - includes inactive)
+ *     tags: [Services]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of all services retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Service'
  */
 export const getAdminServices = asyncHandler(async (_req: Request, res: Response) => {
   const services = await offeringService.getAllServicesAdmin();
@@ -373,7 +392,21 @@ export const deactivateService = asyncHandler(async (req: Request, res: Response
 });
 
 /**
- * Toggle service status
+ * @swagger
+ * /api/services/{id}/toggle-status:
+ *   patch:
+ *     summary: Toggle service status
+ *     tags: [Services]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Service status toggled successfully
  */
 export const toggleServiceStatus = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;

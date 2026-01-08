@@ -83,6 +83,9 @@ export const getAuthHeaders = () => {
 };
 
 // Helper function to make authenticated API calls
+/**
+ * @deprecated Use apiClient from '@/services/api' instead.
+ */
 export const apiCall = async <T>(
   url: string,
   options: RequestInit = {}

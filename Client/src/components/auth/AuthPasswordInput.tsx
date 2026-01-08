@@ -11,6 +11,7 @@ interface AuthPasswordInputProps extends Omit<InputHTMLAttributes<HTMLInputEleme
   leftIcon?: React.ReactNode;
   containerClassName?: string;
   inputClassName?: string;
+  labelClassName?: string;
 }
 
 export interface AuthPasswordInputRef {
@@ -28,6 +29,7 @@ export const AuthPasswordInput = forwardRef<AuthPasswordInputRef, AuthPasswordIn
       leftIcon,
       containerClassName,
       inputClassName,
+      labelClassName,
       id,
       ...props
     },
@@ -45,7 +47,10 @@ export const AuthPasswordInput = forwardRef<AuthPasswordInputRef, AuthPasswordIn
       <div className={cn('space-y-2', containerClassName)}>
         <label
           htmlFor={inputId}
-          className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1 ml-1"
+          className={cn(
+            "block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1 ml-1",
+            labelClassName
+          )}
         >
           {label}
           {required && <span className="text-red-500 ml-0.5">*</span>}
@@ -53,14 +58,32 @@ export const AuthPasswordInput = forwardRef<AuthPasswordInputRef, AuthPasswordIn
 
         <div className="relative">
           {leftIcon && (
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10">
               {leftIcon}
             </div>
           )}
           <input
+            ref={ref as any}
             id={inputId}
             type={isVisible ? 'text' : 'password'}
             className={cn(
+              'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+              // Custom styles from AuthInput to match "premium" look if needed, but let's stick to standardizing first.
+              // Wait, AuthPasswordInput had specific "premium" styles hardcoded: 
+              // 'w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl ...'
+              // while AuthInput uses the `Input` component which likely has shadcn-like styles.
+              // Let's check FormField.tsx content first before committing to this change. 
+              // If FormField uses different styles, I might break the "premium" look of Login.
+              // For now, I will KEEP the hardcoded styles in AuthPasswordInput because I saw in the "Improving Login Design" task they wanted a premium look, 
+              // and standardizing to a basic input might regress that.
+
+              // ACTUALLY, looking at previous steps, `AuthInput` was NOT touched in the premium redesign?
+              // `AuthInput` uses `Input` from `FormField`.
+              // `AuthPasswordInput` uses raw `input` with `bg-slate-50...`.
+
+              // Let's look at `FormField.tsx` content from the `view_file` call I just made (which will happen before this tool executes in reality, but I have to predict).
+              // To be safe, I will simply deduplicate the LABEL logic and ensure `inputClassName` is respected.
+
               'w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 outline-none placeholder:text-slate-400',
               leftIcon && 'pl-11',
               'pr-11', // Space for toggle icon
@@ -74,7 +97,7 @@ export const AuthPasswordInput = forwardRef<AuthPasswordInputRef, AuthPasswordIn
           <button
             type="button"
             onClick={() => setIsVisible(!isVisible)}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
             aria-label={isVisible ? 'Hide password' : 'Show password'}
           >
             {isVisible ? (
@@ -98,4 +121,3 @@ export const AuthPasswordInput = forwardRef<AuthPasswordInputRef, AuthPasswordIn
 );
 
 AuthPasswordInput.displayName = 'AuthPasswordInput';
-

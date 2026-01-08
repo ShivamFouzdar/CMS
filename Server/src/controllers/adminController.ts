@@ -1,8 +1,11 @@
 import { Request, Response } from 'express';
 import { asyncHandler } from '@/utils/helpers';
 import { sendSuccess } from '@/utils/response.utils';
-import mongoose from 'mongoose';
-import os from 'os';
+import { adminService } from '@/services/admin.service';
+import { Settings } from '@/models/Settings';
+import { emailService } from '@/services/email.service';
+import { updateSystemSettings as updateSettings } from '@/services/settings.service';
+import { models } from '@/models';
 
 /**
  * Admin Controller
@@ -29,9 +32,7 @@ import os from 'os';
  *         description: Dashboard stats retrieved
  */
 export const getDashboardStats = asyncHandler(async (_req: Request, res: Response) => {
-  const { adminService } = await import('@/services/admin.service');
   const stats = await adminService.getDashboardStats();
-
   return sendSuccess(res, 'Dashboard statistics retrieved successfully', stats);
 });
 
@@ -48,97 +49,7 @@ export const getDashboardStats = asyncHandler(async (_req: Request, res: Respons
  *         description: System health info
  */
 export const getSystemHealth = asyncHandler(async (_req: Request, res: Response) => {
-  const cpus = os.cpus();
-  const cpuCount = cpus.length;
-  // Load average for the last 1 minute
-  const loadAvg = os.loadavg()[0] || 0;
-  // Calculate load percentage (approximate) - capped at 100%
-  const loadPercentage = Math.min(Math.round((loadAvg / cpuCount) * 100), 100);
-
-  // Memory usage
-  const totalMem = os.totalmem();
-  const freeMem = os.freemem();
-  const usedMem = totalMem - freeMem;
-  const memoryPercentage = Math.round((usedMem / totalMem) * 100);
-
-  const health = {
-    status: 'healthy',
-    uptime: process.uptime(), // Application uptime in seconds
-    serverLoad: loadPercentage,
-    memoryUsage: memoryPercentage,
-    timestamp: new Date().toISOString(),
-    system: {
-      platform: os.platform(),
-      release: os.release(),
-      arch: os.arch(),
-      nodeVersion: process.version,
-      cpuModel: cpus[0]?.model || 'Unknown'
-    },
-    database: {
-      status: 'connected',
-      latency: 0 // Placeholder
-    },
-    disk: {
-      total: 0,
-      free: 0,
-      used: 0,
-      percentage: 0
-    }
-  };
-
-  // Check Database Status
-  try {
-    health.database.status = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
-  } catch (e) {
-    health.database.status = 'unknown';
-  }
-
-  // Check SMTP Status
-  try {
-    const { emailService } = await import('@/services/email.service');
-    const smtpStatus = await emailService.checkHealth();
-    (health as any).smtp = {
-      connected: smtpStatus,
-      status: smtpStatus ? 'connected' : 'disconnected'
-    };
-  } catch (error) {
-    (health as any).smtp = {
-      connected: false,
-      status: 'error'
-    };
-  }
-
-  // Check Disk Usage (Linux/Mac)
-  try {
-    const { exec } = await import('child_process');
-    const util = await import('util');
-    const execAsync = util.promisify(exec);
-
-    // Get disk usage for root directory
-    const { stdout } = await execAsync('df -k /');
-    const lines = stdout.trim().split('\n');
-    const line = lines[1];
-
-    if (line) {
-      const parts = line.replace(/\s+/g, ' ').split(' ');
-
-      if (parts.length >= 4) {
-        const total = parseInt(parts[1] || '0') * 1024; // Bytes
-        const used = parseInt(parts[2] || '0') * 1024;
-        const free = parseInt(parts[3] || '0') * 1024;
-
-        health.disk = {
-          total,
-          free,
-          used,
-          percentage: total > 0 ? Math.round((used / total) * 100) : 0
-        };
-      }
-    }
-  } catch (error) {
-    console.error('Disk usage check failed:', error);
-  }
-
+  const health = await adminService.getSystemHealth();
   return sendSuccess(res, 'System health retrieved successfully', health);
 });
 
@@ -155,9 +66,7 @@ export const getSystemHealth = asyncHandler(async (_req: Request, res: Response)
  *         description: Activity history retrieved
  */
 export const getRecentActivity = asyncHandler(async (_req: Request, res: Response) => {
-  const { adminService } = await import('@/services/admin.service');
   const activity = await adminService.getRecentActivity();
-
   return sendSuccess(res, 'Recent activity retrieved successfully', activity);
 });
 
@@ -220,45 +129,8 @@ export const exportData = (dataType: string) => {
  *         description: Logs retrieved
  */
 export const getSystemLogs = asyncHandler(async (_req: Request, res: Response) => {
-  const { promises: fs } = await import('fs');
-  const path = await import('path');
-  const logPath = path.join(__dirname, '../../logs/access.log');
-
-  try {
-    // Check if file exists
-    try {
-      await fs.access(logPath);
-    } catch {
-      return sendSuccess(res, 'No logs available yet', []);
-    }
-
-    const data = await fs.readFile(logPath, 'utf8');
-    const lines = data.trim().split('\n').reverse().slice(0, 100);
-
-    const logs = lines.map(line => {
-      // Basic parsing of Combined Log Format
-      // 127.0.0.1 - - [07/Jan/2026:16:50:00 +0530] "GET /api/health HTTP/1.1" 200 15 "-" "PostmanRuntime/7.26.8"
-      const match = line.match(/^(\S+) \S+ \S+ \[(.*?)\] "(.*?)" (\d+) (\d+|-) "(.*?)" "(.*?)"/);
-
-      if (match) {
-        return {
-          ip: match[1],
-          timestamp: match[2],
-          request: match[3],
-          status: parseInt(match[4] || '0', 10),
-          size: match[5],
-          userAgent: match[7],
-          raw: line
-        };
-      }
-      return { raw: line, timestamp: new Date().toISOString() };
-    });
-
-    return sendSuccess(res, 'System logs retrieved successfully', logs);
-  } catch (error) {
-    console.error('Error reading logs:', error);
-    return sendSuccess(res, 'Failed to read logs', []);
-  }
+  const logs = await adminService.getSystemLogs();
+  return sendSuccess(res, 'System logs retrieved successfully', logs);
 });
 
 /**
@@ -284,8 +156,6 @@ export const getSystemLogs = asyncHandler(async (_req: Request, res: Response) =
  *                   $ref: '#/components/schemas/Settings'
  */
 export const updateSystemSettings = asyncHandler(async (req: Request, res: Response) => {
-  const { updateSystemSettings: updateSettings } = await import('@/services/settings.service');
-
   const settingsData = req.body;
   const updatedSettings = await updateSettings(settingsData);
 
@@ -307,7 +177,6 @@ export const updateSystemSettings = asyncHandler(async (req: Request, res: Respo
  *         description: Connection failed
  */
 export const testSmtpConnection = asyncHandler(async (req: Request, res: Response) => {
-  const { emailService } = await import('@/services/email.service');
   const config = req.body;
 
   try {
@@ -340,8 +209,6 @@ export const testSmtpConnection = asyncHandler(async (req: Request, res: Respons
  *                   $ref: '#/components/schemas/Settings'
  */
 export const getSystemSettings = asyncHandler(async (_req: Request, res: Response) => {
-  const { Settings } = await import('@/models/Settings');
-
   const settings = await Settings.findOne().select('+smtp.password');
   return sendSuccess(res, 'System settings retrieved successfully', settings);
 });
@@ -359,7 +226,6 @@ export const getSystemSettings = asyncHandler(async (_req: Request, res: Respons
  *         description: Backup initiated
  */
 export const backupDatabase = asyncHandler(async (_req: Request, res: Response) => {
-  const { models } = await import('@/models');
   const backupData: any = {
     version: '1.0',
     timestamp: new Date().toISOString(),
@@ -391,7 +257,6 @@ export const backupDatabase = asyncHandler(async (_req: Request, res: Response) 
  *         description: Restore initiated
  */
 export const restoreDatabase = asyncHandler(async (req: Request, res: Response) => {
-  const { models } = await import('@/models');
   const payload = req.body;
 
   if (!payload || !payload.data) {
@@ -437,7 +302,6 @@ export const restoreDatabase = asyncHandler(async (req: Request, res: Response) 
  *         description: DB stats retrieved
  */
 export const getDatabaseStats = asyncHandler(async (_req: Request, res: Response) => {
-  const { models } = await import('@/models');
   let totalCollections = 0;
   let totalDocuments = 0;
   let estimatedSize = 0;

@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Phone, Mail, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+import { useServices } from '@/context/ServiceContext';
+
 type NavItem = {
   name: string;
   href: string;
@@ -10,23 +12,13 @@ type NavItem = {
   dropdownItems?: { name: string; href: string; description: string }[];
 };
 
-const services = [
-  { name: 'BPO Services', href: '/services/bpo', description: 'Business Process Outsourcing' },
-  { name: 'IT Services', href: '/services/it', description: 'Information Technology Solutions' },
-  { name: 'Recruitment', href: '/services/recruitment', description: 'Talent Acquisition & HR' },
-  { name: 'Legal Services', href: '/services/legal', description: 'Legal Process Outsourcing' },
-  { name: 'KPO Services', href: '/services/kpo', description: 'Knowledge Process Outsourcing' },
-  { name: 'Brand Promotion & Marketing', href: '/services/brand-promotion', description: 'Brand Promotion & Marketing Services' },
-  { name: 'Customer Support', href: '/services/support', description: '24/7 Customer Support Solutions' },
-];
-
 const navItems: NavItem[] = [
   { name: 'Home', href: '/' },
   {
     name: 'Services',
     href: '/services',
     hasDropdown: true,
-    dropdownItems: services
+    dropdownItems: []
   },
   { name: 'About', href: '/about' },
   { name: 'Team', href: '/team' },
@@ -34,6 +26,7 @@ const navItems: NavItem[] = [
 ];
 
 export function Header() {
+  const { services } = useServices();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [hoveredDropdown, setHoveredDropdown] = useState<string | null>(null);
@@ -115,72 +108,83 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-6 xl:space-x-8">
-            {navItems.map((item) => (
-              <div
-                key={item.name}
-                className="relative"
-                onMouseEnter={() => item.hasDropdown && handleDropdownEnter(item.name)}
-                onMouseLeave={handleDropdownLeave}
-              >
-                <a
-                  href={item.href}
-                  className="text-sm xl:text-base text-gray-200 hover:text-white transition-colors font-medium hover:scale-105 duration-300 relative group flex items-center"
-                >
-                  {item.name}
-                  {item.hasDropdown && (
-                    <ChevronDown className="ml-1 w-3 h-3 transition-transform duration-200 group-hover:rotate-180" />
-                  )}
-                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-purple-400 group-hover:w-full transition-all duration-300"></span>
-                </a>
+            {navItems.map((item) => {
+              // Dynamically populate dropdown items if it's the Services menu
+              const displayItems = item.name === 'Services'
+                ? services.filter(s => s.isActive).map(s => ({
+                  name: s.name,
+                  href: `/services/${s.slug}`,
+                  description: s.shortDescription
+                }))
+                : item.dropdownItems;
 
-                {/* Dropdown Menu */}
-                {item.hasDropdown && hoveredDropdown === item.name && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute top-full left-0 mt-2 w-80 bg-white/95 backdrop-blur-md rounded-xl shadow-2xl border border-gray-200/50 overflow-hidden z-50"
-                    onMouseEnter={() => handleDropdownEnter(item.name)}
-                    onMouseLeave={handleDropdownLeave}
+              return (
+                <div
+                  key={item.name}
+                  className="relative"
+                  onMouseEnter={() => item.hasDropdown && handleDropdownEnter(item.name)}
+                  onMouseLeave={handleDropdownLeave}
+                >
+                  <a
+                    href={item.href}
+                    className="text-sm xl:text-base text-gray-200 hover:text-white transition-colors font-medium hover:scale-105 duration-300 relative group flex items-center"
                   >
-                    <div className="p-2">
-                      {item.dropdownItems?.map((dropdownItem, index) => (
-                        <motion.a
-                          key={dropdownItem.name}
-                          href={dropdownItem.href}
-                          className="block p-3 rounded-lg hover:bg-purple-50 transition-colors duration-200 group"
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: index * 0.05 }}
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <h4 className="text-sm font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
-                                {dropdownItem.name}
-                              </h4>
-                              <p className="text-xs text-gray-500 mt-1 group-hover:text-gray-600 transition-colors">
-                                {dropdownItem.description}
-                              </p>
+                    {item.name}
+                    {item.hasDropdown && (
+                      <ChevronDown className="ml-1 w-3 h-3 transition-transform duration-200 group-hover:rotate-180" />
+                    )}
+                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-purple-400 group-hover:w-full transition-all duration-300"></span>
+                  </a>
+
+                  {/* Dropdown Menu */}
+                  {item.hasDropdown && hoveredDropdown === item.name && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute top-full left-0 mt-2 w-80 bg-white/95 backdrop-blur-md rounded-xl shadow-2xl border border-gray-200/50 overflow-hidden z-50"
+                      onMouseEnter={() => handleDropdownEnter(item.name)}
+                      onMouseLeave={handleDropdownLeave}
+                    >
+                      <div className="p-2">
+                        {displayItems?.map((dropdownItem, index) => (
+                          <motion.a
+                            key={dropdownItem.name}
+                            href={dropdownItem.href}
+                            className="block p-3 rounded-lg hover:bg-purple-50 transition-colors duration-200 group"
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <h4 className="text-sm font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
+                                  {dropdownItem.name}
+                                </h4>
+                                <p className="text-xs text-gray-500 mt-1 group-hover:text-gray-600 transition-colors line-clamp-1">
+                                  {dropdownItem.description}
+                                </p>
+                              </div>
+                              <div className="w-1 h-1 bg-purple-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 mt-2"></div>
                             </div>
-                            <div className="w-1 h-1 bg-purple-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 mt-2"></div>
-                          </div>
-                        </motion.a>
-                      ))}
-                    </div>
-                    <div className="border-t border-gray-200/50 p-3 bg-gray-50/50">
-                      <a
-                        href="/services"
-                        className="text-sm font-medium text-purple-600 hover:text-purple-700 transition-colors flex items-center justify-center"
-                      >
-                        View All Services
-                        <ChevronDown className="ml-1 w-3 h-3 rotate-[-90deg]" />
-                      </a>
-                    </div>
-                  </motion.div>
-                )}
-              </div>
-            ))}
+                          </motion.a>
+                        ))}
+                      </div>
+                      <div className="border-t border-gray-200/50 p-3 bg-gray-50/50">
+                        <a
+                          href="/services"
+                          className="text-sm font-medium text-purple-600 hover:text-purple-700 transition-colors flex items-center justify-center"
+                        >
+                          View All Services
+                          <ChevronDown className="ml-1 w-3 h-3 rotate-[-90deg]" />
+                        </a>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+              );
+            })}
           </nav>
 
           {/* Desktop CTA Button */}
@@ -279,20 +283,30 @@ export function Header() {
                         exit={{ opacity: 0, height: 0 }}
                         className="ml-4 mt-1 space-y-1"
                       >
-                        {item.dropdownItems?.map((dropdownItem, subIndex) => (
-                          <motion.a
-                            key={dropdownItem.name}
-                            href={dropdownItem.href}
-                            className="block py-3 px-4 text-sm text-gray-300 hover:text-white hover:bg-purple-800/30 transition-all duration-300 rounded-lg min-h-[44px] touch-manipulation"
-                            onClick={() => setMobileMenuOpen(false)}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: (index * 0.1) + (subIndex * 0.05) }}
-                          >
-                            <div className="font-medium">{dropdownItem.name}</div>
-                            <div className="text-xs text-gray-400 mt-0.5">{dropdownItem.description}</div>
-                          </motion.a>
-                        ))}
+                        {(() => {
+                          const displayItems = item.name === 'Services'
+                            ? services.filter(s => s.isActive).map(s => ({
+                              name: s.name,
+                              href: `/services/${s.slug}`,
+                              description: s.shortDescription
+                            }))
+                            : item.dropdownItems;
+
+                          return displayItems?.map((dropdownItem, subIndex) => (
+                            <motion.a
+                              key={dropdownItem.name}
+                              href={dropdownItem.href}
+                              className="block py-3 px-4 text-sm text-gray-300 hover:text-white hover:bg-purple-800/30 transition-all duration-300 rounded-lg min-h-[44px] touch-manipulation"
+                              onClick={() => setMobileMenuOpen(false)}
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: (index * 0.1) + (subIndex * 0.05) }}
+                            >
+                              <div className="font-medium">{dropdownItem.name}</div>
+                              <div className="text-xs text-gray-400 mt-0.5">{dropdownItem.description}</div>
+                            </motion.a>
+                          ));
+                        })()}
                       </motion.div>
                     )}
                   </div>

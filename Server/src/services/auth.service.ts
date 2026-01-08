@@ -2,7 +2,7 @@
 import { createError, sanitizeInput } from '@/utils/helpers';
 import { generateTokenPair, verifyToken, JWTPayload } from '@/utils/jwt.utils';
 import { generateSessionId, generateUUID } from '@/utils/uuid.utils';
-import { hashPassword, comparePassword, validatePasswordStrength } from '@/utils/auth.utils';
+import { comparePassword, validatePasswordStrength } from '@/utils/auth.utils';
 import { UserRepository } from '@/repositories/user.repository';
 import { IUser } from '@/models/User';
 
@@ -62,15 +62,12 @@ export class AuthService {
             throw createError(passwordStrength.message, 400);
         }
 
-        // Hash password
-        const hashedPassword = await hashPassword(data.password);
-
         // Create new user
         const user = await this.userRepository.create({
             firstName: sanitizeInput(data.firstName),
             lastName: sanitizeInput(data.lastName),
             email: sanitizeInput(data.email),
-            password: hashedPassword,
+            password: data.password, // Plain password, will be hashed by pre-save hook
             role: data.role || 'viewer',
             isActive: true,
             isEmailVerified: true, // Auto-verify for admin users
@@ -242,42 +239,7 @@ export class AuthService {
             throw createError(passwordStrength.message, 400);
         }
 
-        // Hash new password
-        const hashedPassword = await hashPassword(newPassword);
-
-        // Update password
-        user.password = hashedPassword;
-        await user.save(); // Using save() on mongoose document instance directly to trigger pre-save hooks (though hash is done here manually)
-        // Actually User model has pre-save hook to hash password.
-        // L236-248 of User.ts: `if (!this.isModified('password')) return next();` then `const salt = await bcrypt.genSalt(12); this.password = await bcrypt.hash...`
-        // So if I set `user.password = newPlainPassword`, save() would hash it.
-        // But here I am hashing it manually.
-        // If I hash it manually, `isModified` is true, so pre-save will hash the HASH! Double hashing!
-        // I should NOT hash it manually if pre-save hook does it.
-        // OR I should use `user.updateOne`.
-        // The previous implementation L322 `const hashedPassword = await hashPassword(newPassword);` then `user.password = hashedPassword; await user.save();`
-        // Wait, if I set hashed password, it looks changed.
-        // Does bcrypt hash look like plain password? No.
-        // If pre-save hook re-hashes it, it will be double hashed.
-        // Exception: pre-save hook might check if it's already hashed? No, it just checks isModified.
-        // Let's check User.ts again.
-        // L236 checks `!this.isModified('password')`.
-        // If I update password, it is modified.
-        // So logic in previous service seems FLAGGED.
-        // If I use `hashPassword` (my util) and then `user.password = hashed`, `save()` will hash it AGAIN.
-        // Unless `hashPassword` returns something that Mongoose doesn't see as modified (unlikely) or pre-save hook is smarter.
-        // Pre-save hook uses `bcrypt.genSalt` and `bcrypt.hash`.
-        // I should rely on ONE mechanism.
-        // I'll stick to the model's pre-save hook if possible, OR use updateOne which bypasses pre-save.
-        // Previous Code: `user.password = hashedPassword; await user.save();`
-        // This is suspicious.
-        // I will verify `User.ts` pre-save hook.
-        // It creates salt and hashes.
-        // If I change password to *anything* new, it hashes it.
-        // So if I provide already hashed password, it will be hashed again.
-        // FIX: I should set `user.password = newPassword` (plain text) and let `save()` hash it.
-        // I will do that.
-
+        // Update password (will be hashed by pre-save hook)
         user.password = newPassword;
         await user.save();
 
@@ -326,8 +288,8 @@ export class AuthService {
             throw createError(passwordStrength.message, 400);
         }
 
-        const hashedPassword = await hashPassword(newPassword);
-        user.password = hashedPassword;
+        // Update password (hashed by pre-save hook)
+        user.password = newPassword;
         await user.save();
     }
 

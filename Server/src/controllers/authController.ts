@@ -2,20 +2,11 @@ import { Request, Response } from 'express';
 import { asyncHandler, createError } from '@/utils/helpers';
 import { sendSuccess, sendError } from '@/utils/response.utils';
 import { AuthService } from '@/services/auth.service';
-
-/**
- * Auth Controller
- * Handles HTTP requests for authentication
- */
+import { areRegistrationsAllowed } from '@/services/settings.service';
+import { getTokenExpiration } from '@/utils/jwt.utils';
+import { auditService } from '@/services/audit.service';
 
 const authService = new AuthService();
-
-/**
- * @swagger
- * tags:
- *   name: Auth
- *   description: Authentication and Token Management
- */
 
 /**
  * @swagger
@@ -47,7 +38,6 @@ const authService = new AuthService();
  */
 export const register = asyncHandler(async (req: Request, res: Response) => {
   // Check if registrations are allowed
-  const { areRegistrationsAllowed } = await import('@/services/settings.service');
   const registrationsAllowed = await areRegistrationsAllowed();
 
   if (!registrationsAllowed) {
@@ -62,6 +52,18 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     email,
     password,
     role,
+  });
+
+  // Audit log for registration
+  // For registration, we don't have req.user yet, so we pass result.user.id manually if possible
+  // But auditService extracts from req.user? 
+  // We can modify auditService to accept optional userId or inject into req temporarily.
+  // Actually, auditService.logAction checks `req.user?.id`. 
+  // Let's manually inject for this call since user is created but not in req.
+  const tempReq = { ...req, user: { id: result.user.id } } as any;
+  await auditService.logAction(tempReq, 'REGISTER', 'User', result.user.id, {
+    email: result.user.email,
+    role: result.user.role
   });
 
   return sendSuccess(res, 'User registered successfully', {
@@ -116,6 +118,14 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     });
   }
 
+  // Log successful login
+  if (!result.requires2FA) {
+    const tempReq = { ...req, user: { id: result.user.id } } as any;
+    await auditService.logAction(tempReq, 'LOGIN', 'Auth', result.user.id, {
+      method: 'password'
+    });
+  }
+
   return sendSuccess(res, 'Login successful', {
     user: result.user,
     tokens: result.tokens,
@@ -161,7 +171,7 @@ export const logout = asyncHandler(async (_req: Request, res: Response) => {
  *                   $ref: '#/components/schemas/User'
  */
 export const getCurrentUser = asyncHandler(async (req: Request, res: Response) => {
-  const userId = (req as any).user?.id;
+  const userId = req.user?.id;
 
   if (!userId) {
     throw createError('User not authenticated', 401);
@@ -257,7 +267,7 @@ export const revokeToken = asyncHandler(async (_req: Request, res: Response) => 
 export const getTokenInfo = asyncHandler(async (_req: Request, res: Response) => {
   const data = {
     issuedAt: new Date().toISOString(),
-    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    expiresAt: getTokenExpiration().toISOString(),
   };
   return sendSuccess(res, 'Token information retrieved successfully', data);
 });

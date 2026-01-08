@@ -10,6 +10,7 @@ import authRoutes from './auth';
 import jobApplicationRoutes from './jobApplication';
 import twoFactorRoutes from './twoFactor';
 import publicRoutes from './public';
+import mediaRoutes from './media';
 
 const router = Router();
 
@@ -30,6 +31,7 @@ router.get('/', (_req, res) => {
       jobApplication: '/api/job-application',
       twoFactor: '/api/2fa',
       public: '/api/public',
+      media: '/api/media',
     },
     timestamp: new Date().toISOString(),
   });
@@ -45,5 +47,6 @@ router.use('/auth', authRoutes);
 router.use('/job-application', jobApplicationRoutes);
 router.use('/2fa', twoFactorRoutes);
 router.use('/public', publicRoutes);
+router.use('/media', mediaRoutes);
 
 export default router;

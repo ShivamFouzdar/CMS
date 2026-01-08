@@ -1,148 +1,24 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Briefcase, Scale, BarChart3, ArrowRight, Check, Code, UserPlus, Megaphone, Sparkles, Headphones } from "lucide-react"
+import "react"
+import { ArrowRight, Check, Sparkles } from "lucide-react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/Button"
 import { fadeIn } from "@/lib/utils"
 import Ballpit from "@/components/ui/Ballpit"
-import { servicesService } from "@/services/servicesService"
 
-const servicesData = [
-  {
-    slug: "bpo",
-    icon: <Briefcase className="w-6 h-6 text-white" />,
-    title: "BPO Services",
-    description: "Comprehensive business process outsourcing solutions to streamline your operations and reduce costs.",
-    features: [
-      "Customer Service & Support",
-      "Data Entry & Processing",
-      "Sales & Lead Generation",
-      "Backend Operations Management",
-    ],
-    href: "/services/bpo",
-    gradient: "from-blue-500 to-cyan-500",
-    bgGradient: "from-blue-50 to-cyan-50",
-  },
-  {
-    slug: "kpo",
-    icon: <BarChart3 className="w-6 h-6 text-white" />,
-    title: "KPO Services",
-    description: "Knowledge process outsourcing for research, analysis, and intellectual property solutions.",
-    features: [
-      "Market Research & Analysis",
-      "Business Intelligence",
-      "Financial Research",
-      "Content & Documentation",
-    ],
-    href: "/services/kpo",
-    gradient: "from-purple-500 to-pink-500",
-    bgGradient: "from-purple-50 to-pink-50",
-  },
-  {
-    slug: "legal",
-    icon: <Scale className="w-6 h-6 text-white" />,
-    title: "Legal Services",
-    description: "Expert legal support and documentation services for businesses of all sizes.",
-    features: [
-      "Document Preparation",
-      "Contract Management",
-      "Compliance Support",
-      "Legal Research",
-    ],
-    href: "/services/legal",
-    gradient: "from-indigo-500 to-purple-500",
-    bgGradient: "from-indigo-50 to-purple-50",
-  },
-  {
-    slug: "recruitment",
-    icon: <UserPlus className="w-6 h-6 text-white" />,
-    title: "Recruitment",
-    description: "Comprehensive talent acquisition and HR solutions to build high-performing teams.",
-    features: [
-      "Talent Sourcing",
-      "Candidate Screening",
-      "Interview Management",
-      "Onboarding Support",
-    ],
-    href: "/services/recruitment",
-    gradient: "from-emerald-500 to-teal-500",
-    bgGradient: "from-emerald-50 to-teal-50",
-  },
-  {
-    slug: "it",
-    icon: <Code className="w-6 h-6 text-white" />,
-    title: "IT Services",
-    description: "Full-stack development services for modern web applications and digital solutions.",
-    features: [
-      "React Frontend Development",
-      "Express.js Backend",
-      "MongoDB Database",
-      "Full-Stack Integration",
-    ],
-    href: "/services/it",
-    gradient: "from-violet-500 to-purple-500",
-    bgGradient: "from-violet-50 to-purple-50",
-  },
-  {
-    slug: "brand-promotion",
-    icon: <Megaphone className="w-6 h-6 text-white" />,
-    title: "Brand Promotion & Marketing",
-    description: "Build a strong professional identity with comprehensive branding and marketing solutions.",
-    features: [
-      "Personal Branding",
-      "Digital Marketing",
-      "Social Media Management",
-      "Creative Visual Branding",
-    ],
-    href: "/services/brand-promotion",
-    gradient: "from-orange-500 to-pink-500",
-    bgGradient: "from-orange-50 to-pink-50",
-  },
-  {
-    slug: "support",
-    icon: <Headphones className="w-6 h-6 text-white" />,
-    title: "Customer Support",
-    description: "24/7 round-the-clock customer assistance across multiple channels to keep your customers happy.",
-    features: [
-      "24/7 Availability",
-      "Multi-channel Support",
-      "AI-Powered Chatbots",
-      "Global Coverage",
-    ],
-    href: "/services/support",
-    gradient: "from-indigo-500 to-blue-500",
-    bgGradient: "from-indigo-50 to-blue-50",
-  },
-]
+import { useServices } from "@/context/ServiceContext"
+import { getServiceIcon, getServiceGradient, getServiceFeatures } from "@/utils/serviceUtils"
 
 interface ServicesProps {
   showAll?: boolean
 }
 
 export function Services({ showAll = false }: ServicesProps) {
-  const [services, setServices] = useState(servicesData)
-  const [isLoading, setIsLoading] = useState(true)
+  const { services, isLoading } = useServices()
 
-  useEffect(() => {
-    const fetchVisibility = async () => {
-      try {
-        const response = await servicesService.getActiveServices()
-        if (response.success) {
-          const activeSlugs = response.data
-            .filter((s: any) => s.isActive)
-            .map((s: any) => s.slug)
-
-          setServices(servicesData.filter(service => activeSlugs.includes(service.slug)))
-        }
-      } catch (error) {
-        console.error('Failed to sync services visibility:', error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    fetchVisibility()
-  }, [])
+  // Filter only active services
+  const activeServices = services.filter(service => service.isActive)
 
   if (isLoading) {
     return (
@@ -155,7 +31,7 @@ export function Services({ showAll = false }: ServicesProps) {
   return (
     <section
       id="services"
-      className="relative py-16 sm:py-20 md:py-24 lg:py-32 overflow-hidden bg-gradient-to-b from-white via-blue-50/30 to-purple-50/50"
+      className="relative py-16 sm:py-20 md:py-24 lg:py-32 overflow-hidden bg-white"
     >
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -210,31 +86,100 @@ export function Services({ showAll = false }: ServicesProps) {
           {/* Mobile: Horizontal scrollable container */}
           <div className="md:hidden overflow-x-auto scrollbar-hide overscroll-x-contain touch-pan-x pb-4 -mx-4 px-4" style={{ WebkitOverflowScrolling: 'touch' }}>
             <div className="flex gap-4" style={{ width: 'max-content' }}>
-              {services.slice(0, showAll ? services.length : 3).map((service) => (
+              {activeServices.slice(0, showAll ? activeServices.length : 3).map((service) => {
+                const { gradient, bgGradient } = getServiceGradient(service.slug)
+                const features = getServiceFeatures(service.slug)
+                return (
+                  <motion.div
+                    key={service.name}
+                    className="group relative flex-shrink-0"
+                    initial="hidden"
+                    whileInView="show"
+                    viewport={{ once: true, margin: "-50px" }}
+                    variants={fadeIn("up", 0)}
+                    style={{ width: '85vw', maxWidth: '380px', minWidth: '320px' }}
+                  >
+                    {/* Card with modern design */}
+                    <div className="relative h-full bg-white rounded-2xl p-6 border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden w-full">
+                      {/* Gradient Background on Hover */}
+                      <div className={`absolute inset-0 bg-gradient-to-br ${bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
+
+                      {/* Icon with Gradient Background */}
+                      <div className={`relative mb-6 w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
+                        {getServiceIcon(service.icon, "w-6 h-6 text-white")}
+                        <div className="absolute inset-0 rounded-2xl bg-white/20 blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                      </div>
+
+                      {/* Content */}
+                      <div className="relative z-10">
+                        <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-blue-600 transition-all duration-300">
+                          {service.name}
+                        </h3>
+
+                        <p className="text-gray-600 mb-6 leading-relaxed line-clamp-3">
+                          {service.description}
+                        </p>
+
+                        {/* Features List */}
+                        <ul className="space-y-3 mb-8">
+                          {features.slice(0, 3).map((feature, i) => (
+                            <li key={i} className="flex items-center gap-3">
+                              <div className={`flex-shrink-0 w-6 h-6 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center shadow-md`}>
+                                <Check className="w-3.5 h-3.5 text-white" />
+                              </div>
+                              <span className="text-sm text-gray-700 font-medium">{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
+
+                        {/* CTA Button */}
+                        <a href={`/services/${service.slug}`} className="inline-flex items-center gap-2 group/btn min-h-[44px] touch-manipulation">
+                          <span className={`text-sm font-semibold bg-gradient-to-r ${gradient} bg-clip-text text-transparent group-hover/btn:gap-3 transition-all duration-300`}>
+                            Learn More
+                          </span>
+                          <ArrowRight className={`w-4 h-4 sm:w-5 sm:h-5 bg-gradient-to-r ${gradient} bg-clip-text text-transparent group-hover/btn:translate-x-1 transition-transform duration-300`} />
+                        </a>
+                      </div>
+
+                      {/* Decorative Corner Element */}
+                      <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${gradient} opacity-5 rounded-bl-full group-hover:opacity-10 transition-opacity duration-500`}></div>
+                    </div>
+                  </motion.div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Desktop: Grid layout */}
+          <div className="hidden md:contents">
+            {activeServices.slice(0, showAll ? activeServices.length : 3).map((service) => {
+              const { gradient, bgGradient } = getServiceGradient(service.slug)
+              const features = getServiceFeatures(service.slug)
+
+              return (
                 <motion.div
-                  key={service.title}
-                  className="group relative flex-shrink-0"
+                  key={service.name}
+                  className="group relative"
                   initial="hidden"
                   whileInView="show"
                   viewport={{ once: true, margin: "-50px" }}
                   variants={fadeIn("up", 0)}
-                  style={{ width: '85vw', maxWidth: '380px', minWidth: '320px' }}
                 >
                   {/* Card with modern design */}
-                  <div className="relative h-full bg-white rounded-2xl p-6 border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden w-full">
+                  <div className="relative h-full bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden">
                     {/* Gradient Background on Hover */}
-                    <div className={`absolute inset-0 bg-gradient-to-br ${service.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
+                    <div className={`absolute inset-0 bg-gradient-to-br ${bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
 
                     {/* Icon with Gradient Background */}
-                    <div className={`relative mb-6 w-16 h-16 rounded-2xl bg-gradient-to-br ${service.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
-                      {service.icon}
+                    <div className={`relative mb-6 w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
+                      {getServiceIcon(service.icon, "w-6 h-6 text-white")}
                       <div className="absolute inset-0 rounded-2xl bg-white/20 blur-xl group-hover:blur-2xl transition-all duration-500"></div>
                     </div>
 
                     {/* Content */}
                     <div className="relative z-10">
-                      <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-blue-600 transition-all duration-300">
-                        {service.title}
+                      <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 transition-all duration-300">
+                        {service.name}
                       </h3>
 
                       <p className="text-gray-600 mb-6 leading-relaxed line-clamp-3">
@@ -243,9 +188,9 @@ export function Services({ showAll = false }: ServicesProps) {
 
                       {/* Features List */}
                       <ul className="space-y-3 mb-8">
-                        {service.features.slice(0, 3).map((feature, i) => (
+                        {features.slice(0, 3).map((feature, i) => (
                           <li key={i} className="flex items-center gap-3">
-                            <div className={`flex-shrink-0 w-6 h-6 rounded-lg bg-gradient-to-br ${service.gradient} flex items-center justify-center shadow-md`}>
+                            <div className={`flex-shrink-0 w-6 h-6 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center shadow-md`}>
                               <Check className="w-3.5 h-3.5 text-white" />
                             </div>
                             <span className="text-sm text-gray-700 font-medium">{feature}</span>
@@ -254,80 +199,20 @@ export function Services({ showAll = false }: ServicesProps) {
                       </ul>
 
                       {/* CTA Button */}
-                      <a href={service.href} className="inline-flex items-center gap-2 group/btn min-h-[44px] touch-manipulation">
-                        <span className={`text-sm font-semibold bg-gradient-to-r ${service.gradient} bg-clip-text text-transparent group-hover/btn:gap-3 transition-all duration-300`}>
+                      <a href={`/services/${service.slug}`} className="inline-flex items-center gap-2 group/btn min-h-[44px] touch-manipulation">
+                        <span className={`text-sm font-semibold bg-gradient-to-r ${gradient} bg-clip-text text-transparent group-hover/btn:gap-3 transition-all duration-300`}>
                           Learn More
                         </span>
-                        <ArrowRight className={`w-4 h-4 sm:w-5 sm:h-5 bg-gradient-to-r ${service.gradient} bg-clip-text text-transparent group-hover/btn:translate-x-1 transition-transform duration-300`} />
+                        <ArrowRight className={`w-4 h-4 sm:w-5 sm:h-5 bg-gradient-to-r ${gradient} bg-clip-text text-transparent group-hover/btn:translate-x-1 transition-transform duration-300`} />
                       </a>
                     </div>
 
                     {/* Decorative Corner Element */}
-                    <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${service.gradient} opacity-5 rounded-bl-full group-hover:opacity-10 transition-opacity duration-500`}></div>
+                    <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${gradient} opacity-5 rounded-bl-full group-hover:opacity-10 transition-opacity duration-500`}></div>
                   </div>
                 </motion.div>
-              ))}
-            </div>
-          </div>
-
-          {/* Desktop: Grid layout */}
-          <div className="hidden md:contents">
-            {services.slice(0, showAll ? services.length : 3).map((service) => (
-              <motion.div
-                key={service.title}
-                className="group relative"
-                initial="hidden"
-                whileInView="show"
-                viewport={{ once: true, margin: "-50px" }}
-                variants={fadeIn("up", 0)}
-              >
-                {/* Card with modern design */}
-                <div className="relative h-full bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden">
-                  {/* Gradient Background on Hover */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${service.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
-
-                  {/* Icon with Gradient Background */}
-                  <div className={`relative mb-6 w-16 h-16 rounded-2xl bg-gradient-to-br ${service.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
-                    {service.icon}
-                    <div className="absolute inset-0 rounded-2xl bg-white/20 blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-                  </div>
-
-                  {/* Content */}
-                  <div className="relative z-10">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 transition-all duration-300">
-                      {service.title}
-                    </h3>
-
-                    <p className="text-gray-600 mb-6 leading-relaxed line-clamp-3">
-                      {service.description}
-                    </p>
-
-                    {/* Features List */}
-                    <ul className="space-y-3 mb-8">
-                      {service.features.slice(0, 3).map((feature, i) => (
-                        <li key={i} className="flex items-center gap-3">
-                          <div className={`flex-shrink-0 w-6 h-6 rounded-lg bg-gradient-to-br ${service.gradient} flex items-center justify-center shadow-md`}>
-                            <Check className="w-3.5 h-3.5 text-white" />
-                          </div>
-                          <span className="text-sm text-gray-700 font-medium">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    {/* CTA Button */}
-                    <a href={service.href} className="inline-flex items-center gap-2 group/btn min-h-[44px] touch-manipulation">
-                      <span className={`text-sm font-semibold bg-gradient-to-r ${service.gradient} bg-clip-text text-transparent group-hover/btn:gap-3 transition-all duration-300`}>
-                        Learn More
-                      </span>
-                      <ArrowRight className={`w-4 h-4 sm:w-5 sm:h-5 bg-gradient-to-r ${service.gradient} bg-clip-text text-transparent group-hover/btn:translate-x-1 transition-transform duration-300`} />
-                    </a>
-                  </div>
-
-                  {/* Decorative Corner Element */}
-                  <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${service.gradient} opacity-5 rounded-bl-full group-hover:opacity-10 transition-opacity duration-500`}></div>
-                </div>
-              </motion.div>
-            ))}
+              )
+            })}
           </div>
         </div>
 

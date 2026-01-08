@@ -12,6 +12,7 @@ interface AuthInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'cl
   rightIcon?: React.ReactNode;
   containerClassName?: string;
   inputClassName?: string;
+  labelClassName?: string;
 }
 
 export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
@@ -25,6 +26,7 @@ export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
       rightIcon,
       containerClassName,
       inputClassName,
+      labelClassName,
       id,
       ...props
     },
@@ -36,7 +38,10 @@ export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
       <div className={cn('space-y-2', containerClassName)}>
         <label
           htmlFor={inputId}
-          className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1 ml-1"
+          className={cn(
+            "block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1 ml-1",
+            labelClassName
+          )}
         >
           {label}
           {required && <span className="text-red-500 ml-0.5">*</span>}
