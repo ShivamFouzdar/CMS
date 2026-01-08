@@ -102,7 +102,7 @@ export function Industries() {
           >
             Industries We Serve
           </motion.h2>
-          
+
           <motion.p
             variants={fadeIn('up', 0.3)}
             className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed"
@@ -114,20 +114,20 @@ export function Industries() {
 
         {/* Industries Grid */}
         <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 xs:gap-4 sm:gap-5 md:gap-6 lg:gap-8">
-          {industries.map((industry, index) => (
+          {industries.map((industry) => (
             <motion.div
               key={industry.name}
               className="group relative"
               initial="hidden"
               whileInView="show"
               viewport={{ once: true, margin: "-50px" }}
-              variants={fadeIn("up", 0.1 * index)}
+              variants={fadeIn("up", 0)}
             >
               {/* Card */}
               <div className="relative h-full bg-white rounded-xl sm:rounded-2xl md:rounded-3xl p-4 sm:p-6 md:p-8 border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden cursor-pointer touch-manipulation min-h-[120px] sm:min-h-[140px]">
                 {/* Gradient Background on Hover */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${industry.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
-                
+
                 {/* Icon with Gradient Background */}
                 <div className={`relative mb-3 sm:mb-4 md:mb-6 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 mx-auto rounded-xl sm:rounded-2xl bg-gradient-to-br ${industry.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
                   <div className="scale-75 sm:scale-90 md:scale-100">

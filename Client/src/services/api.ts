@@ -1,148 +1,70 @@
-import axios, { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
+import axios, { AxiosError, AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import { API_BASE_URL } from '@/config/api';
 
-// Create a custom axios instance with default config
+/**
+ * Standardized API Client
+ * Uses Axios for unified request/response handling, interceptors, and error management.
+ */
+
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
-  timeout: 10000, // 10 seconds
-  withCredentials: true, // Send cookies with requests if needed
+  timeout: 15000,
 });
 
-// Request interceptor for API calls
+/**
+ * Request Interceptor: Attach Auth Token
+ */
 apiClient.interceptors.request.use(
-  (config) => {
-    // You can add auth tokens or other headers here
-    // const token = localStorage.getItem('authToken');
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
-    
+  (config: InternalAxiosRequestConfig) => {
+    const token = localStorage.getItem('accessToken');
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor for API calls
+/**
+ * Response Interceptor: Unwrap data and handle global errors
+ */
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
-    // Handle successful responses
     return response.data;
   },
   (error: AxiosError) => {
-    // Handle errors
+    let errorMessage = 'An unexpected error occurred';
+
     if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
-      let errorMessage: string = error.message;
-      const data = error.response?.data;
-      if (data && typeof data === 'object' && 'message' in data && typeof (data as any).message === 'string') {
-        errorMessage = (data as any).message;
+      const data = error.response.data as any;
+      errorMessage = data?.message || error.message;
+
+      if (error.response.status === 401) {
+        console.error('Session expired or unauthorized');
       }
-      return Promise.reject(new Error(errorMessage));
+
+      if (error.response.status === 503) {
+        // Maintenance mode active
+        if (window.location.pathname !== '/maintenance' && !window.location.pathname.startsWith('/admin')) {
+          window.location.href = '/maintenance';
+        }
+
+        // Pass the full data (including contact info) back to the caller
+        const maintenanceError = new Error(errorMessage) as any;
+        maintenanceError.data = data;
+        maintenanceError.status = 503;
+        return Promise.reject(maintenanceError);
+      }
     } else if (error.request) {
-      // The request was made but no response was received
-      return Promise.reject(new Error('No response received from the server. Please check your connection.'));
-    } else {
-      // Something happened in setting up the request that triggered an Error
-      return Promise.reject(new Error('An error occurred while sending the request.'));
+      errorMessage = 'No response from server. Please check your connection.';
     }
+
+    return Promise.reject(new Error(errorMessage));
   }
 );
 
-// API service methods
-export const apiService = {
-  /**
-   * Submit a contact form
-   */
-  async submitContactForm(data: ContactFormData): Promise<ApiResponse<ContactFormResponse>> {
-    try {
-      const response = await apiClient.post<ApiResponse<ContactFormResponse>>('/contact', data);
-      return response.data;
-    } catch (error) {
-      console.error('Error submitting contact form:', error);
-      throw error;
-    }
-  },
-  
-  /**
-   * Submit a general inquiry
-   */
-  async submitInquiry(data: InquiryFormData): Promise<ApiResponse<InquiryResponse>> {
-    try {
-      const response = await apiClient.post<ApiResponse<InquiryResponse>>('/inquiries', data);
-      return response.data;
-    } catch (error) {
-      console.error('Error submitting inquiry:', error);
-      throw error;
-    }
-  },
-  
-  /**
-   * Get a list of services
-   */
-  async getServices(): Promise<ApiResponse<Service[]>> {
-    try {
-      const response = await apiClient.get<ApiResponse<Service[]>>('/services');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching services:', error);
-      throw error;
-    }
-  },
-};
-
-// Type definitions for the API
-type ApiResponse<T = any> = {
-  success: boolean;
-  message?: string;
-  data?: T;
-  errors?: Record<string, string[]>;
-};
-
-type ContactFormData = {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone?: string;
-  company?: string;
-  jobTitle?: string;
-  service: string;
-  otherService?: string;
-  message: string;
-  preferredContactMethod: 'email' | 'phone';
-  marketingEmails: boolean;
-};
-
-type ContactFormResponse = {
-  id: string;
-  submittedAt: string;
-};
-
-type InquiryFormData = {
-  name: string;
-  email: string;
-  subject: string;
-  message: string;
-  type: string;
-};
-
-type InquiryResponse = {
-  id: string;
-  submittedAt: string;
-};
-
-type Service = {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  slug: string;
-};
-
-export default apiService;
+export default apiClient;

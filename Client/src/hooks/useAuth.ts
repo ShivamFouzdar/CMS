@@ -6,6 +6,7 @@ interface User {
   firstName: string;
   lastName: string;
   email: string;
+  phone?: string;
   role: string;
   permissions?: string[];
   isEmailVerified?: boolean;
@@ -42,7 +43,7 @@ export function useAuth(): UseAuthReturn {
   const refreshUser = () => {
     const userData = localStorage.getItem('user');
     const authToken = localStorage.getItem('accessToken');
-    
+
     if (userData) {
       try {
         setUser(JSON.parse(userData));
@@ -53,7 +54,7 @@ export function useAuth(): UseAuthReturn {
     } else {
       setUser(null);
     }
-    
+
     setToken(authToken);
     setIsLoading(false);
   };
@@ -61,16 +62,16 @@ export function useAuth(): UseAuthReturn {
   useEffect(() => {
     // Initialize auth state immediately on mount
     refreshUser();
-    
+
     // Listen for storage changes (e.g., when login sets tokens in another tab)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'accessToken' || e.key === 'user') {
         refreshUser();
       }
     };
-    
+
     window.addEventListener('storage', handleStorageChange);
-    
+
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };

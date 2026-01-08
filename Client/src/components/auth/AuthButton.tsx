@@ -1,14 +1,13 @@
-import React from 'react';
-import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface AuthButtonProps {
   children: React.ReactNode;
   loading?: boolean;
   disabled?: boolean;
   fullWidth?: boolean;
-  variant?: 'primary' | 'secondary' | 'outline';
+  variant?: 'primary' | 'secondary' | 'outline' | 'premium';
   className?: string;
   type?: 'button' | 'submit' | 'reset';
   onClick?: () => void;
@@ -26,18 +25,21 @@ export function AuthButton({
   ...props
 }: AuthButtonProps) {
   const variants = {
-    primary: 'bg-blue-600 hover:bg-blue-700 text-white',
-    secondary: 'bg-gray-600 hover:bg-gray-700 text-white',
-    outline: 'border-2 border-blue-600 text-blue-600 hover:bg-blue-50',
+    primary: 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200',
+    secondary: 'bg-slate-700 hover:bg-slate-800 text-white shadow-slate-200',
+    outline: 'border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50',
+    premium: 'bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-600 bg-[length:200%_auto] hover:bg-[right_center] text-white shadow-indigo-200 transition-all duration-500',
   };
 
   return (
-    <Button
+    <motion.button
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.98 }}
       type={type}
       disabled={disabled || loading}
       onClick={onClick}
       className={cn(
-        'px-6 py-3 rounded-lg font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed',
+        'px-6 py-3.5 rounded-xl font-bold tracking-wide transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg',
         'flex items-center justify-center space-x-2',
         fullWidth && 'w-full',
         variants[variant],
@@ -45,9 +47,11 @@ export function AuthButton({
       )}
       {...props}
     >
-      {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-      <span>{children}</span>
-    </Button>
+      {loading ? (
+        <Loader2 className="w-5 h-5 animate-spin" />
+      ) : (
+        <span>{children}</span>
+      )}
+    </motion.button>
   );
 }
-

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { AuthCard, AuthInput, AuthPasswordInput, AuthButton, AuthLink } from '@/components/auth';
-import { Mail, Lock, Shield, AlertCircle } from 'lucide-react';
+import { Mail, Lock, Shield, AlertCircle, Compass, ChevronRight } from 'lucide-react';
 import axios from 'axios';
 import { API_ENDPOINTS, API_BASE_URL } from '@/config/api';
+import { motion } from 'framer-motion';
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -21,7 +22,6 @@ export default function LoginPage() {
     e.preventDefault();
     setErrors({});
 
-    // Validation
     if (!formData.email) {
       setErrors((prev) => ({ ...prev, email: 'Email is required' }));
       return;
@@ -40,9 +40,6 @@ export default function LoginPage() {
         password: formData.password,
       });
 
-      console.log('Login response:', response.data);
-
-      // Check if 2FA is required
       if (response.data.success && response.data.data?.requires2FA) {
         setTempToken(response.data.data.tempToken);
         setRequires2FA(true);
@@ -50,36 +47,27 @@ export default function LoginPage() {
         return;
       }
 
-      // Store tokens and complete login
       if (response.data.success && response.data.data?.tokens) {
         const { accessToken, refreshToken } = response.data.data.tokens;
         const user = response.data.data.user;
-        
+
         if (accessToken && user) {
           localStorage.setItem('accessToken', accessToken);
           if (refreshToken) {
             localStorage.setItem('refreshToken', refreshToken);
           }
           localStorage.setItem('user', JSON.stringify(user));
-          
-          console.log('Tokens stored successfully');
-          console.log('Stored token:', localStorage.getItem('accessToken'));
-          console.log('Stored user:', localStorage.getItem('user'));
-          
-          // Small delay to ensure all state is updated before redirect
+
           setTimeout(() => {
             window.location.href = '/admin/dashboard';
           }, 50);
         } else {
-          console.error('Missing accessToken or user in response:', response.data);
           setErrors({ general: 'Login response missing required data. Please try again.' });
         }
       } else {
-        console.error('Unexpected response structure:', response.data);
         setErrors({ general: 'Unexpected response from server. Please try again.' });
       }
     } catch (error: any) {
-      console.error('Login error:', error);
       const errorMessage = error.response?.data?.error?.message || error.response?.data?.message || 'Login failed. Please try again.';
       setErrors({ general: errorMessage });
     } finally {
@@ -90,7 +78,7 @@ export default function LoginPage() {
   const handle2FAVerification = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
-    
+
     if (!twoFactorCode.trim()) {
       setErrors({ twoFactor: 'Verification code is required' });
       return;
@@ -106,13 +94,6 @@ export default function LoginPage() {
       }
 
       const verifyLoginUrl = API_ENDPOINTS.twoFactor?.verifyLogin || `${API_BASE_URL}/api/2fa/verify-login`;
-      console.log('Calling 2FA verify-login:', verifyLoginUrl);
-      console.log('Request payload:', { 
-        hasTempToken: !!tempToken, 
-        hasCode: !useBackupCode && !!twoFactorCode,
-        hasBackupCode: useBackupCode && !!twoFactorCode 
-      });
-
       const response = await axios.post(
         verifyLoginUrl,
         {
@@ -122,56 +103,27 @@ export default function LoginPage() {
         }
       );
 
-      console.log('2FA verification response:', response.data);
-
       if (response.data.success && response.data.data?.tokens) {
         const tokens = response.data.data.tokens;
         const user = response.data.data.user;
-        
-        console.log('Tokens received:', { 
-          hasAccessToken: !!tokens.accessToken, 
-          hasRefreshToken: !!tokens.refreshToken,
-          hasUser: !!user 
-        });
 
         if (tokens.accessToken && user) {
-          // Store tokens
           localStorage.setItem('accessToken', tokens.accessToken);
           if (tokens.refreshToken) {
             localStorage.setItem('refreshToken', tokens.refreshToken);
           }
           localStorage.setItem('user', JSON.stringify(user));
-          
-          // Verify storage
-          const storedToken = localStorage.getItem('accessToken');
-          const storedUser = localStorage.getItem('user');
-          
-          console.log('Tokens stored:', { 
-            hasStoredToken: !!storedToken, 
-            hasStoredUser: !!storedUser 
-          });
 
-          if (storedToken && storedUser) {
-            console.log('2FA verification successful, redirecting...');
-            // Small delay to ensure all state is updated
-            setTimeout(() => {
-              window.location.href = '/admin/dashboard';
-            }, 50);
-          } else {
-            console.error('Failed to store tokens in localStorage');
-            setErrors({ twoFactor: 'Failed to save session. Please try again.' });
-          }
+          setTimeout(() => {
+            window.location.href = '/admin/dashboard';
+          }, 50);
         } else {
-          console.error('Missing accessToken or user in 2FA response:', response.data);
           setErrors({ twoFactor: 'Verification response missing required data. Please try again.' });
         }
       } else {
-        console.error('Unexpected 2FA response structure:', response.data);
         setErrors({ twoFactor: 'Unexpected response from server. Please try again.' });
       }
     } catch (error: any) {
-      console.error('2FA verification error:', error);
-      console.error('Error response:', error.response?.data);
       const errorMessage = error.response?.data?.message || error.response?.data?.error?.message || 'Invalid verification code. Please try again.';
       setErrors({ twoFactor: errorMessage });
       setTwoFactorCode('');
@@ -180,88 +132,105 @@ export default function LoginPage() {
     }
   };
 
-  // Show 2FA verification step
   if (requires2FA) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-12 px-4">
+      <div className="min-h-screen relative flex items-center justify-center bg-slate-950 overflow-hidden py-12 px-4">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-[25%] -left-[10%] w-[70%] h-[70%] bg-indigo-600/20 rounded-full blur-[120px] animate-pulse" />
+          <div className="absolute -bottom-[25%] -right-[10%] w-[70%] h-[70%] bg-blue-600/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+        </div>
+
         <AuthCard
-          title="Two-Factor Authentication"
-          description="Enter the 6-digit code from your authenticator app"
-          className="shadow-2xl max-w-md"
+          glass
+          className="max-w-md relative z-10"
         >
           <form onSubmit={handle2FAVerification}>
-            <div className="space-y-5">
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="space-y-6">
+              <div className="text-center">
+                <motion.div
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-indigo-500/20 rotate-3"
+                >
                   <Shield className="w-8 h-8 text-white" />
-                </div>
-                <p className="text-gray-600">
-                  Open your authenticator app and enter the code
+                </motion.div>
+                <h2 className="text-2xl font-bold text-slate-900 mb-2">Security Verification</h2>
+                <p className="text-slate-500 text-sm">
+                  Enter the verification code from your authenticator app
                 </p>
               </div>
 
               {errors.twoFactor && (
-                <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm flex items-center">
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="p-3.5 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm flex items-center"
+                >
                   <AlertCircle className="w-4 h-4 mr-2" />
                   {errors.twoFactor}
-                </div>
+                </motion.div>
               )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {useBackupCode ? 'Backup Code' : '6-Digit Code'}
+              <div className="space-y-4">
+                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">
+                  {useBackupCode ? 'Backup Recovery Code' : '6-Digit Authentication Code'}
                 </label>
                 <input
                   type="text"
                   value={twoFactorCode}
                   onChange={(e) => {
-                    const value = useBackupCode 
+                    const value = useBackupCode
                       ? e.target.value.replace(/[^A-Z0-9-]/gi, '').toUpperCase()
                       : e.target.value.replace(/\D/g, '').slice(0, 6);
                     setTwoFactorCode(value);
                   }}
-                  placeholder={useBackupCode ? "XXXX-XXXX" : "000000"}
-                  className="w-full text-center text-3xl font-mono tracking-widest px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder={useBackupCode ? "XXXX-XXXX" : "000 000"}
+                  className="w-full text-center text-3xl font-mono tracking-[0.2em] px-4 py-5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
                   maxLength={useBackupCode ? 9 : 6}
                   autoFocus
                   disabled={verifying2FA}
                 />
               </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setUseBackupCode(!useBackupCode);
-                  setTwoFactorCode('');
-                  setErrors({});
-                }}
-                className="text-sm text-blue-600 hover:text-blue-800 text-center w-full"
-              >
-                {useBackupCode ? 'Use authenticator code instead' : 'Use backup code instead'}
-              </button>
+              <div className="flex flex-col gap-4">
+                <AuthButton
+                  type="submit"
+                  variant="premium"
+                  loading={verifying2FA}
+                  disabled={verifying2FA || (useBackupCode ? twoFactorCode.length < 8 : twoFactorCode.length !== 6)}
+                >
+                  Confirm & Access Dashboard
+                </AuthButton>
 
-              <AuthButton
-                type="submit"
-                variant="primary"
-                loading={verifying2FA}
-                disabled={verifying2FA || (useBackupCode ? twoFactorCode.length < 8 : twoFactorCode.length !== 6)}
-              >
-                {verifying2FA ? 'Verifying...' : 'Verify & Continue'}
-              </AuthButton>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUseBackupCode(!useBackupCode);
+                    setTwoFactorCode('');
+                    setErrors({});
+                  }}
+                  className="text-xs font-bold text-indigo-600 hover:text-indigo-700 transition-colors py-2 uppercase tracking-widest"
+                >
+                  {useBackupCode ? 'Use App Code' : 'Use Backup Code'}
+                </button>
+              </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setRequires2FA(false);
-                  setTempToken(null);
-                  setTwoFactorCode('');
-                  setUseBackupCode(false);
-                  setErrors({});
-                }}
-                className="text-sm text-gray-600 hover:text-gray-900 text-center w-full"
-              >
-                ← Back to login
-              </button>
+              <div className="pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRequires2FA(false);
+                    setTempToken(null);
+                    setTwoFactorCode('');
+                    setUseBackupCode(false);
+                    setErrors({});
+                  }}
+                  className="text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors w-full flex items-center justify-center gap-2"
+                >
+                  <span>←</span> Return to Login
+                </button>
+              </div>
             </div>
           </form>
         </AuthCard>
@@ -270,76 +239,129 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-12 px-4">
-      <AuthCard
-        title="Welcome Back"
-        description="Sign in to your admin account"
-        className="shadow-2xl"
-      >
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-5">
-            {errors.general && (
-              <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
-                {errors.general}
-              </div>
-            )}
+    <div className="min-h-screen relative flex items-center justify-center bg-slate-950 overflow-hidden py-12 px-4 italic-none">
+      {/* Dynamic Background */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
+        <div className="absolute top-0 -right-4 w-72 h-72 bg-indigo-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
+        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000" />
 
-            <AuthInput
-              label="Email Address"
-              type="email"
-              placeholder="admin@careermapsolutions.com"
-              required
-              error={errors.email}
-              leftIcon={<Mail className="w-5 h-5" />}
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
-              disabled={isLoading}
-            />
+        {/* Grid Pattern Overlay */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+      </div>
 
-            <AuthPasswordInput
-              label="Password"
-              placeholder="Enter your password"
-              required
-              error={errors.password}
-              leftIcon={<Lock className="w-5 h-5" />}
-              value={formData.password}
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-              }
-              disabled={isLoading}
-            />
-
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  defaultChecked
-                />
-                <span className="text-gray-600">Remember me</span>
-              </label>
-              <AuthLink to="/auth/forgot-password">Forgot password?</AuthLink>
+      <div className="w-full max-w-md relative z-10">
+        {/* Branding */}
+        <motion.div
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="text-center mb-10"
+        >
+          <div className="inline-flex items-center gap-3 px-4 py-2 bg-white/5 backdrop-blur-md rounded-full border border-white/10 mb-6 group cursor-default">
+            <div className="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center group-hover:rotate-12 transition-transform duration-500">
+              <Compass className="w-5 h-5 text-white" />
             </div>
-
-            <AuthButton
-              type="submit"
-              variant="primary"
-              loading={isLoading}
-              disabled={isLoading}
-            >
-              {isLoading ? 'Signing in...' : 'Sign In'}
-            </AuthButton>
-
-            <div className="text-center text-sm">
-              <span className="text-gray-600">Don't have an account? </span>
-              <AuthLink to="/auth/register">Sign up</AuthLink>
-            </div>
+            <span className="text-sm font-bold tracking-widest text-white/90 uppercase">CareerMap Admin</span>
           </div>
-        </form>
-      </AuthCard>
+          <h1 className="text-4xl font-extrabold text-white tracking-tight leading-tight">
+            Welcome <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-blue-400">Back</span>
+          </h1>
+          <p className="text-slate-400 mt-3 font-medium">Elevate your business management</p>
+        </motion.div>
+
+        <AuthCard
+          glass
+          className="relative overflow-hidden group border-white/10"
+        >
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-6">
+              {errors.general && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-sm font-medium flex items-center gap-3"
+                >
+                  <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                  {errors.general}
+                </motion.div>
+              )}
+
+              <AuthInput
+                label="Identity"
+                type="email"
+                placeholder="admin@careermapsolutions.com"
+                required
+                error={errors.email}
+                leftIcon={<Mail className="w-5 h-5 text-indigo-500/70" />}
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+                disabled={isLoading}
+                inputClassName="bg-slate-50/50 border-slate-100 focus:bg-white transition-all py-3.5 rounded-xl text-slate-900 font-medium"
+              />
+
+              <AuthPasswordInput
+                label="Secrets"
+                placeholder="••••••••"
+                required
+                error={errors.password}
+                leftIcon={<Lock className="w-5 h-5 text-indigo-500/70" />}
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
+                disabled={isLoading}
+              />
+
+              <div className="flex items-center justify-between">
+                <label className="flex items-center cursor-pointer group/check">
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      className="peer sr-only"
+                      defaultChecked
+                    />
+                    <div className="w-5 h-5 border-2 border-slate-200 rounded-md peer-checked:bg-indigo-600 peer-checked:border-indigo-600 transition-all duration-300" />
+                    <ChevronRight className="absolute inset-0 w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity m-auto" />
+                  </div>
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-3 group-hover/check:text-slate-700 transition-colors">Keep Signed In</span>
+                </label>
+                <AuthLink to="/auth/forgot-password" className="text-xs font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-widest">
+                  Reset Link
+                </AuthLink>
+              </div>
+
+              <div className="pt-2">
+                <AuthButton
+                  type="submit"
+                  variant="premium"
+                  loading={isLoading}
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Authenticating...' : 'Initialize Session'}
+                </AuthButton>
+              </div>
+
+              <div className="text-center pt-2">
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">
+                  Secure Access only
+                </p>
+              </div>
+            </div>
+          </form>
+        </AuthCard>
+
+        {/* Support Footer */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="text-center mt-8 text-slate-500 text-[10px] uppercase tracking-[.25em] font-bold"
+        >
+          Secure Access Module &bull; Powered by CareerMap
+        </motion.p>
+      </div>
     </div>
   );
 }
-

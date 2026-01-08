@@ -3,6 +3,45 @@ import { Schema, model, Document, Model } from 'mongoose';
 /**
  * Contact Model
  * Represents contact form submissions and inquiries
+ * 
+ * @swagger
+ * components:
+ *   schemas:
+ *     Contact:
+ *       type: object
+ *       required:
+ *         - name
+ *         - email
+ *         - message
+ *       properties:
+ *         _id:
+ *           type: string
+ *         name:
+ *           type: string
+ *         email:
+ *           type: string
+ *           format: email
+ *         phone:
+ *           type: string
+ *         company:
+ *           type: string
+ *         service:
+ *           type: string
+ *           enum: [BPO Services, IT Services, Recruitment, Legal Services, KPO Services, Customer Support, General Enquiry]
+ *         message:
+ *           type: string
+ *         status:
+ *           type: string
+ *           enum: [new, in_progress, completed, closed]
+ *         priority:
+ *           type: string
+ *           enum: [low, medium, high]
+ *         submittedAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
  */
 
 export interface IContact extends Document {
@@ -21,7 +60,7 @@ export interface IContact extends Document {
   lastContactedAt?: Date;
   source: 'website' | 'phone' | 'email' | 'referral' | 'other';
   tags: string[];
-  
+
   // Instance methods
   markAsContacted(): Promise<IContact>;
   updateStatus(status: string, notes?: string): Promise<IContact>;
@@ -69,10 +108,11 @@ const contactSchema = new Schema<IContact>({
     trim: true,
     enum: [
       'BPO Services',
-      'IT Services', 
+      'IT Services',
       'Recruitment',
       'Legal Services',
       'KPO Services',
+      'Brand Promotion & Marketing',
       'Customer Support',
       'General Enquiry'
     ],
@@ -140,18 +180,18 @@ contactSchema.index({ priority: 1 });
 contactSchema.index({ assignedTo: 1 });
 
 // Virtual for full name (if needed for display)
-contactSchema.virtual('fullName').get(function() {
+contactSchema.virtual('fullName').get(function () {
   return this.name;
 });
 
 // Pre-save middleware to update the updatedAt field
-contactSchema.pre('save', function(next) {
+contactSchema.pre('save', function (next) {
   this.updatedAt = new Date();
   next();
 });
 
 // Static method to get contact statistics
-contactSchema.statics['getStats'] = async function() {
+contactSchema.statics['getStats'] = async function () {
   const stats = await this.aggregate([
     {
       $group: {
@@ -160,7 +200,7 @@ contactSchema.statics['getStats'] = async function() {
       }
     }
   ]);
-  
+
   const total = await this.countDocuments();
   const statusCounts = stats.reduce((acc, stat) => {
     acc[stat._id] = stat.count;
@@ -178,7 +218,7 @@ contactSchema.statics['getStats'] = async function() {
 };
 
 // Static method to get contacts by service
-contactSchema.statics['getByService'] = async function(service: string, limit = 10) {
+contactSchema.statics['getByService'] = async function (service: string, limit = 10) {
   return this.find({ service })
     .sort({ submittedAt: -1 })
     .limit(limit)
@@ -186,13 +226,13 @@ contactSchema.statics['getByService'] = async function(service: string, limit = 
 };
 
 // Instance method to mark as contacted
-contactSchema.methods['markAsContacted'] = function() {
+contactSchema.methods['markAsContacted'] = function () {
   this['lastContactedAt'] = new Date();
   return this['save']();
 };
 
 // Instance method to update status
-contactSchema.methods['updateStatus'] = function(status: string, notes?: string) {
+contactSchema.methods['updateStatus'] = function (status: string, notes?: string) {
   this['status'] = status;
   if (notes) {
     this['notes'] = notes;

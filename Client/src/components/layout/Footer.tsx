@@ -1,4 +1,7 @@
-import { Facebook, Instagram, Linkedin, Mail, Phone, MapPin } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Facebook, Instagram, Linkedin, Mail, Phone, MapPin, Youtube } from 'lucide-react';
+import { publicService } from '@/services/publicService';
+import { PublicSettings } from '@/types';
 
 // Custom X (Twitter) icon component
 const XIcon = ({ className }: { className?: string }) => (
@@ -8,53 +11,73 @@ const XIcon = ({ className }: { className?: string }) => (
     fill="currentColor"
     xmlns="http://www.w3.org/2000/svg"
   >
-    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
   </svg>
 );
 
-const socialLinks = [
-  {
-    name: 'Facebook',
-    href: 'https://www.facebook.com/people/CareerMap-Solutions/61581367203854/',
-    icon: Facebook,
-  },
-  {
-    name: 'X',
-    href: 'https://x.com/CareerMap_Com',
-    icon: XIcon,
-  },
-  {
-    name: 'Instagram',
-    href: 'https://www.instagram.com/careermapsolutions_official/?hl=en',
-    icon: Instagram,
-  },
-  {
-    name: 'LinkedIn',
-    href: 'https://www.linkedin.com/company/careermapsolutions/',
-    icon: Linkedin,
-  },
-];
-
-const contactInfo = [
-  {
-    icon: Mail,
-    text: 'info@careermapsolutions.com',
-    href: 'mailto:info@careermapsolutions.com',
-  },
-  {
-    icon: Phone,
-    text: '+91 90129 50370',
-    href: 'tel:+919012950370',
-  },
-  {
-    icon: MapPin,
-    text: 'Gurgaon, Haryana, India',
-    href: 'https://maps.google.com',
-  },
-];
-
 export function Footer() {
   const currentYear = new Date().getFullYear();
+  const [settings, setSettings] = useState<PublicSettings | null>(null);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await publicService.getPublicSettings();
+        if (response.success) {
+          setSettings(response.data);
+        }
+      } catch (error) {
+        console.error('Failed to load public settings', error);
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  const socialLinks = [
+    {
+      name: 'Facebook',
+      href: settings?.socialMedia.facebook,
+      icon: Facebook,
+    },
+    {
+      name: 'X',
+      href: settings?.socialMedia.twitter,
+      icon: XIcon,
+    },
+    {
+      name: 'Instagram',
+      href: settings?.socialMedia.instagram,
+      icon: Instagram,
+    },
+    {
+      name: 'LinkedIn',
+      href: settings?.socialMedia.linkedin,
+      icon: Linkedin,
+    },
+    {
+      name: 'YouTube',
+      href: settings?.socialMedia.youtube,
+      icon: Youtube,
+    }
+  ].filter(link => link.href && link.href.trim() !== '');
+
+  const contactInfo = [
+    {
+      icon: Mail,
+      text: settings?.contactEmail || 'info@careermapsolutions.com',
+      href: `mailto:${settings?.contactEmail || 'info@careermapsolutions.com'}`,
+    },
+    {
+      icon: Phone,
+      text: settings?.contactPhone || '+91 90129 50370',
+      href: `tel:${settings?.contactPhone?.replace(/\s+/g, '') || '+919012950370'}`,
+    },
+    {
+      icon: MapPin,
+      text: 'Gurgaon, Haryana, India',
+      href: 'https://maps.google.com',
+    },
+  ];
 
   return (
     <footer className="bg-gradient-to-b from-gray-900 via-purple-900/50 to-gray-900 text-gray-300 border-t border-purple-900/30">
@@ -62,10 +85,9 @@ export function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
           {/* Company Info */}
           <div className="sm:col-span-2 lg:col-span-2">
-            <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4">CareerMap <span className="text-purple-300">Solutions</span></h3>
+            <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4">{settings?.siteName || 'CareerMap'} <span className="text-purple-300">Solutions</span></h3>
             <p className="mb-4 sm:mb-6 text-gray-200 text-sm sm:text-base leading-relaxed font-semibold">
-              Empowering businesses with comprehensive outsourcing solutions to drive growth and efficiency 
-              in today's competitive landscape.
+              {settings?.siteDescription || "Empowering businesses with comprehensive outsourcing solutions to drive growth and efficiency in today's competitive landscape."}
             </p>
             <div className="flex space-x-3 sm:space-x-4">
               {socialLinks.map((item) => (
@@ -95,8 +117,8 @@ export function Footer() {
                 { name: 'Blog', href: '#' }
               ].map((item, index) => (
                 <li key={index}>
-                  <a 
-                    href={item.href} 
+                  <a
+                    href={item.href}
                     className="text-gray-200 hover:text-purple-300 transition-colors hover:pl-1 sm:hover:pl-2 block text-sm sm:text-base font-semibold"
                   >
                     {item.name}
@@ -115,8 +137,8 @@ export function Footer() {
                   <div className="p-1 sm:p-1.5 bg-purple-900/50 rounded-lg group-hover:bg-purple-800/50 transition-colors flex-shrink-0">
                     <item.icon className="h-3 w-3 sm:h-4 sm:w-4 text-purple-300 mt-0.5" />
                   </div>
-                  <a 
-                    href={item.href} 
+                  <a
+                    href={item.href}
                     className="text-gray-200 hover:text-purple-300 transition-colors text-xs sm:text-sm break-all sm:break-normal font-semibold"
                   >
                     {item.text}
@@ -130,7 +152,7 @@ export function Footer() {
         {/* Copyright */}
         <div className="border-t border-purple-900/30 mt-8 sm:mt-12 pt-6 sm:pt-8 flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
           <p className="text-xs sm:text-sm text-gray-200 text-center sm:text-left font-semibold">
-            &copy; {currentYear} <span className="text-purple-300">CareerMap Solutions</span>. All rights reserved.
+            &copy; {currentYear} <span className="text-purple-300">{settings?.siteName || 'CareerMap Solutions'}</span>. All rights reserved.
           </p>
           <div className="flex space-x-4 sm:space-x-6">
             <a href="/privacy-policy" className="text-xs sm:text-sm text-gray-200 hover:text-purple-300 transition-colors font-semibold">

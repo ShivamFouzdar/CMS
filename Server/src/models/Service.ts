@@ -3,6 +3,67 @@ import { Schema, model, Document, Model } from 'mongoose';
 /**
  * Service Model
  * Represents business services offered by the company
+ * 
+ * @swagger
+ * components:
+ *   schemas:
+ *     Service:
+ *       type: object
+ *       required:
+ *         - name
+ *         - slug
+ *         - description
+ *         - shortDescription
+ *         - icon
+ *         - category
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: Auto-generated MongoDB ID
+ *         name:
+ *           type: string
+ *           minlength: 2
+ *           maxlength: 100
+ *         slug:
+ *           type: string
+ *           description: URL-friendly identifier
+ *         description:
+ *           type: string
+ *           minlength: 50
+ *           maxlength: 2000
+ *         shortDescription:
+ *           type: string
+ *           minlength: 20
+ *           maxlength: 200
+ *         icon:
+ *           type: string
+ *           description: Lucide icon name
+ *         image:
+ *           type: string
+ *         features:
+ *           type: array
+ *           items: { type: string }
+ *         benefits:
+ *           type: array
+ *           items: { type: string }
+ *         category:
+ *           type: string
+ *           enum: [BPO Services, IT Services, Recruitment, Legal Services, KPO Services, Customer Support, Other]
+ *         isActive:
+ *           type: boolean
+ *           default: true
+ *         isFeatured:
+ *           type: boolean
+ *           default: false
+ *         order:
+ *           type: integer
+ *           default: 0
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
  */
 
 export interface IServiceProcess {
@@ -41,7 +102,7 @@ export interface IService extends Document {
   order: number;
   createdAt: Date;
   updatedAt: Date;
-  
+
   // Instance methods
   activate(): Promise<IService>;
   deactivate(): Promise<IService>;
@@ -241,23 +302,23 @@ serviceSchema.index({ isActive: 1, isFeatured: 1 });
 serviceSchema.index({ category: 1, isActive: 1 });
 
 // Virtual for URL-friendly slug
-serviceSchema.virtual('url').get(function() {
+serviceSchema.virtual('url').get(function () {
   return `/services/${this.slug}`;
 });
 
 // Virtual for display name
-serviceSchema.virtual('displayName').get(function() {
+serviceSchema.virtual('displayName').get(function () {
   return this.name;
 });
 
 // Pre-save middleware to update the updatedAt field
-serviceSchema.pre('save', function(next) {
+serviceSchema.pre('save', function (next) {
   this.updatedAt = new Date();
   next();
 });
 
 // Pre-save middleware to generate slug from name if not provided
-serviceSchema.pre('save', function(next) {
+serviceSchema.pre('save', function (next) {
   if (!this.slug && this.name) {
     this.slug = this.name
       .toLowerCase()
@@ -270,17 +331,17 @@ serviceSchema.pre('save', function(next) {
 });
 
 // Static method to get active services
-serviceSchema.statics['getActive'] = async function() {
+serviceSchema.statics['getActive'] = async function () {
   return this.find({ isActive: true })
     .sort({ order: 1, createdAt: -1 })
     .select('name slug shortDescription icon category isFeatured');
 };
 
 // Static method to get featured services
-serviceSchema.statics['getFeatured'] = async function(limit = 3) {
-  return this.find({ 
-    isActive: true, 
-    isFeatured: true 
+serviceSchema.statics['getFeatured'] = async function (limit = 3) {
+  return this.find({
+    isActive: true,
+    isFeatured: true
   })
     .sort({ order: 1, createdAt: -1 })
     .limit(limit)
@@ -288,31 +349,31 @@ serviceSchema.statics['getFeatured'] = async function(limit = 3) {
 };
 
 // Static method to get services by category
-serviceSchema.statics['getByCategory'] = async function(category: string) {
-  return this.find({ 
-    category: new RegExp(category, 'i'), 
-    isActive: true 
+serviceSchema.statics['getByCategory'] = async function (category: string) {
+  return this.find({
+    category: new RegExp(category, 'i'),
+    isActive: true
   })
     .sort({ order: 1, createdAt: -1 })
     .select('name slug shortDescription icon');
 };
 
 // Static method to get service by slug
-serviceSchema.statics['getBySlug'] = async function(slug: string) {
-  return this.findOne({ 
-    slug: slug.toLowerCase(), 
-    isActive: true 
+serviceSchema.statics['getBySlug'] = async function (slug: string) {
+  return this.findOne({
+    slug: slug.toLowerCase(),
+    isActive: true
   });
 };
 
 // Static method to get service categories
-serviceSchema.statics['getCategories'] = async function() {
+serviceSchema.statics['getCategories'] = async function () {
   const categories = await this.distinct('category', { isActive: true });
   return categories.sort();
 };
 
 // Static method to get service statistics
-serviceSchema.statics['getStats'] = async function() {
+serviceSchema.statics['getStats'] = async function () {
   const stats = await this.aggregate([
     {
       $group: {
@@ -355,35 +416,35 @@ serviceSchema.statics['getStats'] = async function() {
 };
 
 // Instance method to activate service
-serviceSchema.methods['activate'] = function() {
+serviceSchema.methods['activate'] = function () {
   this['isActive'] = true;
   this['updatedAt'] = new Date();
   return this['save']();
 };
 
 // Instance method to deactivate service
-serviceSchema.methods['deactivate'] = function() {
+serviceSchema.methods['deactivate'] = function () {
   this['isActive'] = false;
   this['updatedAt'] = new Date();
   return this['save']();
 };
 
 // Instance method to feature service
-serviceSchema.methods['feature'] = function() {
+serviceSchema.methods['feature'] = function () {
   this['isFeatured'] = true;
   this['updatedAt'] = new Date();
   return this['save']();
 };
 
 // Instance method to unfeature service
-serviceSchema.methods['unfeature'] = function() {
+serviceSchema.methods['unfeature'] = function () {
   this['isFeatured'] = false;
   this['updatedAt'] = new Date();
   return this['save']();
 };
 
 // Instance method to update order
-serviceSchema.methods['updateOrder'] = function(order: number) {
+serviceSchema.methods['updateOrder'] = function (order: number) {
   this['order'] = order;
   this['updatedAt'] = new Date();
   return this['save']();

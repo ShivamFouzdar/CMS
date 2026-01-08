@@ -1,23 +1,45 @@
 import { Request, Response } from 'express';
 import { asyncHandler, createError } from '@/utils/helpers';
+import { sendSuccess } from '@/utils/response.utils';
 import { User } from '@/models';
 import {
   setupTwoFactor,
   verifyToken,
   verifyBackupCode,
   hashBackupCodes,
-} from '@/services/twoFactorService';
+  generateBackupCodes,
+} from '@/services/twoFactor.service';
 import { comparePassword } from '@/utils/auth.utils';
-import { ApiResponse } from '@/types';
 import { verifyToken as verifyJWT } from '@/utils/jwt.utils';
 import { generateTokenPair } from '@/utils/jwt.utils';
 
 /**
- * Enable 2FA - Generate secret and QR code
+ * Two Factor Controller
+ * Handles 2FA setup, verification, and management
+ */
+
+/**
+ * @swagger
+ * tags:
+ *   name: TwoFactor
+ *   description: Two-Factor Authentication Management
+ */
+
+/**
+ * @swagger
+ * /api/auth/2fa/enable:
+ *   post:
+ *     summary: Enable 2FA - Generate secret and QR code
+ *     tags: [TwoFactor]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 2FA setup data generated
  */
 export const enableTwoFactor = asyncHandler(async (req: Request, res: Response) => {
   const userId = (req as any).user?.id;
-  
+
   if (!userId) {
     throw createError('User not authenticated', 401);
   }
@@ -31,24 +53,19 @@ export const enableTwoFactor = asyncHandler(async (req: Request, res: Response) 
     throw createError('User email is required for 2FA setup', 400);
   }
 
-  // Check if 2FA is already enabled
   if (user.twoFactor?.enabled === true) {
-    throw createError('Two-factor authentication is already enabled. Please disable it first if you want to set it up again.', 400);
+    throw createError('Two-factor authentication is already enabled.', 400);
   }
 
   try {
-    // Setup 2FA
     const setup = await setupTwoFactor(user.email, 'CareerMap Solutions');
 
     if (!setup.secret || !setup.qrCode) {
       throw createError('Failed to generate 2FA setup data', 500);
     }
 
-    // Hash backup codes before storing
     const hashedBackupCodes = await hashBackupCodes(setup.backupCodes);
 
-    // Store secret and backup codes (but don't enable yet - user needs to verify first)
-    // If there's an existing partial setup, replace it
     if (!user.twoFactor) {
       user.twoFactor = {
         enabled: false,
@@ -59,37 +76,35 @@ export const enableTwoFactor = asyncHandler(async (req: Request, res: Response) 
       user.twoFactor.enabled = false;
       user.twoFactor.secret = setup.secret;
       user.twoFactor.backupCodes = hashedBackupCodes;
-      // Clear verification timestamp if it exists
       if (user.twoFactor.verifiedAt) {
         (user.twoFactor as any).verifiedAt = undefined;
       }
     }
-    
+
     await user.save();
 
-    const response: ApiResponse = {
-      success: true,
-      data: {
-        secret: setup.secret,
-        qrCode: setup.qrCode,
-        backupCodes: setup.backupCodes, // Return plain codes for user to save
-      },
-      message: '2FA setup initiated. Please verify with a code from your authenticator app.',
-      timestamp: new Date().toISOString(),
-    };
-
-    res.status(200).json(response);
+    return sendSuccess(res, '2FA setup initiated. Please verify with a code from your authenticator app.', {
+      secret: setup.secret,
+      qrCode: setup.qrCode,
+      backupCodes: setup.backupCodes,
+    });
   } catch (error) {
     console.error('Error in enableTwoFactor:', error);
-    throw createError(
-      error instanceof Error ? error.message : 'Failed to enable 2FA',
-      500
-    );
+    throw createError(error instanceof Error ? error.message : 'Failed to enable 2FA', 500);
   }
 });
 
 /**
- * Verify 2FA setup - Verify code and enable 2FA
+ * @swagger
+ * /api/auth/2fa/verify:
+ *   post:
+ *     summary: Verify 2FA setup - Verify code and enable 2FA
+ *     tags: [TwoFactor]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 2FA enabled successfully
  */
 export const verifyTwoFactor = asyncHandler(async (req: Request, res: Response) => {
   const userId = (req as any).user?.id;
@@ -108,29 +123,30 @@ export const verifyTwoFactor = asyncHandler(async (req: Request, res: Response) 
     throw createError('2FA setup not found. Please enable 2FA first.', 404);
   }
 
-  // Verify the code
   const isValid = verifyToken(code, user.twoFactor.secret);
 
   if (!isValid) {
     throw createError('Invalid verification code', 400);
   }
 
-  // Enable 2FA
   user.twoFactor.enabled = true;
   user.twoFactor.verifiedAt = new Date();
   await user.save();
 
-  const response: ApiResponse = {
-    success: true,
-    message: 'Two-factor authentication enabled successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  return sendSuccess(res, 'Two-factor authentication enabled successfully');
 });
 
 /**
- * Disable 2FA
+ * @swagger
+ * /api/auth/2fa/disable:
+ *   post:
+ *     summary: Disable 2FA
+ *     tags: [TwoFactor]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 2FA disabled successfully
  */
 export const disableTwoFactor = asyncHandler(async (req: Request, res: Response) => {
   const userId = (req as any).user?.id;
@@ -149,13 +165,11 @@ export const disableTwoFactor = asyncHandler(async (req: Request, res: Response)
     throw createError('User not found', 404);
   }
 
-  // Verify password
   const isPasswordValid = await comparePassword(password, user.password);
   if (!isPasswordValid) {
     throw createError('Invalid password', 400);
   }
 
-  // Disable 2FA - clear all 2FA data
   user.twoFactor.enabled = false;
   if (user.twoFactor.secret) {
     (user.twoFactor as any).secret = undefined;
@@ -169,17 +183,18 @@ export const disableTwoFactor = asyncHandler(async (req: Request, res: Response)
   }
   await user.save();
 
-  const response: ApiResponse = {
-    success: true,
-    message: 'Two-factor authentication disabled successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  return sendSuccess(res, 'Two-factor authentication disabled successfully');
 });
 
 /**
- * Verify 2FA code during login
+ * @swagger
+ * /api/auth/2fa/login-verify:
+ *   post:
+ *     summary: Verify 2FA code during login
+ *     tags: [TwoFactor]
+ *     responses:
+ *       200:
+ *         description: 2FA verification successful
  */
 export const verifyTwoFactorLogin = asyncHandler(async (req: Request, res: Response) => {
   const { tempToken, code, backupCode } = req.body;
@@ -192,7 +207,6 @@ export const verifyTwoFactorLogin = asyncHandler(async (req: Request, res: Respo
     throw createError('Verification code or backup code is required', 400);
   }
 
-  // Verify temp token to get user info
   let decoded: any;
   try {
     decoded = verifyJWT(tempToken);
@@ -213,20 +227,17 @@ export const verifyTwoFactorLogin = asyncHandler(async (req: Request, res: Respo
   let isValid = false;
 
   if (code) {
-    // Verify TOTP code
     if (!user.twoFactor.secret) {
       throw createError('2FA secret not found', 500);
     }
     isValid = verifyToken(code, user.twoFactor.secret);
   } else if (backupCode) {
-    // Verify backup code
     if (!user.twoFactor.backupCodes || user.twoFactor.backupCodes.length === 0) {
       throw createError('No backup codes available', 400);
     }
     isValid = await verifyBackupCode(backupCode, user.twoFactor.backupCodes);
-    
+
     if (isValid) {
-      // Remove used backup code
       if (user.twoFactor.backupCodes) {
         for (let i = 0; i < user.twoFactor.backupCodes.length; i++) {
           const hashedCode = user.twoFactor.backupCodes[i];
@@ -247,44 +258,44 @@ export const verifyTwoFactorLogin = asyncHandler(async (req: Request, res: Respo
     throw createError('Invalid verification code', 400);
   }
 
-  // Update last used timestamp
   user.twoFactor.lastUsed = new Date();
   await user.save();
 
-  // Generate full access tokens
   const { generateSessionId } = await import('@/utils/uuid.utils');
   const sessionId = generateSessionId();
   const userId = (user._id as any).toString();
   const tokens = generateTokenPair({
     userId: userId,
-    email: user.email,
+    email: user.email!,
     role: user.role,
     sessionId,
   });
 
-  const response: ApiResponse = {
-    success: true,
-    message: '2FA verification successful',
-    data: {
-      user: {
-        id: userId,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-        permissions: user.permissions,
-        isEmailVerified: user.isEmailVerified,
-      },
-      tokens,
+  return sendSuccess(res, '2FA verification successful', {
+    user: {
+      id: userId,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role,
+      permissions: user.permissions,
+      isEmailVerified: user.isEmailVerified,
     },
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+    tokens,
+  });
 });
 
 /**
- * Regenerate backup codes
+ * @swagger
+ * /api/auth/2fa/backup-codes/regenerate:
+ *   post:
+ *     summary: Regenerate backup codes
+ *     tags: [TwoFactor]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Backup codes regenerated
  */
 export const regenerateBackupCodes = asyncHandler(async (req: Request, res: Response) => {
   const userId = (req as any).user?.id;
@@ -307,30 +318,18 @@ export const regenerateBackupCodes = asyncHandler(async (req: Request, res: Resp
     throw createError('2FA is not enabled', 400);
   }
 
-  // Verify password
   const isPasswordValid = await comparePassword(password, user.password);
   if (!isPasswordValid) {
     throw createError('Invalid password', 400);
   }
 
-  // Generate new backup codes
-  const { generateBackupCodes, hashBackupCodes } = await import('@/services/twoFactorService');
   const newBackupCodes = generateBackupCodes(10);
   const hashedBackupCodes = await hashBackupCodes(newBackupCodes);
 
-  // Update user
   user.twoFactor.backupCodes = hashedBackupCodes;
   await user.save();
 
-  const response: ApiResponse = {
-    success: true,
-    data: {
-      backupCodes: newBackupCodes, // Return plain codes for user to save
-    },
-    message: 'Backup codes regenerated successfully. Old codes are no longer valid.',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  return sendSuccess(res, 'Backup codes regenerated successfully. Old codes are no longer valid.', {
+    backupCodes: newBackupCodes,
+  });
 });
-

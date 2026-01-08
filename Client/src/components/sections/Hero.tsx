@@ -8,15 +8,15 @@ import FloatingLines from './FloatingLines';
 
 export function Hero() {
   return (
-    <section 
+    <section
       className="relative flex items-center justify-center overflow-hidden pt-20 sm:pt-24 md:pt-24 lg:pt-28 pb-12 sm:pb-16 md:pb-20 lg:pb-24 min-h-[500px] sm:min-h-[600px] md:min-h-[700px] lg:min-h-[800px]"
     >
       {/* 🔹 Floating Lines Background */}
       <div className="absolute inset-0 z-0 overflow-hidden">
-        <FloatingLines 
+        <FloatingLines
           enabledWaves={['top', 'middle', 'bottom']}
-          lineCount={[10, 15, 20]}
-          lineDistance={[8, 6, 4]}
+          lineCount={[6, 8, 10]}
+          lineDistance={[10, 8, 5]}
           bendRadius={10.0}
           bendStrength={-2.0}
           mouseDamping={0.15}
@@ -57,7 +57,7 @@ export function Hero() {
             </span>
           </motion.div>
 
-          <motion.h1 
+          <motion.h1
             className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight mb-3 sm:mb-4 px-2"
             variants={fadeIn('up', 0.2)}
           >
@@ -66,22 +66,22 @@ export function Hero() {
               Enabling Businesses.
             </span>
           </motion.h1>
-          
-          <motion.p 
+
+          <motion.p
             className="text-sm xs:text-base sm:text-lg md:text-xl text-white/90 max-w-3xl mx-auto leading-relaxed mb-6 sm:mb-8 px-4"
             variants={fadeIn('up', 0.3)}
           >
             At CMS, we bridge the gap between talent and opportunity, while delivering reliable business outsourcing solutions to help companies scale smarter and faster.
           </motion.p>
 
-          <motion.div 
+          <motion.div
             className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-6 sm:mb-8 px-4"
             variants={fadeIn('up', 0.4)}
           >
             <JobApplicationTrigger />
             <Link to="/services" className="w-full sm:w-auto">
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 className="h-12 sm:h-14 min-h-[48px] px-6 sm:px-8 md:px-10 py-3 sm:py-4 text-sm sm:text-base md:text-lg bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 hover:from-yellow-500 hover:via-pink-600 hover:to-purple-700 text-white shadow-2xl hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] transition-all duration-300 rounded-xl font-semibold w-full sm:w-auto border-none touch-manipulation"
               >
                 Grow With CMS <ArrowRight className="ml-2 inline-block w-4 h-4 sm:w-5 sm:h-5" />
@@ -91,7 +91,7 @@ export function Hero() {
         </motion.div>
 
         {/* Trust Indicators */}
-        <motion.div 
+        <motion.div
           className="flex flex-wrap justify-center items-center gap-3 sm:gap-4 md:gap-6 mt-6 sm:mt-8 md:mt-12 px-4"
           initial="hidden"
           whileInView="show"
@@ -101,12 +101,14 @@ export function Hero() {
           <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 bg-white/10 backdrop-blur-md rounded-full border border-white/20 min-h-[44px]">
             <div className="flex -space-x-2">
               {[1, 2, 3].map((i) => (
-                <img 
+                <img
                   key={i}
                   src={`/${i}.png`}
                   alt={`Trusted business ${i}`}
                   className="h-7 w-7 xs:h-8 xs:w-8 sm:h-10 sm:w-10 rounded-full border-2 border-white/50 object-cover"
                   style={{ zIndex: 3 - i }}
+                  loading="lazy"
+                  decoding="async"
                 />
               ))}
             </div>

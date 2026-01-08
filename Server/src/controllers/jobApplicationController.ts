@@ -1,190 +1,140 @@
 import { Request, Response } from 'express';
-import { asyncHandler, sanitizeInput, validateEmail, createError } from '@/utils/helpers';
-import { ApiResponse } from '@/types';
+import { asyncHandler, createError } from '@/utils/helpers';
+import { sendSuccess } from '@/utils/response.utils';
 import path from 'path';
-import { uploadResume } from '@/middleware/upload';
-import * as jobApplicationService from '@/services/jobApplicationService';
+import { JobApplicationService } from '@/services/jobApplication.service';
 
 /**
  * Job Application Controller
  * Handles job application form submissions
  */
 
-// Cloudinary-based upload middleware
-const upload = uploadResume;
+const jobApplicationService = new JobApplicationService();
 
 /**
- * Submit job application
- * POST /api/job-application
+ * @swagger
+ * tags:
+ *   name: Job Applications
+ *   description: Recruitment and Job Submissions
  */
-export const submitJobApplication = async (req: Request, res: Response) => {
-  upload.single('resume')(req, res, async (err) => {
-    if (err) {
-      console.error('File upload error:', err);
-      res.status(400).json({
-        success: false,
-        message: err.message || 'File upload failed',
-      });
-      return;
-    }
-
-    const { fullName, email, phone, location, experience, workMode, skillsDescription, hearAboutUs } = req.body;
-
-    // Log received data for debugging
-    console.log('Received job application data:', {
-      fullName,
-      email,
-      phone,
-      location,
-      experience,
-      workMode,
-      skillsDescription: skillsDescription ? `${skillsDescription.substring(0, 50)}...` : 'empty',
-      hearAboutUs,
-      hasFile: !!req.file,
-      fileInfo: req.file ? { originalname: req.file.originalname, mimetype: req.file.mimetype, size: req.file.size } : null,
-    });
-
-    // Validation - check for empty strings as well
-    const missingFields: string[] = [];
-    if (!fullName || fullName.trim() === '') missingFields.push('fullName');
-    if (!email || email.trim() === '') missingFields.push('email');
-    if (!phone || phone.trim() === '') missingFields.push('phone');
-    if (!location || location.trim() === '') missingFields.push('location');
-    if (!experience || experience.trim() === '') missingFields.push('experience');
-    if (!workMode || workMode.trim() === '') missingFields.push('workMode');
-    if (!skillsDescription || skillsDescription.trim() === '') missingFields.push('skillsDescription');
-    if (!hearAboutUs || hearAboutUs.trim() === '') missingFields.push('hearAboutUs');
-
-    if (missingFields.length > 0) {
-      console.error('Validation failed - missing fields:', missingFields);
-      res.status(400).json({
-        success: false,
-        message: `Missing required fields: ${missingFields.join(', ')}`,
-        missingFields,
-      });
-      return;
-    }
-
-    if (!validateEmail(email)) {
-      console.error('Validation failed - invalid email:', email);
-      res.status(400).json({
-        success: false,
-        message: 'Please provide a valid email address',
-      });
-      return;
-    }
-
-    if (!req.file) {
-      console.error('Validation failed - no resume file uploaded');
-      res.status(400).json({
-        success: false,
-        message: 'Resume file is required',
-      });
-      return;
-    }
-
-    try {
-      // Sanitize inputs
-      const sanitizedData: any = {
-        fullName: sanitizeInput(fullName),
-        email: sanitizeInput(email),
-        phone: sanitizeInput(phone),
-        location: sanitizeInput(location),
-        experience: sanitizeInput(experience),
-        workMode: sanitizeInput(workMode),
-        skillsDescription: sanitizeInput(skillsDescription),
-        hearAboutUs: sanitizeInput(hearAboutUs),
-      };
-
-      // Multer-Cloudinary returns file.path as URL and file.filename/public_id
-      if (req.file) {
-        // @ts-ignore
-        const cloudPath = (req.file as any).path as string;
-        // @ts-ignore
-        const publicId = (req.file as any).filename as string;
-        sanitizedData.resumeUrl = cloudPath;
-        sanitizedData.resumePublicId = publicId;
-      }
-
-      // Create application using service
-      const application = await jobApplicationService.createJobApplication(sanitizedData);
-
-      // Send notification to admins (non-blocking)
-      try {
-        const { notifyNewJobApplication } = await import('@/services/notificationService');
-        notifyNewJobApplication({
-          fullName: sanitizedData.fullName,
-          email: sanitizedData.email,
-          phone: sanitizedData.phone,
-          experience: sanitizedData.experience,
-        }).catch(err => console.error('Notification error:', err));
-      } catch (notifError) {
-        console.error('Failed to send notification:', notifError);
-      }
-
-      const response: ApiResponse = {
-        success: true,
-        message: 'Job application submitted successfully! Our HR team will review your details and contact you soon.',
-        data: {
-          id: application.id,
-          submittedAt: application.submittedAt,
-        },
-        timestamp: new Date().toISOString(),
-      };
-
-      res.status(201).json(response);
-    } catch (error) {
-      console.error('Error creating job application:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      res.status(500).json({
-        success: false,
-        message: 'Failed to submit application',
-        error: process.env['NODE_ENV'] === 'development' ? errorMessage : undefined,
-      });
-    }
-  });
-};
 
 /**
- * Get all job applications (Admin only)
- * GET /api/job-application/submissions
+ * @swagger
+ * /api/job-application:
+ *   post:
+ *     summary: Submit a job application
+ *     tags: [Job Applications]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             allOf:
+ *               - $ref: '#/components/schemas/Applicant'
+ *               - type: object
+ *                 properties:
+ *                   resume: { type: string, format: binary }
+ *     responses:
+ *       201:
+ *         description: Application submitted successfully
  */
-export const getJobApplications = asyncHandler(async (req: Request, res: Response) => {
-  try {
-    const page = parseInt((req.query as Record<string, string>)['page'] || '1') || 1;
-    const limit = parseInt((req.query as Record<string, string>)['limit'] || '10') || 10;
-
-    console.log('Fetching job applications, page:', page, 'limit:', limit);
-
-    const result = await jobApplicationService.getAllJobApplications(page, limit);
-
-    console.log('Job applications fetched successfully, count:', result.data.length);
-
-    const response = {
-      success: true,
-      data: result.data,
-      message: `Retrieved ${result.data.length} job applications`,
-      meta: {
-        pagination: {
-          page: result.page,
-          limit,
-          total: result.total,
-          totalPages: result.totalPages,
-        },
-      },
-      timestamp: new Date().toISOString(),
-    };
-
-    res.status(200).json(response);
-  } catch (error) {
-    console.error('Error in getJobApplications:', error);
-    throw error;
+export const submitJobApplication = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.file) {
+    throw createError('Resume file is required', 400);
   }
+
+  const { fullName, email, phone, location, experience, workMode, skillsDescription, hearAboutUs } = req.body;
+
+  const fileData: any = {};
+  if (req.file) {
+    // @ts-ignore
+    fileData.resumePath = (req.file as any).path;
+    // @ts-ignore
+    fileData.resumeUrl = (req.file as any).path;
+    // @ts-ignore
+    fileData.resumePublicId = (req.file as any).filename;
+  }
+
+  const application = await jobApplicationService.createJobApplication({
+    fullName,
+    email,
+    phone,
+    location,
+    experience,
+    workMode,
+    skillsDescription,
+    hearAboutUs,
+    ...fileData
+  });
+
+  // Send notification to admins (non-blocking)
+  try {
+    const { notifyNewJobApplication } = await import('@/services/notification.service');
+    notifyNewJobApplication({
+      fullName: application.fullName,
+      email: application.email,
+      phone: application.phone,
+      experience: application.experience,
+    }).catch(err => console.error('Notification error:', err));
+  } catch (notifError) {
+    console.error('Failed to send notification:', notifError);
+  }
+
+  return sendSuccess(res, 'Job application submitted successfully! Our HR team will review your details and contact you soon.', {
+    id: application.id,
+    submittedAt: application.submittedAt,
+  }, 201);
 });
 
 /**
- * Get job application by ID (Admin only)
- * GET /api/job-application/submissions/:id
+ * @swagger
+ * /api/job-application/submissions:
+ *   get:
+ *     summary: Get all job applications (Admin)
+ *     tags: [Job Applications]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Applications retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Applicant'
+ */
+export const getJobApplications = asyncHandler(async (req: Request, res: Response) => {
+  const page = parseInt((req.query['page'] as string) || '1') || 1;
+  const limit = parseInt((req.query['limit'] as string) || '10') || 10;
+
+  const result = await jobApplicationService.getAllJobApplications(page, limit);
+  return sendSuccess(res, `Retrieved ${result.data.length} job applications`, result.data);
+});
+
+/**
+ * @swagger
+ * /api/job-application/submissions/{id}:
+ *   get:
+ *     summary: Get application by ID (Admin)
+ *     tags: [Job Applications]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Application retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 data:
+ *                   $ref: '#/components/schemas/Applicant'
  */
 export const getJobApplicationById = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -194,46 +144,37 @@ export const getJobApplicationById = asyncHandler(async (req: Request, res: Resp
   }
 
   const application = await jobApplicationService.getJobApplicationById(id);
-
-  const response: ApiResponse = {
-    success: true,
-    data: application,
-    message: 'Job application retrieved successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  return sendSuccess(res, 'Job application retrieved successfully', application);
 });
 
 /**
- * Get job application statistics (Admin only)
- * GET /api/job-application/stats
+ * @swagger
+ * /api/job-application/stats:
+ *   get:
+ *     summary: Get recruitment statistics (Admin)
+ *     tags: [Job Applications]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Statistics retrieved
  */
 export const getJobApplicationStats = asyncHandler(async (_req: Request, res: Response) => {
-  try {
-    console.log('Fetching job application statistics');
-    
-    const stats = await jobApplicationService.getJobApplicationStatistics();
-
-    console.log('Statistics fetched successfully');
-
-    const response: ApiResponse = {
-      success: true,
-      data: stats,
-      message: 'Job application statistics retrieved successfully',
-      timestamp: new Date().toISOString(),
-    };
-
-    res.status(200).json(response);
-  } catch (error) {
-    console.error('Error in getJobApplicationStats:', error);
-    throw error;
-  }
+  const stats = await jobApplicationService.getJobApplicationStatistics();
+  return sendSuccess(res, 'Job application statistics retrieved successfully', stats);
 });
 
 /**
- * Download resume file
- * GET /api/job-application/submissions/:id/resume
+ * @swagger
+ * /api/job-application/submissions/{id}/resume:
+ *   get:
+ *     summary: Download candidate resume (Admin)
+ *     tags: [Job Applications]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Redirects to cloud file or starts download
  */
 export const downloadResume = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -245,20 +186,32 @@ export const downloadResume = asyncHandler(async (req: Request, res: Response) =
   const filePath = await jobApplicationService.getResumePath(id);
   const fileName = path.basename(filePath);
 
-  res.download(filePath, fileName, (err) => {
-    if (err) {
-      console.error('Error downloading file:', err);
-      res.status(500).json({
-        success: false,
-        message: 'Error downloading resume',
-      });
-    }
-  });
+  if (filePath.startsWith('http')) {
+    res.redirect(filePath);
+  } else {
+    res.download(filePath, fileName, (err) => {
+      if (err) {
+        console.error('Error downloading file:', err);
+        res.status(500).json({
+          success: false,
+          message: 'Error downloading resume',
+        });
+      }
+    });
+  }
 });
 
 /**
- * Delete job application (Admin only)
- * DELETE /api/job-application/submissions/:id
+ * @swagger
+ * /api/job-application/submissions/{id}:
+ *   delete:
+ *     summary: Delete job application (Admin)
+ *     tags: [Job Applications]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Application deleted
  */
 export const deleteJobApplication = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -268,12 +221,5 @@ export const deleteJobApplication = asyncHandler(async (req: Request, res: Respo
   }
 
   await jobApplicationService.deleteJobApplication(id);
-
-  const response: ApiResponse = {
-    success: true,
-    message: 'Job application deleted successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  return sendSuccess(res, 'Job application deleted successfully');
 });

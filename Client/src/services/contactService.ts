@@ -1,27 +1,10 @@
-import axios from 'axios';
-import { API_ENDPOINTS } from '@/config/api';
+import apiClient from './api';
+import { ApiResponse, ContactSubmission } from '@/types';
 
 /**
  * Contact Service
- * Handles API calls for contact form submissions
+ * Handles API calls for lead management and contact form submissions
  */
-
-export interface ContactSubmission {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  company?: string;
-  service?: string;
-  message: string;
-  status: 'new' | 'in_progress' | 'completed' | 'closed';
-  priority: 'low' | 'medium' | 'high';
-  notes?: string;
-  submittedAt: string;
-  updatedAt: string;
-  source?: string;
-  tags?: string[];
-}
 
 export interface ContactStats {
   total: number;
@@ -34,99 +17,71 @@ export interface ContactStats {
   byService: Record<string, number>;
   recent: Array<{
     id: string;
-    name: string;
+    fullName: string;
     email: string;
-    service?: string;
+    service: string;
     status: string;
-    submittedAt: string;
+    createdAt: string;
   }>;
 }
 
-export interface PaginatedResponse<T> {
-  success: boolean;
-  data: T[];
-  meta?: {
-    pagination: {
-      page: number;
-      limit: number;
-      total: number;
-      totalPages: number;
-    };
-  };
-}
+export const contactService = {
+  /**
+   * Submit contact form (Public)
+   */
+  async submitContact(data: Partial<ContactSubmission>): Promise<ApiResponse<{ id: string; submittedAt: string }>> {
+    return apiClient.post('/api/contact', data);
+  },
 
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('accessToken');
-  return {
-    Authorization: `Bearer ${token}`,
-  };
+  /**
+   * Get all contact submissions with pagination (Admin)
+   */
+  async getAllSubmissions(page: number = 1, limit: number = 10): Promise<ApiResponse<ContactSubmission[]>> {
+    return apiClient.get('/api/contact/submissions', {
+      params: { page, limit }
+    });
+  },
+
+  /**
+   * Get contact submission by ID (Admin)
+   */
+  async getSubmissionById(id: string): Promise<ApiResponse<ContactSubmission>> {
+    return apiClient.get(`/api/contact/submissions/${id}`);
+  },
+
+  /**
+   * Get contact statistics (Admin)
+   */
+  async getStats(): Promise<ApiResponse<ContactStats>> {
+    return apiClient.get('/api/contact/stats');
+  },
+
+  /**
+   * Update contact status (Admin)
+   */
+  async updateStatus(id: string, status: string, notes?: string): Promise<ApiResponse<ContactSubmission>> {
+    return apiClient.patch(`/api/contact/submissions/${id}/status`, { status, notes });
+  },
+
+  /**
+   * Delete contact submission (Admin)
+   */
+  async deleteSubmission(id: string): Promise<ApiResponse<void>> {
+    return apiClient.delete(`/api/contact/submissions/${id}`);
+  },
+
+  /**
+   * Mark as contacted (Admin)
+   */
+  async markAsContacted(id: string): Promise<ApiResponse<ContactSubmission>> {
+    return apiClient.patch(`/api/contact/submissions/${id}/contacted`);
+  }
 };
 
-/**
- * Get all contact submissions with pagination
- */
-export const getContactSubmissions = async (
-  page: number = 1,
-  limit: number = 10
-): Promise<PaginatedResponse<ContactSubmission>> => {
-  const response = await axios.get(API_ENDPOINTS.contact.submissions, {
-    params: { page, limit },
-    headers: getAuthHeaders(),
-  });
-  return response.data;
-};
-
-/**
- * Get contact submission by ID
- */
-export const getContactSubmissionById = async (id: string) => {
-  const response = await axios.get(`${API_ENDPOINTS.contact.submissions}/${id}`, {
-    headers: getAuthHeaders(),
-  });
-  return response.data;
-};
-
-/**
- * Get contact statistics
- */
-export const getContactStats = async (): Promise<{ success: boolean; data: ContactStats }> => {
-  const response = await axios.get(API_ENDPOINTS.contact.stats, {
-    headers: getAuthHeaders(),
-  });
-  return response.data;
-};
-
-/**
- * Update contact submission status
- */
-export const updateContactStatus = async (id: string, status: string, notes?: string) => {
-  const response = await axios.patch(
-    `${API_ENDPOINTS.contact.submissions}/${id}/status`,
-    { status, notes },
-    { headers: getAuthHeaders() }
-  );
-  return response.data;
-};
-
-/**
- * Delete contact submission
- */
-export const deleteContactSubmission = async (id: string) => {
-  const response = await axios.delete(`${API_ENDPOINTS.contact.submissions}/${id}`, {
-    headers: getAuthHeaders(),
-  });
-  return response.data;
-};
-
-/**
- * Mark contact as contacted
- */
-export const markContactAsContacted = async (id: string) => {
-  const response = await axios.patch(
-    `${API_ENDPOINTS.contact.submissions}/${id}/contacted`,
-    {},
-    { headers: getAuthHeaders() }
-  );
-  return response.data;
-};
-
+// Also export as individual functions for backward compatibility
+export const getContactSubmissions = contactService.getAllSubmissions;
+export const getContactSubmissionById = contactService.getSubmissionById;
+export const getContactStats = contactService.getStats;
+export const updateContactStatus = contactService.updateStatus;
+export const deleteContactSubmission = contactService.deleteSubmission;
+export const markContactAsContacted = contactService.markAsContacted;

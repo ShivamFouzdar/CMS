@@ -1,16 +1,37 @@
 import { Request, Response } from 'express';
 import { asyncHandler, createError } from '@/utils/helpers';
-import { ApiResponse } from '@/types';
-import * as contactService from '@/services/contactService';
+import { sendSuccess } from '@/utils/response.utils';
+import { ContactService } from '@/services/contact.service';
 
 /**
  * Contact Controller
  * Handles HTTP requests for contact form submissions
  */
 
+const contactService = new ContactService();
+
 /**
- * Submit contact form
- * POST /api/contact
+ * @swagger
+ * tags:
+ *   name: Contacts
+ *   description: Contact Form Submissions and Lead Management
+ */
+
+/**
+ * @swagger
+ * /api/contact:
+ *   post:
+ *     summary: Submit contact form
+ *     tags: [Contacts]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Contact'
+ *     responses:
+ *       201:
+ *         description: Message sent successfully
  */
 export const submitContactForm = asyncHandler(async (req: Request, res: Response) => {
   const { name, email, phone, company, service, message } = req.body;
@@ -26,7 +47,7 @@ export const submitContactForm = asyncHandler(async (req: Request, res: Response
 
   // Send notification to admins (non-blocking)
   try {
-    const { notifyNewLead } = await import('@/services/notificationService');
+    const { notifyNewLead } = await import('@/services/notification.service');
     notifyNewLead({
       name,
       email,
@@ -38,39 +59,71 @@ export const submitContactForm = asyncHandler(async (req: Request, res: Response
     console.error('Failed to send notification:', notifError);
   }
 
-  const response: ApiResponse = {
-    success: true,
-    message: 'Your message has been sent successfully! We will get back to you soon.',
-    data: result,
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(201).json(response);
+  return sendSuccess(res, 'Your message has been sent successfully! We will get back to you soon.', result, 201);
 });
 
 /**
- * Get all contact submissions (Admin only)
- * GET /api/contact/submissions
+ * @swagger
+ * /api/contact/submissions:
+ *   get:
+ *     summary: Get all contact submissions (Admin only)
+ *     tags: [Contacts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 10 }
+ *     responses:
+ *       200:
+ *         description: List of contact submissions retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Contact'
  */
 export const getContactSubmissions = asyncHandler(async (req: Request, res: Response) => {
-  const page = parseInt((req.query as Record<string, string>)['page'] || '1') || 1;
-  const limit = parseInt((req.query as Record<string, string>)['limit'] || '10') || 10;
+  const page = parseInt((req.query['page'] as string) || '1') || 1;
+  const limit = parseInt((req.query['limit'] as string) || '10') || 10;
 
   const result = await contactService.getAllContactSubmissions(page, limit);
 
-  const response: ApiResponse = {
-    success: true,
-    data: result.data,
-    message: `Retrieved ${result.data.length} contact submissions`,
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  return sendSuccess(res, `Retrieved ${result.data.length} contact submissions`, result.data, 200);
 });
 
 /**
- * Get contact submission by ID (Admin only)
- * GET /api/contact/submissions/:id
+ * @swagger
+ * /api/contact/submissions/{id}:
+ *   get:
+ *     summary: Get contact submission by ID (Admin only)
+ *     tags: [Contacts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Contact submission retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 data:
+ *                   $ref: '#/components/schemas/Contact'
  */
 export const getContactSubmissionById = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -80,20 +133,34 @@ export const getContactSubmissionById = asyncHandler(async (req: Request, res: R
   }
 
   const submission = await contactService.getContactSubmissionById(id);
-
-  const response: ApiResponse = {
-    success: true,
-    data: submission,
-    message: 'Contact submission retrieved successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  return sendSuccess(res, 'Contact submission retrieved successfully', submission);
 });
 
 /**
- * Update contact submission status (Admin only)
- * PATCH /api/contact/submissions/:id/status
+ * @swagger
+ * /api/contact/submissions/{id}/status:
+ *   patch:
+ *     summary: Update contact submission status (Admin only)
+ *     tags: [Contacts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status: { type: string }
+ *               notes: { type: string }
+ *     responses:
+ *       200:
+ *         description: Status updated successfully
  */
 export const updateContactSubmissionStatus = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -104,20 +171,25 @@ export const updateContactSubmissionStatus = asyncHandler(async (req: Request, r
   }
 
   const submission = await contactService.updateContactSubmissionStatus(id, status, notes);
-
-  const response: ApiResponse = {
-    success: true,
-    data: submission,
-    message: 'Contact submission status updated successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  return sendSuccess(res, 'Contact submission status updated successfully', submission);
 });
 
 /**
- * Delete contact submission (Admin only)
- * DELETE /api/contact/submissions/:id
+ * @swagger
+ * /api/contact/submissions/{id}:
+ *   delete:
+ *     summary: Delete contact submission (Admin only)
+ *     tags: [Contacts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Submission deleted
  */
 export const deleteContactSubmission = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -127,36 +199,45 @@ export const deleteContactSubmission = asyncHandler(async (req: Request, res: Re
   }
 
   await contactService.deleteContactSubmission(id);
-
-  const response: ApiResponse = {
-    success: true,
-    message: 'Contact submission deleted successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  return sendSuccess(res, 'Contact submission deleted successfully');
 });
 
 /**
- * Get contact statistics (Admin only)
- * GET /api/contact/stats
+ * @swagger
+ * /api/contact/stats:
+ *   get:
+ *     summary: Get contact statistics (Admin only)
+ *     tags: [Contacts]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Statistics retrieved
  */
 export const getContactStats = asyncHandler(async (_req: Request, res: Response) => {
   const stats = await contactService.getContactStatistics();
-
-  const response: ApiResponse = {
-    success: true,
-    data: stats,
-    message: 'Contact statistics retrieved successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  return sendSuccess(res, 'Contact statistics retrieved successfully', stats);
 });
 
 /**
- * Get contacts by service (Admin only)
- * GET /api/contact/by-service/:service
+ * @swagger
+ * /api/contact/by-service/{service}:
+ *   get:
+ *     summary: Get contacts by service (Admin only)
+ *     tags: [Contacts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: service
+ *         required: true
+ *         schema: { type: string }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 10 }
+ *     responses:
+ *       200:
+ *         description: Contacts retrieved
  */
 export const getContactsByService = asyncHandler(async (req: Request, res: Response) => {
   const { service } = req.params;
@@ -167,20 +248,25 @@ export const getContactsByService = asyncHandler(async (req: Request, res: Respo
   }
 
   const contacts = await contactService.getContactsByService(service, parseInt(limit as string) || 10);
-
-  const response: ApiResponse = {
-    success: true,
-    data: contacts,
-    message: `Retrieved ${contacts.length} contacts for ${service}`,
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  return sendSuccess(res, `Retrieved ${contacts.length} contacts for ${service}`, contacts);
 });
 
 /**
- * Mark contact as contacted (Admin only)
- * PATCH /api/contact/submissions/:id/contacted
+ * @swagger
+ * /api/contact/submissions/{id}/contacted:
+ *   patch:
+ *     summary: Mark contact as contacted (Admin only)
+ *     tags: [Contacts]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Contact marked as contacted
  */
 export const markContactAsContacted = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -190,13 +276,5 @@ export const markContactAsContacted = asyncHandler(async (req: Request, res: Res
   }
 
   const submission = await contactService.markContactAsContacted(id);
-
-  const response: ApiResponse = {
-    success: true,
-    data: submission,
-    message: 'Contact marked as contacted successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  return sendSuccess(res, 'Contact marked as contacted successfully', submission);
 });

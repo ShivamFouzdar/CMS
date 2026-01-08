@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { 
+import {
   getDashboardStats,
   getSystemHealth,
   getRecentActivity,
@@ -11,7 +11,8 @@ import {
   backupDatabase,
   restoreDatabase,
   getDatabaseStats,
-  getServerMetrics
+  getServerMetrics,
+  testSmtpConnection
 } from '@/controllers/adminController';
 import { authenticateToken, requireRole } from '@/middleware/auth';
 
@@ -37,10 +38,11 @@ router.get('/metrics', getServerMetrics);
 router.get('/logs', getSystemLogs);
 router.get('/settings', getSystemSettings);
 router.put('/settings', updateSystemSettings);
+router.post('/settings/test-smtp', testSmtpConnection);
 
 // Database management routes
 router.get('/database/stats', getDatabaseStats);
-router.post('/database/backup', backupDatabase);
+router.get('/database/backup', backupDatabase);
 router.post('/database/restore', restoreDatabase);
 
 // Data export routes

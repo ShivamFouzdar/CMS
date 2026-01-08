@@ -17,12 +17,13 @@ const services = [
   { name: 'Legal Services', href: '/services/legal', description: 'Legal Process Outsourcing' },
   { name: 'KPO Services', href: '/services/kpo', description: 'Knowledge Process Outsourcing' },
   { name: 'Brand Promotion & Marketing', href: '/services/brand-promotion', description: 'Brand Promotion & Marketing Services' },
+  { name: 'Customer Support', href: '/services/support', description: '24/7 Customer Support Solutions' },
 ];
 
 const navItems: NavItem[] = [
   { name: 'Home', href: '/' },
-  { 
-    name: 'Services', 
+  {
+    name: 'Services',
     href: '/services',
     hasDropdown: true,
     dropdownItems: services
@@ -84,11 +85,11 @@ export function Header() {
   }, [dropdownTimeout]);
 
   return (
-    <header 
+    <header
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
-        isScrolled 
-          ? "bg-gradient-to-r from-black/90 to-purple-900/90 backdrop-blur-xl shadow-2xl border-b border-purple-900/30" 
+        isScrolled
+          ? "bg-gradient-to-r from-black/90 to-purple-900/90 backdrop-blur-xl shadow-2xl border-b border-purple-900/30"
           : "bg-gradient-to-r from-black/90 to-purple-900/90 backdrop-blur-lg"
       )}
       style={{
@@ -100,13 +101,13 @@ export function Header() {
         <div className="flex justify-between items-center h-14 sm:h-16 lg:h-18">
           {/* Logo */}
           <div className="flex items-center flex-shrink-0">
-            <a 
-              href="/" 
+            <a
+              href="/"
               className="flex items-center transition-opacity duration-300 hover:opacity-80"
             >
-              <img 
-                src="/logo2.png" 
-                alt="CareerMap Solutions" 
+              <img
+                src="/logo2.png"
+                alt="CareerMap Solutions"
                 className="h-18 sm:h-24 lg:h-28 w-auto"
               />
             </a>
@@ -269,7 +270,7 @@ export function Header() {
                       </span>
                       <span className="w-0 group-hover:w-6 h-0.5 bg-purple-400 transition-all duration-300"></span>
                     </motion.a>
-                    
+
                     {/* Mobile Services Dropdown */}
                     {item.hasDropdown && (
                       <motion.div

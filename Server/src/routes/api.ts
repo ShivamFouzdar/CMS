@@ -9,6 +9,7 @@ import adminRoutes from './admin';
 import authRoutes from './auth';
 import jobApplicationRoutes from './jobApplication';
 import twoFactorRoutes from './twoFactor';
+import publicRoutes from './public';
 
 const router = Router();
 
@@ -28,6 +29,7 @@ router.get('/', (_req, res) => {
       auth: '/api/auth',
       jobApplication: '/api/job-application',
       twoFactor: '/api/2fa',
+      public: '/api/public',
     },
     timestamp: new Date().toISOString(),
   });
@@ -42,5 +44,6 @@ router.use('/admin', adminRoutes);
 router.use('/auth', authRoutes);
 router.use('/job-application', jobApplicationRoutes);
 router.use('/2fa', twoFactorRoutes);
+router.use('/public', publicRoutes);
 
 export default router;

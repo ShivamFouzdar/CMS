@@ -42,10 +42,10 @@ export const AuthPasswordInput = forwardRef<AuthPasswordInputRef, AuthPasswordIn
     }));
 
     return (
-      <div className={cn('space-y-1.5', containerClassName)}>
+      <div className={cn('space-y-2', containerClassName)}>
         <label
           htmlFor={inputId}
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1 ml-1"
         >
           {label}
           {required && <span className="text-red-500 ml-0.5">*</span>}
@@ -61,9 +61,9 @@ export const AuthPasswordInput = forwardRef<AuthPasswordInputRef, AuthPasswordIn
             id={inputId}
             type={isVisible ? 'text' : 'password'}
             className={cn(
-              'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200',
-              leftIcon && 'pl-10',
-              'pr-10', // Space for toggle icon
+              'w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 outline-none placeholder:text-slate-400',
+              leftIcon && 'pl-11',
+              'pr-11', // Space for toggle icon
               error && 'border-red-500 focus:ring-red-500',
               inputClassName
             )}

@@ -16,6 +16,7 @@ export { default as ReviewModel } from './Review';
 export { default as ServiceModel } from './Service';
 export { default as UserModel } from './User';
 export { default as ApplicantModel } from './Applicant';
+export { default as SettingsModel } from './Settings';
 // Settings doesn't have a default export
 
 // Model registry for dynamic access
@@ -31,7 +32,7 @@ export const models = {
 // Database connection helper
 export const connectDatabase = async (uri: string) => {
   const mongoose = await import('mongoose');
-  
+
   try {
     await mongoose.connect(uri);
     return mongoose.connection;
@@ -44,7 +45,7 @@ export const connectDatabase = async (uri: string) => {
 // Database disconnection helper
 export const disconnectDatabase = async () => {
   const mongoose = await import('mongoose');
-  
+
   try {
     await mongoose.disconnect();
     console.log('✅ Database disconnected successfully');
@@ -57,7 +58,7 @@ export const disconnectDatabase = async () => {
 // Health check for database
 export const checkDatabaseHealth = async () => {
   const mongoose = await import('mongoose');
-  
+
   try {
     const state = mongoose.connection.readyState;
     const states = {
@@ -66,7 +67,7 @@ export const checkDatabaseHealth = async () => {
       2: 'connecting',
       3: 'disconnecting'
     };
-    
+
     return {
       status: state === 1 ? 'healthy' : 'unhealthy',
       state: states[state as keyof typeof states],

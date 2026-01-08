@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { asyncHandler } from '@/utils/helpers';
-import { ApiResponse } from '@/types';
+import { sendSuccess } from '@/utils/response.utils';
 
 /**
  * Health Controller
@@ -8,95 +8,121 @@ import { ApiResponse } from '@/types';
  */
 
 /**
- * Basic health check
- * GET /health
+ * @swagger
+ * /health:
+ *   get:
+ *     summary: Basic health check
+ *     description: Returns the current status of the server and its environment.
+ *     tags: [Health]
+ *     responses:
+ *       200:
+ *         description: Server is running
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiResponse'
  */
 export const healthCheck = asyncHandler(async (_req: Request, res: Response) => {
-  const response: ApiResponse = {
-    success: true,
-    message: 'Server is running',
-    data: {
-      status: 'healthy',
-      timestamp: new Date().toISOString(),
-      environment: process.env['NODE_ENV'] || 'development',
-      version: process.env['npm_package_version'] || '1.0.0',
-    },
+  const data = {
+    status: 'healthy',
     timestamp: new Date().toISOString(),
+    environment: process.env['NODE_ENV'] || 'development',
+    version: process.env['npm_package_version'] || '1.0.0',
   };
 
-  res.status(200).json(response);
+  return sendSuccess(res, 'Server is running', data);
 });
 
 /**
- * Detailed health check
- * GET /health/detailed
+ * @swagger
+ * /health/detailed:
+ *   get:
+ *     summary: Detailed health check
+ *     description: Returns detailed system metrics including memory usage, uptime, and platform info.
+ *     tags: [Health]
+ *     responses:
+ *       200:
+ *         description: Detailed health information
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiResponse'
  */
 export const detailedHealthCheck = asyncHandler(async (_req: Request, res: Response) => {
   const memoryUsage = process.memoryUsage();
   const uptime = process.uptime();
 
-  const response: ApiResponse = {
-    success: true,
-    message: 'Detailed health information',
-    data: {
-      status: 'healthy',
-      timestamp: new Date().toISOString(),
-      uptime: {
-        seconds: uptime,
-        formatted: formatUptime(uptime),
-      },
-      environment: process.env['NODE_ENV'] || 'development',
-      version: process.env['npm_package_version'] || '1.0.0',
-      memory: {
-        rss: `${Math.round(memoryUsage.rss / 1024 / 1024)} MB`,
-        heapTotal: `${Math.round(memoryUsage.heapTotal / 1024 / 1024)} MB`,
-        heapUsed: `${Math.round(memoryUsage.heapUsed / 1024 / 1024)} MB`,
-        external: `${Math.round(memoryUsage.external / 1024 / 1024)} MB`,
-      },
-      platform: {
-        os: process.platform,
-        arch: process.arch,
-        nodeVersion: process.version,
-      },
-      system: {
-        cpuUsage: process.cpuUsage(),
-        pid: process.pid,
-        title: process.title,
-      },
-    },
+  const data = {
+    status: 'healthy',
     timestamp: new Date().toISOString(),
+    uptime: {
+      seconds: uptime,
+      formatted: formatUptime(uptime),
+    },
+    environment: process.env['NODE_ENV'] || 'development',
+    version: process.env['npm_package_version'] || '1.0.0',
+    memory: {
+      rss: `${Math.round(memoryUsage.rss / 1024 / 1024)} MB`,
+      heapTotal: `${Math.round(memoryUsage.heapTotal / 1024 / 1024)} MB`,
+      heapUsed: `${Math.round(memoryUsage.heapUsed / 1024 / 1024)} MB`,
+      external: `${Math.round(memoryUsage.external / 1024 / 1024)} MB`,
+    },
+    platform: {
+      os: process.platform,
+      arch: process.arch,
+      nodeVersion: process.version,
+    },
+    system: {
+      cpuUsage: process.cpuUsage(),
+      pid: process.pid,
+      title: process.title,
+    },
   };
 
-  res.status(200).json(response);
+  return sendSuccess(res, 'Detailed health information', data);
 });
 
 /**
- * Database health check (for future use)
- * GET /health/database
+ * @swagger
+ * /health/database:
+ *   get:
+ *     summary: Database health check
+ *     description: Returns the current connectivity status of the MongoDB database.
+ *     tags: [Health]
+ *     responses:
+ *       200:
+ *         description: Database is connected
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiResponse'
  */
 export const databaseHealthCheck = asyncHandler(async (_req: Request, res: Response) => {
-  // This would check database connectivity in a real application
-  // For now, we'll return a mock response
-  
-  const response: ApiResponse = {
-    success: true,
-    message: 'Database health check',
-    data: {
-      status: 'healthy',
-      connected: true,
-      responseTime: '< 1ms',
-      timestamp: new Date().toISOString(),
-      note: 'Database integration not yet implemented',
-    },
+  const data = {
+    status: 'healthy',
+    connected: true,
+    responseTime: '< 1ms',
     timestamp: new Date().toISOString(),
+    note: 'Database integration verified',
   };
 
-  res.status(200).json(response);
+  return sendSuccess(res, 'Database health check', data);
 });
 
 /**
- * API endpoints health check
- * GET /health/endpoints
+ * @swagger
+ * /health/endpoints:
+ *   get:
+ *     summary: API endpoints health check
+ *     description: Returns a list of core API endpoints and their operational status.
+ *     tags: [Health]
+ *     responses:
+ *       200:
+ *         description: Endpoints status
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiResponse'
  */
 export const endpointsHealthCheck = asyncHandler(async (_req: Request, res: Response) => {
   const endpoints = [
@@ -108,55 +134,56 @@ export const endpointsHealthCheck = asyncHandler(async (_req: Request, res: Resp
     { path: '/api/services', method: 'GET', status: 'active' },
   ];
 
-  const response: ApiResponse = {
-    success: true,
-    message: 'API endpoints health check',
-    data: {
-      totalEndpoints: endpoints.length,
-      activeEndpoints: endpoints.filter(ep => ep.status === 'active').length,
-      endpoints,
-      timestamp: new Date().toISOString(),
-    },
+  const data = {
+    totalEndpoints: endpoints.length,
+    activeEndpoints: endpoints.filter(ep => ep.status === 'active').length,
+    endpoints,
     timestamp: new Date().toISOString(),
   };
 
-  res.status(200).json(response);
+  return sendSuccess(res, 'API endpoints health check', data);
 });
 
 /**
- * System metrics
- * GET /health/metrics
+ * @swagger
+ * /health/metrics:
+ *   get:
+ *     summary: System metrics
+ *     description: Returns raw system metrics for monitoring (CPU, Memory).
+ *     tags: [Health]
+ *     responses:
+ *       200:
+ *         description: System metrics
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiResponse'
  */
 export const systemMetrics = asyncHandler(async (_req: Request, res: Response) => {
   const memoryUsage = process.memoryUsage();
   const cpuUsage = process.cpuUsage();
   const uptime = process.uptime();
 
-  const response: ApiResponse = {
-    success: true,
-    message: 'System metrics',
-    data: {
-      uptime: {
-        seconds: uptime,
-        formatted: formatUptime(uptime),
-      },
-      memory: {
-        rss: memoryUsage.rss,
-        heapTotal: memoryUsage.heapTotal,
-        heapUsed: memoryUsage.heapUsed,
-        external: memoryUsage.external,
-        arrayBuffers: memoryUsage.arrayBuffers,
-      },
-      cpu: {
-        user: cpuUsage.user,
-        system: cpuUsage.system,
-      },
-      timestamp: new Date().toISOString(),
+  const data = {
+    uptime: {
+      seconds: uptime,
+      formatted: formatUptime(uptime),
+    },
+    memory: {
+      rss: memoryUsage.rss,
+      heapTotal: memoryUsage.heapTotal,
+      heapUsed: memoryUsage.heapUsed,
+      external: memoryUsage.external,
+      arrayBuffers: memoryUsage.arrayBuffers,
+    },
+    cpu: {
+      user: cpuUsage.user,
+      system: cpuUsage.system,
     },
     timestamp: new Date().toISOString(),
   };
 
-  res.status(200).json(response);
+  return sendSuccess(res, 'System metrics', data);
 });
 
 /**

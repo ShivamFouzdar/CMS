@@ -1,38 +1,96 @@
 import { Request, Response } from 'express';
 import { asyncHandler, createError, sanitizeInput } from '@/utils/helpers';
-import { ApiResponse } from '@/types';
-import * as servicesService from '@/services/servicesService';
+import { sendSuccess } from '@/utils/response.utils';
+import { OfferingService } from '@/services/offering.service';
 
 /**
  * Services Controller
  * Handles services data and management
  */
 
+// Initialize Service
+const offeringService = new OfferingService();
+
 /**
- * Get all active services
- * GET /api/services
+ * @swagger
+ * tags:
+ *   name: Services
+ *   description: Service Offerings and Management
+ */
+
+/**
+ * @swagger
+ * /api/services:
+ *   get:
+ *     summary: Get all active services
+ *     tags: [Services]
+ *     parameters:
+ *       - in: query
+ *         name: category
+ *         schema: { type: string }
+ *         description: Filter services by category
+ *       - in: query
+ *         name: featured
+ *         schema: { type: boolean }
+ *         description: Filter only featured services
+ *     responses:
+ *       200:
+ *         description: List of services retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 message: { type: string }
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Service'
  */
 export const getServices = asyncHandler(async (req: Request, res: Response) => {
   const { category, featured } = req.query;
 
-  const services = await servicesService.getServices(
+  const services = await offeringService.getServices(
     category?.toString(),
     featured === 'true'
   );
 
-  const response: ApiResponse = {
-    success: true,
-    data: services,
-    message: `Retrieved ${services.length} services`,
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  return sendSuccess(res, `Retrieved ${services.length} services`, services);
 });
 
 /**
- * Get service by slug
- * GET /api/services/:slug
+ * Get all services for Admin (includes inactive)
+ */
+export const getAdminServices = asyncHandler(async (_req: Request, res: Response) => {
+  const services = await offeringService.getAllServicesAdmin();
+  return sendSuccess(res, `Retrieved ${services.length} services for admin`, services);
+});
+
+/**
+ * @swagger
+ * /api/services/{slug}:
+ *   get:
+ *     summary: Get service by slug
+ *     tags: [Services]
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Service retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 data:
+ *                   $ref: '#/components/schemas/Service'
+ *       404:
+ *         description: Service not found
  */
 export const getServiceBySlug = asyncHandler(async (req: Request, res: Response) => {
   const { slug } = req.params;
@@ -41,21 +99,24 @@ export const getServiceBySlug = asyncHandler(async (req: Request, res: Response)
     throw createError('Slug is required', 400);
   }
 
-  const service = await servicesService.getServiceBySlug(slug);
-
-  const response: ApiResponse = {
-    success: true,
-    data: service,
-    message: 'Service retrieved successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  const service = await offeringService.getServiceBySlug(slug);
+  return sendSuccess(res, 'Service retrieved successfully', service);
 });
 
 /**
- * Get service by ID
- * GET /api/services/id/:id
+ * @swagger
+ * /api/services/id/{id}:
+ *   get:
+ *     summary: Get service by ID
+ *     tags: [Services]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Service retrieved successfully
  */
 export const getServiceById = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -64,31 +125,39 @@ export const getServiceById = asyncHandler(async (req: Request, res: Response) =
     throw createError('ID is required', 400);
   }
 
-  const service = await servicesService.getServiceById(id);
-
-  const response: ApiResponse = {
-    success: true,
-    data: service,
-    message: 'Service retrieved successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  const service = await offeringService.getServiceById(id);
+  return sendSuccess(res, 'Service retrieved successfully', service);
 });
 
 /**
- * Create new service (Admin only)
- * POST /api/services
+ * @swagger
+ * /api/services:
+ *   post:
+ *     summary: Create new service (Admin only)
+ *     tags: [Services]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Service'
+ *     responses:
+ *       201:
+ *         description: Service created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 data:
+ *                   $ref: '#/components/schemas/Service'
  */
 export const createService = asyncHandler(async (req: Request, res: Response) => {
-  const { name, slug, description, shortDescription, features, benefits, process, category } = req.body;
+  const { name, slug, description, shortDescription, features, benefits, process, category, icon } = req.body;
 
-  // Validation
-  if (!name || !slug || !description || !shortDescription || !category) {
-    throw createError('Name, slug, description, shortDescription, and category are required', 400);
-  }
-
-  // Sanitize inputs
   const sanitizedData = {
     name: sanitizeInput(name),
     slug: sanitizeInput(slug),
@@ -98,30 +167,34 @@ export const createService = asyncHandler(async (req: Request, res: Response) =>
     features: features ? features.map((f: string) => sanitizeInput(f)) : [],
     benefits: benefits ? benefits.map((b: string) => sanitizeInput(b)) : [],
     process: process || [],
-    icon: 'Briefcase', // Default icon, should be updated to accept icon from body if needed
+    icon: sanitizeInput(icon) || 'Briefcase',
   };
 
-  const newService = await servicesService.createService(sanitizedData);
-
-  const response: ApiResponse = {
-    success: true,
-    data: newService,
-    message: 'Service created successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(201).json(response);
+  const newService = await offeringService.createService(sanitizedData);
+  return sendSuccess(res, 'Service created successfully', newService, 201);
 });
 
 /**
- * Update service (Admin only)
- * PUT /api/services/:id
+ * @swagger
+ * /api/services/{id}:
+ *   put:
+ *     summary: Update service (Admin only)
+ *     tags: [Services]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Service updated successfully
  */
 export const updateService = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const updateData = req.body;
 
-  // Sanitize update data
   const sanitizedData: any = { ...updateData };
   if (updateData.name) sanitizedData.name = sanitizeInput(updateData.name);
   if (updateData.description) sanitizedData.description = sanitizeInput(updateData.description);
@@ -133,21 +206,26 @@ export const updateService = asyncHandler(async (req: Request, res: Response) =>
     throw createError('ID is required', 400);
   }
 
-  const updatedService = await servicesService.updateService(id, sanitizedData);
-
-  const response: ApiResponse = {
-    success: true,
-    data: updatedService,
-    message: 'Service updated successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  const updatedService = await offeringService.updateService(id, sanitizedData);
+  return sendSuccess(res, 'Service updated successfully', updatedService);
 });
 
 /**
- * Delete service (Admin only)
- * DELETE /api/services/:id
+ * @swagger
+ * /api/services/{id}:
+ *   delete:
+ *     summary: Delete service (Admin only)
+ *     tags: [Services]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Service deleted successfully
  */
 export const deleteService = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -156,56 +234,59 @@ export const deleteService = asyncHandler(async (req: Request, res: Response) =>
     throw createError('ID is required', 400);
   }
 
-  await servicesService.deleteService(id);
-
-  const response: ApiResponse = {
-    success: true,
-    message: 'Service deleted successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  await offeringService.deleteService(id);
+  return sendSuccess(res, 'Service deleted successfully');
 });
 
 /**
- * Get service categories
- * GET /api/services/categories
+ * @swagger
+ * /api/services/categories:
+ *   get:
+ *     summary: Get all service categories
+ *     tags: [Services]
+ *     responses:
+ *       200:
+ *         description: Service categories retrieved
  */
 export const getServiceCategories = asyncHandler(async (_req: Request, res: Response) => {
-  const categories = await servicesService.getServiceCategories();
-
-  const response: ApiResponse = {
-    success: true,
-    data: categories,
-    message: 'Service categories retrieved successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  const categories = await offeringService.getServiceCategories();
+  return sendSuccess(res, 'Service categories retrieved successfully', categories);
 });
 
 /**
- * Get featured services
- * GET /api/services/featured
+ * @swagger
+ * /api/services/featured:
+ *   get:
+ *     summary: Get featured services
+ *     tags: [Services]
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 3 }
+ *     responses:
+ *       200:
+ *         description: Featured services retrieved
  */
 export const getFeaturedServices = asyncHandler(async (req: Request, res: Response) => {
   const { limit = 3 } = req.query;
-
-  const featuredServices = await servicesService.getFeaturedServices(parseInt(limit.toString()));
-
-  const response: ApiResponse = {
-    success: true,
-    data: featuredServices,
-    message: `Retrieved ${featuredServices.length} featured services`,
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  const featuredServices = await offeringService.getFeaturedServices(parseInt(limit.toString()));
+  return sendSuccess(res, `Retrieved ${featuredServices.length} featured services`, featuredServices);
 });
 
 /**
- * Get services by category
- * GET /api/services/category/:category
+ * @swagger
+ * /api/services/category/{category}:
+ *   get:
+ *     summary: Get services by category
+ *     tags: [Services]
+ *     parameters:
+ *       - in: path
+ *         name: category
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Services retrieved successfully
  */
 export const getServicesByCategory = asyncHandler(async (req: Request, res: Response) => {
   const { category } = req.params;
@@ -214,38 +295,43 @@ export const getServicesByCategory = asyncHandler(async (req: Request, res: Resp
     throw createError('Category parameter is required', 400);
   }
 
-  const categoryServices = await servicesService.getServicesByCategory(category);
-
-  const response: ApiResponse = {
-    success: true,
-    data: categoryServices,
-    message: `Retrieved ${categoryServices.length} services for ${category}`,
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  const categoryServices = await offeringService.getServicesByCategory(category);
+  return sendSuccess(res, `Retrieved ${categoryServices.length} services for ${category}`, categoryServices);
 });
 
 /**
- * Get service statistics
- * GET /api/services/stats
+ * @swagger
+ * /api/services/stats:
+ *   get:
+ *     summary: Get service statistics
+ *     tags: [Services]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Service statistics retrieved
  */
 export const getServiceStats = asyncHandler(async (_req: Request, res: Response) => {
-  const stats = await servicesService.getServiceStatistics();
-
-  const response: ApiResponse = {
-    success: true,
-    data: stats,
-    message: 'Service statistics retrieved successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  const stats = await offeringService.getServiceStatistics();
+  return sendSuccess(res, 'Service statistics retrieved successfully', stats);
 });
 
 /**
- * Activate service
- * PATCH /api/services/:id/activate
+ * @swagger
+ * /api/services/{id}/activate:
+ *   patch:
+ *     summary: Activate service
+ *     tags: [Services]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Service activated successfully
  */
 export const activateService = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -254,21 +340,26 @@ export const activateService = asyncHandler(async (req: Request, res: Response) 
     throw createError('ID is required', 400);
   }
 
-  const service = await servicesService.updateServiceStatus(id, true);
-
-  const response: ApiResponse = {
-    success: true,
-    data: service,
-    message: 'Service activated successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  const service = await offeringService.updateServiceStatus(id, true);
+  return sendSuccess(res, 'Service activated successfully', service);
 });
 
 /**
- * Deactivate service
- * PATCH /api/services/:id/deactivate
+ * @swagger
+ * /api/services/{id}/deactivate:
+ *   patch:
+ *     summary: Deactivate service
+ *     tags: [Services]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Service deactivated successfully
  */
 export const deactivateService = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -277,21 +368,40 @@ export const deactivateService = asyncHandler(async (req: Request, res: Response
     throw createError('ID is required', 400);
   }
 
-  const service = await servicesService.updateServiceStatus(id, false);
-
-  const response: ApiResponse = {
-    success: true,
-    data: service,
-    message: 'Service deactivated successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  const service = await offeringService.updateServiceStatus(id, false);
+  return sendSuccess(res, 'Service deactivated successfully', service);
 });
 
 /**
- * Feature service
- * PATCH /api/services/:id/feature
+ * Toggle service status
+ */
+export const toggleServiceStatus = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  if (!id) {
+    throw createError('ID is required', 400);
+  }
+
+  const service = await offeringService.toggleServiceStatus(id);
+  return sendSuccess(res, 'Service status toggled successfully', service);
+});
+
+/**
+ * @swagger
+ * /api/services/{id}/feature:
+ *   patch:
+ *     summary: Feature service
+ *     tags: [Services]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Service featured successfully
  */
 export const featureService = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -300,21 +410,26 @@ export const featureService = asyncHandler(async (req: Request, res: Response) =
     throw createError('ID is required', 400);
   }
 
-  const service = await servicesService.updateServiceFeatured(id, true);
-
-  const response: ApiResponse = {
-    success: true,
-    data: service,
-    message: 'Service featured successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  const service = await offeringService.updateServiceFeatured(id, true);
+  return sendSuccess(res, 'Service featured successfully', service);
 });
 
 /**
- * Unfeature service
- * PATCH /api/services/:id/unfeature
+ * @swagger
+ * /api/services/{id}/unfeature:
+ *   patch:
+ *     summary: Unfeature service
+ *     tags: [Services]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Service unfeatured successfully
  */
 export const unfeatureService = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -323,14 +438,6 @@ export const unfeatureService = asyncHandler(async (req: Request, res: Response)
     throw createError('ID is required', 400);
   }
 
-  const service = await servicesService.updateServiceFeatured(id, false);
-
-  const response: ApiResponse = {
-    success: true,
-    data: service,
-    message: 'Service unfeatured successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  const service = await offeringService.updateServiceFeatured(id, false);
+  return sendSuccess(res, 'Service unfeatured successfully', service);
 });

@@ -3,30 +3,30 @@ import { Users, Award, Globe, BarChart3, CheckCircle, Target, Lightbulb, Users2 
 import { fadeIn } from '@/lib/utils';
 
 const stats = [
-  { 
-    value: '5+', 
-    label: 'Years Experience', 
+  {
+    value: '5+',
+    label: 'Years Experience',
     icon: <Award className="w-6 h-6" />,
     gradient: 'from-yellow-400 to-orange-500',
     bgGradient: 'from-yellow-50 to-orange-50'
   },
-  { 
-    value: '50+', 
-    label: 'Clients Worldwide', 
+  {
+    value: '50+',
+    label: 'Clients Worldwide',
     icon: <Globe className="w-6 h-6" />,
     gradient: 'from-blue-400 to-cyan-500',
     bgGradient: 'from-blue-50 to-cyan-50'
   },
-  { 
-    value: '95%', 
-    label: 'Client Retention', 
+  {
+    value: '95%',
+    label: 'Client Retention',
     icon: <BarChart3 className="w-6 h-6" />,
     gradient: 'from-green-400 to-emerald-500',
     bgGradient: 'from-green-50 to-emerald-50'
   },
-  { 
-    value: '100+', 
-    label: 'Team Members', 
+  {
+    value: '100+',
+    label: 'Team Members',
     icon: <Users className="w-6 h-6" />,
     gradient: 'from-purple-400 to-pink-500',
     bgGradient: 'from-purple-50 to-pink-50'
@@ -67,11 +67,10 @@ interface AboutProps {
 
 export function About({ showFullContent = false, showHeader = true }: AboutProps) {
   return (
-    <section 
-      id="about" 
-      className={`relative py-2 sm:py-2 md:py-2 lg:py-2 overflow-hidden ${
-        showHeader ? 'bg-gradient-to-b from-white via-purple-50/30 to-blue-50/30' : ''
-      }`}
+    <section
+      id="about"
+      className={`relative py-2 sm:py-2 md:py-2 lg:py-2 overflow-hidden ${showHeader ? 'bg-gradient-to-b from-white via-purple-50/30 to-blue-50/30' : ''
+        }`}
     >
       {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -98,7 +97,7 @@ export function About({ showFullContent = false, showHeader = true }: AboutProps
           >
             {/* Mission Card */}
             <motion.div
-              variants={fadeIn('right', 0.2)}
+              variants={fadeIn('right', 0)}
               className="relative group"
             >
               <div className="relative h-full bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-8 border border-blue-100 shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden">
@@ -118,7 +117,7 @@ export function About({ showFullContent = false, showHeader = true }: AboutProps
 
             {/* Vision Card */}
             <motion.div
-              variants={fadeIn('left', 0.2)}
+              variants={fadeIn('left', 0)}
               className="relative group"
             >
               <div className="relative h-full bg-gradient-to-br from-purple-50 to-pink-50 rounded-3xl p-8 border border-purple-100 shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden">
@@ -138,7 +137,7 @@ export function About({ showFullContent = false, showHeader = true }: AboutProps
           </motion.div>
 
           {/* Modern Stats Grid */}
-          <motion.div 
+          <motion.div
             className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-12 sm:mb-16"
             initial="hidden"
             whileInView="show"
@@ -155,18 +154,18 @@ export function About({ showFullContent = false, showHeader = true }: AboutProps
             {stats.map((stat, index) => (
               <motion.div
                 key={index}
-                variants={fadeIn('up', 0.2)}
+                variants={fadeIn('up', 0)}
                 className="group relative"
               >
                 <div className={`relative h-full bg-gradient-to-br ${stat.bgGradient} rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-500 text-center overflow-hidden`}>
                   <div className={`absolute top-0 right-0 w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br ${stat.gradient} opacity-10 rounded-bl-full group-hover:opacity-20 transition-opacity`}></div>
-                  
+
                   <div className={`relative z-10 inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br ${stat.gradient} mb-3 sm:mb-4 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
                     <div className="text-white scale-75 sm:scale-100">
                       {stat.icon}
                     </div>
                   </div>
-                  
+
                   <div className={`text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-extrabold bg-gradient-to-br ${stat.gradient} bg-clip-text text-transparent mb-1 sm:mb-2`}>
                     {stat.value}
                   </div>
@@ -178,15 +177,15 @@ export function About({ showFullContent = false, showHeader = true }: AboutProps
 
           {/* Why Choose Us - Only show in full content mode */}
           {showFullContent && (
-            <motion.div 
+            <motion.div
               className="mb-16"
               initial="hidden"
               whileInView="show"
               viewport={{ once: true }}
               variants={{
                 hidden: { opacity: 0, y: 20 },
-                show: { 
-                  opacity: 1, 
+                show: {
+                  opacity: 1,
                   y: 0,
                   transition: { duration: 0.6 }
                 }
@@ -215,7 +214,7 @@ export function About({ showFullContent = false, showHeader = true }: AboutProps
 
           {/* Core Values - Only show in full content mode */}
           {showFullContent && (
-            <motion.div 
+            <motion.div
               className="mt-16"
               initial="hidden"
               whileInView="show"
@@ -230,37 +229,37 @@ export function About({ showFullContent = false, showHeader = true }: AboutProps
               }}
             >
               <div className="text-center mb-12">
-                <motion.span 
+                <motion.span
                   className="inline-block px-4 py-2 rounded-full bg-purple-100 text-purple-700 font-semibold text-sm uppercase tracking-wider mb-4"
                   variants={fadeIn('up', 0.2)}
                 >
                   Our Values
                 </motion.span>
-                <motion.h3 
+                <motion.h3
                   className="text-4xl font-bold text-gray-900"
                   variants={fadeIn('up', 0.3)}
                 >
                   Guiding Principles That Define Us
                 </motion.h3>
               </div>
-              
+
               <div className="grid sm:grid-cols-2 gap-6">
                 {values.map((value, index) => (
-                  <motion.div 
+                  <motion.div
                     key={index}
                     variants={fadeIn('up', 0.2 * (index % 2 === 0 ? 0.5 : 1))}
                     className="group relative"
                   >
                     <div className="relative h-full bg-white rounded-2xl p-8 border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden">
                       <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${value.gradient} opacity-5 rounded-bl-full group-hover:opacity-10 transition-opacity`}></div>
-                      
+
                       <div className="relative z-10">
                         <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br ${value.gradient} mb-6 shadow-lg group-hover:scale-110 transition-transform duration-500`}>
                           <div className="text-white">
                             {value.icon}
                           </div>
                         </div>
-                        
+
                         <h3 className="text-2xl font-bold text-gray-900 mb-4">{value.title}</h3>
                         <p className="text-gray-600 leading-relaxed">{value.description}</p>
                       </div>

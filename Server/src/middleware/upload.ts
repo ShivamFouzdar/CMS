@@ -1,6 +1,6 @@
 import multer from 'multer';
 import path from 'path';
-import { configureCloudinary } from '@/utils/cloudinary';
+import { configureCloudinary, cloudinaryFolderNames } from '@/config/cloudinary';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
 
 // Initialize Cloudinary with error handling
@@ -26,7 +26,7 @@ const resumeStorage = new CloudinaryStorage({
     resource_type: 'raw',
     public_id: (_req: any, file: Express.Multer.File) => {
       const base = path.parse(file.originalname).name.replace(/[^a-zA-Z0-9-_]/g, '-');
-      return `careermap/resumes/resume-${Date.now()}-${Math.round(Math.random() * 1e9)}-${base}`;
+      return `${cloudinaryFolderNames.resumes}/resume-${Date.now()}-${Math.round(Math.random() * 1e9)}-${base}`;
     },
     format: (_req: any, file: Express.Multer.File) => {
       const ext = path.extname(file.originalname).toLowerCase();

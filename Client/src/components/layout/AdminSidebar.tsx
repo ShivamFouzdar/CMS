@@ -1,38 +1,34 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Briefcase, 
-  MessageSquare, 
+import {
+  LayoutDashboard,
+  Briefcase,
+  MessageSquare,
   UserCheck,
-  LogOut, 
   Settings,
-  X,
-  Menu,
   ChevronLeft,
   ChevronRight,
-  User
+  LogOut,
+  Layers,
+  Users,
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+const navItems: NavItem[] = [
+  { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
+  { name: 'Services', path: '/admin/services', icon: Layers },
+  { name: 'Applications', path: '/admin/job-applicants', icon: Briefcase },
+  { name: 'Inquiries', path: '/admin/leads', icon: UserCheck },
+  { name: 'Reviews', path: '/admin/reviews', icon: MessageSquare },
+  { name: 'Users', path: '/admin/users', icon: Users, role: ['super_admin'] },
+  { name: 'Settings', path: '/admin/settings', icon: Settings },
+];
 
 interface NavItem {
   name: string;
   path: string;
   icon: React.ElementType;
-  badge?: number;
-}
-
-const navItems: NavItem[] = [
-  { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
-  { name: 'Job Applicants', path: '/admin/job-applicants', icon: Briefcase },
-  { name: 'Leads', path: '/admin/leads', icon: UserCheck },
-  { name: 'Reviews', path: '/admin/reviews', icon: MessageSquare },
-  { name: 'Settings', path: '/admin/settings', icon: Settings },
-];
-
-// Debug: Log nav items to ensure they're loaded
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-  console.log('Admin Sidebar Nav Items:', navItems);
+  role?: string[];
 }
 
 interface AdminSidebarProps {
@@ -42,12 +38,17 @@ interface AdminSidebarProps {
     email?: string;
     role?: string;
   } | null;
+  mobileMenuOpen?: boolean;
+  onMobileMenuClose?: () => void;
 }
 
-export function AdminSidebar({ user }: AdminSidebarProps) {
+export const AdminSidebar = memo(function AdminSidebar({
+  user,
+  mobileMenuOpen = false,
+  onMobileMenuClose
+}: AdminSidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -60,14 +61,14 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
     const checkMobile = () => {
       const mobile = window.innerWidth < 1024;
       setIsMobile(mobile);
-      if (mobile) {
-        setIsCollapsed(false);
-      }
+      if (mobile) setIsCollapsed(false);
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  const isActive = (path: string) => location.pathname === path;
 
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
@@ -76,207 +77,168 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
     navigate('/auth/login');
   };
 
-  const isActive = (path: string) => {
-    return location.pathname === path;
-  };
-
   const SidebarContent = ({ collapsed = false }: { collapsed?: boolean }) => (
-    <>
-      {/* Logo/Header */}
-      <div className={`border-b border-gray-200 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 transition-all duration-300 ${collapsed ? 'p-4' : 'p-6'}`}>
-        <div className={`flex items-center ${collapsed ? 'justify-center' : 'space-x-3'}`}>
-          <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
-            <LayoutDashboard className="w-6 h-6 text-white" />
+    <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-900">
+      {/* Header - Logo */}
+      <div className={`h-14 flex items-center border-b border-gray-100 dark:border-white/5 ${collapsed ? 'justify-center px-2' : 'px-4'}`}>
+        <div className={`flex items-center ${collapsed ? '' : 'gap-3'}`}>
+          <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0">
+            <img src="/logo2.png" alt="Logo" className="w-full h-full object-contain" />
           </div>
           {!collapsed && (
-            <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <h2 className="text-lg font-bold text-white">Admin Panel</h2>
-              {user && (
-                <p className="text-xs text-white/80 mt-0.5">
-                  {user.firstName} {user.lastName}
-                </p>
-              )}
-            </motion.div>
+            <span className="text-sm font-semibold text-gray-900 dark:text-white">Admin Panel</span>
           )}
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className={`flex-1 overflow-y-auto overflow-x-hidden ${collapsed ? 'p-2' : 'p-4'} space-y-1`}>
-        {navItems.map((item, index) => {
-          const Icon = item.icon;
-          const active = isActive(item.path);
-          
-          return (
-            <motion.button
-              key={item.path}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-              onClick={() => {
-                navigate(item.path);
-                if (isMobile) setMobileMenuOpen(false);
-              }}
-              className={`
-                w-full flex items-center ${collapsed ? 'justify-center px-2' : 'space-x-3 px-4'} py-3 rounded-xl transition-all duration-200 font-medium group relative
-                ${active 
-                  ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30' 
-                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                }
-              `}
-              title={collapsed ? item.name : undefined}
-            >
-              <Icon className={`w-5 h-5 flex-shrink-0 ${active ? 'text-white' : 'text-gray-500 group-hover:text-blue-600'}`} />
-              {!collapsed && (
-                <motion.span 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="font-medium"
-                >
-                  {item.name}
-                </motion.span>
-              )}
-              {active && !collapsed && (
-                <motion.div
-                  layoutId="activeIndicator"
-                  className="absolute right-2 w-1.5 h-1.5 bg-white rounded-full"
-                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                />
-              )}
-            </motion.button>
-          );
-        })}
-      </nav>
-
-      {/* User Info & Logout */}
-      <div className={`border-t border-gray-200 ${collapsed ? 'p-2' : 'p-4'} space-y-2`}>
-        {user && !collapsed && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="mb-3 px-4 py-3 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl border border-gray-200"
-          >
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">
-                <User className="w-5 h-5 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate">{user.email}</p>
-                {user.role && (
-                  <p className="text-xs text-gray-500 mt-0.5 capitalize">{user.role}</p>
-                )}
-              </div>
-            </div>
-          </motion.div>
-        )}
-        {user && collapsed && (
-          <div className="mb-2 flex justify-center">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">
-              <User className="w-5 h-5 text-white" />
-            </div>
+      <div className="flex-1 overflow-y-auto py-4">
+        {/* Section Label */}
+        {!collapsed && (
+          <div className="px-4 pb-2">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">Main</span>
           </div>
         )}
-        <button
-          onClick={handleLogout}
-          className={`
-            w-full flex items-center ${collapsed ? 'justify-center px-2' : 'space-x-3 px-4'} py-3 
-            bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-xl 
-            hover:from-red-600 hover:to-pink-700 transition-all duration-200 font-medium shadow-md hover:shadow-lg
-          `}
-          title={collapsed ? 'Logout' : undefined}
-        >
-          <LogOut className="w-5 h-5 flex-shrink-0" />
-          {!collapsed && <span>Logout</span>}
-        </button>
+
+        {/* Nav Items */}
+        <nav className={`space-y-1 ${collapsed ? 'px-2' : 'px-3'}`}>
+          {navItems.filter(item => !item.role || (user?.role && item.role.includes(user.role))).map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.path);
+
+            return (
+              <button
+                key={item.path}
+                onClick={() => {
+                  navigate(item.path);
+                  if (isMobile && onMobileMenuClose) onMobileMenuClose();
+                }}
+                className={`
+                  w-full flex items-center gap-3 h-10
+                  ${collapsed ? 'justify-center px-2' : 'px-3'} 
+                  rounded-lg transition-all duration-150
+                  ${active
+                    ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400'
+                    : 'text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-white/5'
+                  }
+                `}
+                title={collapsed ? item.name : undefined}
+              >
+                <Icon className={`w-[18px] h-[18px] flex-shrink-0 ${active ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-slate-400'
+                  }`} />
+                {!collapsed && (
+                  <span className={`text-[13px] ${active ? 'font-semibold' : 'font-medium'}`}>
+                    {item.name}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
       </div>
-    </>
+
+      {/* Footer - User */}
+      <div className={`border-t border-gray-100 dark:border-white/5 ${collapsed ? 'p-2' : 'p-3'}`}>
+        {!collapsed ? (
+          <div className="space-y-2">
+            <div className="flex items-center gap-3 px-2 py-1.5">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center flex-shrink-0">
+                <span className="text-xs font-bold text-white">{user?.firstName?.charAt(0) || 'A'}</span>
+              </div>
+              <div
+                className="min-w-0 flex-1 cursor-pointer group"
+                onClick={() => navigate('/admin/profile')}
+              >
+                <p className="text-[13px] font-medium text-gray-900 dark:text-white truncate group-hover:text-indigo-500 transition-colors">
+                  {user?.firstName || 'Admin'} {user?.lastName || ''}
+                </p>
+                <p className="text-[11px] text-gray-500 dark:text-slate-400 truncate group-hover:text-indigo-400/70 transition-colors">
+                  {user?.email || 'admin@example.com'}
+                </p>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="p-1.5 rounded-lg text-gray-500 dark:text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                title="Logout"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-2">
+            <div
+              className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-indigo-500/50 transition-all shadow-lg"
+              onClick={() => navigate('/admin/profile')}
+            >
+              <span className="text-xs font-bold text-white">{user?.firstName?.charAt(0) || 'A'}</span>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="p-1.5 rounded-lg text-gray-500 dark:text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+              title="Logout"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+      </div>
+
+    </div>
   );
 
-  // Mobile view with hamburger menu
+  // Mobile sidebar
   if (isMobile) {
     return (
-      <>
-        {/* Mobile Top Bar */}
-        <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 shadow-sm z-40 flex items-center px-4">
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? (
-              <X className="w-6 h-6 text-gray-700" />
-            ) : (
-              <Menu className="w-6 h-6 text-gray-700" />
-            )}
-          </button>
-          <div className="ml-3 flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-              <LayoutDashboard className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-bold text-gray-900">Admin</span>
-          </div>
-        </div>
-
-        {/* Mobile sidebar overlay */}
-        <AnimatePresence>
-          {mobileMenuOpen && (
-            <>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
-                onClick={() => setMobileMenuOpen(false)}
-              />
-              <motion.aside
-                initial={{ x: -280 }}
-                animate={{ x: 0 }}
-                exit={{ x: -280 }}
-                transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                className="fixed left-0 top-0 bottom-0 w-72 bg-white shadow-2xl z-50 flex flex-col lg:hidden"
-              >
-                <SidebarContent />
-              </motion.aside>
-            </>
-          )}
-        </AnimatePresence>
-      </>
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+              onClick={onMobileMenuClose}
+            />
+            <motion.aside
+              initial={{ x: -240 }}
+              animate={{ x: 0 }}
+              exit={{ x: -240 }}
+              transition={{ type: "spring", damping: 25, stiffness: 250 }}
+              className="fixed left-0 top-0 bottom-0 w-60 shadow-2xl z-50"
+            >
+              <SidebarContent />
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
     );
   }
 
   // Desktop sidebar
   return (
-    <>
-      <aside 
-        className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:pt-0 lg:bg-white lg:border-r lg:border-gray-200 lg:shadow-xl transition-all duration-300 ease-in-out z-30"
-        style={{ width: isCollapsed ? '80px' : '288px' }}
+    <aside
+      className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 border-r border-gray-100 dark:border-white/5 transition-all duration-300 ease-out z-30"
+      style={{ width: isCollapsed ? '80px' : '240px' }}
+    >
+      <SidebarContent collapsed={isCollapsed} />
+
+      {/* Collapse Toggle */}
+      <button
+        onClick={() => {
+          const newState = !isCollapsed;
+          setIsCollapsed(newState);
+          localStorage.setItem('sidebarCollapsed', String(newState));
+          window.dispatchEvent(new Event('sidebarToggle'));
+        }}
+        className="absolute -right-3 top-16 w-6 h-6 rounded-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 shadow-md flex items-center justify-center transition-all hover:scale-110"
       >
-        <SidebarContent collapsed={isCollapsed} />
-        
-        {/* Collapse Toggle Button */}
-        <button
-          onClick={() => {
-            const newState = !isCollapsed;
-            setIsCollapsed(newState);
-            localStorage.setItem('sidebarCollapsed', String(newState));
-            // Dispatch custom event for same-tab updates
-            window.dispatchEvent(new Event('sidebarToggle'));
-          }}
-          className="absolute -right-3 top-20 w-6 h-6 bg-white border-2 border-gray-200 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all hover:scale-110 z-10 hover:border-blue-300"
-          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {isCollapsed ? (
-            <ChevronRight className="w-4 h-4 text-gray-600" />
-          ) : (
-            <ChevronLeft className="w-4 h-4 text-gray-600" />
-          )}
-        </button>
-      </aside>
-    </>
+        {isCollapsed ? (
+          <ChevronRight className="w-3.5 h-3.5 text-gray-500 dark:text-slate-400" />
+        ) : (
+          <ChevronLeft className="w-3.5 h-3.5 text-gray-500 dark:text-slate-400" />
+        )}
+      </button>
+    </aside>
   );
-}
+});

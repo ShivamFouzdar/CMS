@@ -249,6 +249,7 @@ export default function FloatingLines({
   const currentInfluenceRef = useRef<number>(0);
   const targetParallaxRef = useRef<Vector2>(new Vector2(0, 0));
   const currentParallaxRef = useRef<Vector2>(new Vector2(0, 0));
+  const isVisibleRef = useRef<boolean>(true);
 
   const getLineCount = (waveType: 'top' | 'middle' | 'bottom'): number => {
     if (typeof lineCount === 'number') return lineCount;
@@ -350,7 +351,8 @@ export default function FloatingLines({
     const clock = new Clock();
 
     const setSize = () => {
-      const el = containerRef.current!;
+      const el = containerRef.current;
+      if (!el) return;
       const width = el.clientWidth || 1;
       const height = el.clientHeight || 1;
       renderer.setSize(width, height, false);
@@ -360,6 +362,15 @@ export default function FloatingLines({
     };
 
     setSize();
+
+    // 🟢 Visibility Observer to stop off-screen rendering
+    const observer = new IntersectionObserver((entries) => {
+      isVisibleRef.current = entries[0].isIntersecting;
+    }, { threshold: 0 });
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
 
     const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(setSize) : null;
     if (ro && containerRef.current) {
@@ -393,21 +404,23 @@ export default function FloatingLines({
 
     let raf = 0;
     const renderLoop = () => {
-      uniforms.iTime.value = clock.getElapsedTime();
+      if (isVisibleRef.current) {
+        uniforms.iTime.value = clock.getElapsedTime();
 
-      if (interactive) {
-        currentMouseRef.current.lerp(targetMouseRef.current, mouseDamping);
-        uniforms.iMouse.value.copy(currentMouseRef.current);
-        currentInfluenceRef.current += (targetInfluenceRef.current - currentInfluenceRef.current) * mouseDamping;
-        uniforms.bendInfluence.value = currentInfluenceRef.current;
+        if (interactive) {
+          currentMouseRef.current.lerp(targetMouseRef.current, mouseDamping);
+          uniforms.iMouse.value.copy(currentMouseRef.current);
+          currentInfluenceRef.current += (targetInfluenceRef.current - currentInfluenceRef.current) * mouseDamping;
+          uniforms.bendInfluence.value = currentInfluenceRef.current;
+        }
+
+        if (parallax) {
+          currentParallaxRef.current.lerp(targetParallaxRef.current, mouseDamping);
+          uniforms.parallaxOffset.value.copy(currentParallaxRef.current);
+        }
+
+        renderer.render(scene, camera);
       }
-
-      if (parallax) {
-        currentParallaxRef.current.lerp(targetParallaxRef.current, mouseDamping);
-        uniforms.parallaxOffset.value.copy(currentParallaxRef.current);
-      }
-
-      renderer.render(scene, camera);
       raf = requestAnimationFrame(renderLoop);
     };
 
@@ -415,6 +428,7 @@ export default function FloatingLines({
 
     return () => {
       cancelAnimationFrame(raf);
+      observer.disconnect();
       if (ro && containerRef.current) {
         ro.disconnect();
       }

@@ -3,6 +3,66 @@ import { Schema, model, Document, Model } from 'mongoose';
 /**
  * Review Model
  * Represents customer testimonials and reviews
+ * 
+ * @swagger
+ * components:
+ *   schemas:
+ *     Review:
+ *       type: object
+ *       required:
+ *         - name
+ *         - email
+ *         - content
+ *         - rating
+ *         - category
+ *       properties:
+ *         _id:
+ *           type: string
+ *         name:
+ *           type: string
+ *         email:
+ *           type: string
+ *           format: email
+ *         role:
+ *           type: string
+ *           description: Reviewer's professional role or company
+ *         content:
+ *           type: string
+ *           minlength: 20
+ *         rating:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 5
+ *         image:
+ *           type: string
+ *         date:
+ *           type: string
+ *           format: date-time
+ *         category:
+ *           type: string
+ *           enum: [BPO Services, IT Services, Recruitment, Legal Services, KPO Services, Customer Support, General]
+ *         isVerified:
+ *           type: boolean
+ *         isPublished:
+ *           type: boolean
+ *         isFeatured:
+ *           type: boolean
+ *         helpfulVotes:
+ *           type: integer
+ *         totalVotes:
+ *           type: integer
+ *         response:
+ *           type: object
+ *           properties:
+ *             content: { type: string }
+ *             respondedBy: { type: string }
+ *             respondedAt: { type: string, format: date-time }
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
  */
 
 export interface IReview extends Document {
@@ -33,7 +93,7 @@ export interface IReview extends Document {
   tags: string[];
   createdAt: Date;
   updatedAt: Date;
-  
+
   // Instance methods
   publish(): Promise<IReview>;
   unpublish(): Promise<IReview>;
@@ -107,7 +167,7 @@ const reviewSchema = new Schema<IReview>({
     enum: [
       'BPO Services',
       'IT Services',
-      'Recruitment', 
+      'Recruitment',
       'Legal Services',
       'KPO Services',
       'Customer Support',
@@ -204,24 +264,24 @@ reviewSchema.index({ category: 1, isPublished: 1 });
 reviewSchema.index({ rating: 1, isPublished: 1 });
 
 // Virtual for helpful percentage
-reviewSchema.virtual('helpfulPercentage').get(function() {
+reviewSchema.virtual('helpfulPercentage').get(function () {
   if (this.totalVotes === 0) return 0;
   return Math.round((this.helpfulVotes / this.totalVotes) * 100);
 });
 
 // Virtual for display name
-reviewSchema.virtual('displayName').get(function() {
+reviewSchema.virtual('displayName').get(function () {
   return this.name;
 });
 
 // Pre-save middleware to update the updatedAt field
-reviewSchema.pre('save', function(next) {
+reviewSchema.pre('save', function (next) {
   this.updatedAt = new Date();
   next();
 });
 
 // Static method to get review statistics
-reviewSchema.statics['getStats'] = async function() {
+reviewSchema.statics['getStats'] = async function () {
   const stats = await this.aggregate([
     {
       $match: { isPublished: true }
@@ -270,10 +330,10 @@ reviewSchema.statics['getStats'] = async function() {
 };
 
 // Static method to get reviews by category
-reviewSchema.statics['getByCategory'] = async function(category: string, limit = 10) {
-  return this.find({ 
-    category: new RegExp(category, 'i'), 
-    isPublished: true 
+reviewSchema.statics['getByCategory'] = async function (category: string, limit = 10) {
+  return this.find({
+    category: new RegExp(category, 'i'),
+    isPublished: true
   })
     .sort({ date: -1 })
     .limit(limit)
@@ -281,10 +341,10 @@ reviewSchema.statics['getByCategory'] = async function(category: string, limit =
 };
 
 // Static method to get featured reviews
-reviewSchema.statics['getFeatured'] = async function(limit = 5) {
-  return this.find({ 
-    isPublished: true, 
-    isFeatured: true 
+reviewSchema.statics['getFeatured'] = async function (limit = 5) {
+  return this.find({
+    isPublished: true,
+    isFeatured: true
   })
     .sort({ date: -1 })
     .limit(limit)
@@ -292,7 +352,7 @@ reviewSchema.statics['getFeatured'] = async function(limit = 5) {
 };
 
 // Static method to get recent reviews
-reviewSchema.statics['getRecent'] = async function(limit = 10) {
+reviewSchema.statics['getRecent'] = async function (limit = 10) {
   return this.find({ isPublished: true })
     .sort({ date: -1 })
     .limit(limit)
@@ -300,28 +360,28 @@ reviewSchema.statics['getRecent'] = async function(limit = 10) {
 };
 
 // Instance method to publish review
-reviewSchema.methods['publish'] = function() {
+reviewSchema.methods['publish'] = function () {
   this['isPublished'] = true;
   this['updatedAt'] = new Date();
   return this['save']();
 };
 
 // Instance method to unpublish review
-reviewSchema.methods['unpublish'] = function() {
+reviewSchema.methods['unpublish'] = function () {
   this['isPublished'] = false;
   this['updatedAt'] = new Date();
   return this['save']();
 };
 
 // Instance method to verify review
-reviewSchema.methods['verify'] = function() {
+reviewSchema.methods['verify'] = function () {
   this['isVerified'] = true;
   this['updatedAt'] = new Date();
   return this['save']();
 };
 
 // Instance method to add helpful vote
-reviewSchema.methods['addHelpfulVote'] = function() {
+reviewSchema.methods['addHelpfulVote'] = function () {
   this['helpfulVotes'] += 1;
   this['totalVotes'] += 1;
   this['updatedAt'] = new Date();
@@ -329,14 +389,14 @@ reviewSchema.methods['addHelpfulVote'] = function() {
 };
 
 // Instance method to add unhelpful vote
-reviewSchema.methods['addUnhelpfulVote'] = function() {
+reviewSchema.methods['addUnhelpfulVote'] = function () {
   this['totalVotes'] += 1;
   this['updatedAt'] = new Date();
   return this['save']();
 };
 
 // Instance method to add response
-reviewSchema.methods['addResponse'] = function(content: string, respondedBy: string) {
+reviewSchema.methods['addResponse'] = function (content: string, respondedBy: string) {
   this['response'] = {
     content,
     respondedBy,

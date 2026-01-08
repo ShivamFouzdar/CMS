@@ -33,10 +33,10 @@ export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
     const inputId = id || `auth-input-${Math.random().toString(36).substr(2, 9)}`;
 
     return (
-      <div className={cn('space-y-1.5', containerClassName)}>
+      <div className={cn('space-y-2', containerClassName)}>
         <label
           htmlFor={inputId}
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1 ml-1"
         >
           {label}
           {required && <span className="text-red-500 ml-0.5">*</span>}

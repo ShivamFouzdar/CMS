@@ -2,7 +2,15 @@ import { CorsOptions } from 'cors';
 
 const defaultAllowedOrigins = [
   'http://localhost:3000',
-  'http://localhost:5005',
+  'http://localhost:5000',
+  'http://localhost:5173',
+  'http://localhost:8000',
+  'http://localhost:8001',
+];
+
+const productionOrigins = [
+  'https://careermapsolution.com',
+  'https://www.careermapsolution.com',
 ];
 
 const envOrigins = (process.env['ALLOWED_ORIGINS'] || '')
@@ -14,6 +22,7 @@ const clientUrl = process.env['CLIENT_URL'] || '';
 
 const allowedOrigins = Array.from(new Set([
   ...defaultAllowedOrigins,
+  ...(process.env['NODE_ENV'] === 'production' ? productionOrigins : []),
   ...envOrigins,
   clientUrl,
 ])).filter(Boolean);

@@ -1,3 +1,4 @@
+
 /**
  * Routes Index
  * Central export point for all route modules
@@ -12,6 +13,7 @@ export { default as userRoutes } from './users';
 export { default as adminRoutes } from './admin';
 export { default as authRoutes } from './auth';
 export { default as twoFactorRoutes } from './twoFactor';
+export { default as publicRoutes } from './public'; // New public routes export
 
 // Route configuration
 export const routeConfig = {

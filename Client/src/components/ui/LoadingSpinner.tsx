@@ -12,13 +12,13 @@ const sizeClasses = {
   lg: 'h-12 w-12',
 };
 
-export function LoadingSpinner({ 
-  size = 'md', 
-  className = '', 
-  fullScreen = false 
+export function LoadingSpinner({
+  size = 'md',
+  className = '',
+  fullScreen = false
 }: LoadingSpinnerProps) {
   const spinner = (
-    <Loader2 className={`${sizeClasses[size]} animate-spin text-blue-600 ${className}`} />
+    <Loader2 className={`${sizeClasses[size]} animate-spin text-indigo-600 dark:text-indigo-400 transition-colors ${className}`} />
   );
 
   if (fullScreen) {

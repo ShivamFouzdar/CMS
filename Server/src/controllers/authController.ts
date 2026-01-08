@@ -1,31 +1,59 @@
 import { Request, Response } from 'express';
 import { asyncHandler, createError } from '@/utils/helpers';
-import { ApiResponse } from '@/types';
-import * as authService from '@/services/authService';
+import { sendSuccess, sendError } from '@/utils/response.utils';
+import { AuthService } from '@/services/auth.service';
 
 /**
  * Auth Controller
  * Handles HTTP requests for authentication
  */
 
+const authService = new AuthService();
+
 /**
- * Register new admin user
- * POST /api/auth/register
+ * @swagger
+ * tags:
+ *   name: Auth
+ *   description: Authentication and Token Management
+ */
+
+/**
+ * @swagger
+ * /api/auth/register:
+ *   post:
+ *     summary: Register new admin user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/User'
+ *     responses:
+ *       201:
+ *         description: User registered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 data:
+ *                   $ref: '#/components/schemas/AuthResponse'
+ *       403:
+ *         description: Registrations disabled
+ *       400:
+ *         description: Invalid input
  */
 export const register = asyncHandler(async (req: Request, res: Response) => {
   // Check if registrations are allowed
-  const { areRegistrationsAllowed } = await import('@/services/settingsService');
+  const { areRegistrationsAllowed } = await import('@/services/settings.service');
   const registrationsAllowed = await areRegistrationsAllowed();
-  
+
   if (!registrationsAllowed) {
-    const response: ApiResponse = {
-      success: false,
-      message: 'New user registrations are currently disabled. Please contact an administrator.',
-      timestamp: new Date().toISOString(),
-    };
-    res.status(403).json(response);
-    return;
+    return sendError(res, 'New user registrations are currently disabled. Please contact an administrator.', null, 403);
   }
+
   const { firstName, lastName, email, password, role } = req.body;
 
   const result = await authService.registerUser({
@@ -36,22 +64,43 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     role,
   });
 
-  const response: ApiResponse = {
-    success: true,
-    data: {
-      user: result.user,
-      tokens: result.tokens,
-    },
-    message: 'User registered successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(201).json(response);
+  return sendSuccess(res, 'User registered successfully', {
+    user: result.user,
+    tokens: result.tokens,
+  }, 201);
 });
 
 /**
- * Login admin user
- * POST /api/auth/login
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: Login user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email: { type: string }
+ *               password: { type: string }
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 data:
+ *                   $ref: '#/components/schemas/AuthResponse'
+ *       401:
+ *         description: Invalid credentials
  */
 export const login = asyncHandler(async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -60,52 +109,56 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 
   // If 2FA is required, return temp token instead of full tokens
   if (result.requires2FA) {
-    const response: ApiResponse = {
-      success: true,
-      data: {
-        user: result.user,
-        tempToken: result.tokens.accessToken, // Temporary token for 2FA verification
-        requires2FA: true,
-      },
-      message: '2FA verification required',
-      timestamp: new Date().toISOString(),
-    };
-    res.status(200).json(response);
-    return;
+    return sendSuccess(res, '2FA verification required', {
+      user: result.user,
+      tempToken: result.tokens.accessToken,
+      requires2FA: true,
+    });
   }
 
-  const response: ApiResponse = {
-    success: true,
-    data: {
-      user: result.user,
-      tokens: result.tokens,
-      requires2FA: false,
-    },
-    message: 'Login successful',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  return sendSuccess(res, 'Login successful', {
+    user: result.user,
+    tokens: result.tokens,
+    requires2FA: false,
+  });
 });
 
 /**
- * Logout admin user
- * POST /api/auth/logout
+ * @swagger
+ * /api/auth/logout:
+ *   post:
+ *     summary: Logout user
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Logged out successfully
  */
 export const logout = asyncHandler(async (_req: Request, res: Response) => {
-  // In production, this would add the token to a blacklist
-  const response: ApiResponse = {
-    success: true,
-    message: 'Logged out successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  await authService.logoutUser();
+  return sendSuccess(res, 'Logged out successfully');
 });
 
 /**
- * Get current user
- * GET /api/auth/me
+ * @swagger
+ * /api/auth/me:
+ *   get:
+ *     summary: Get current authenticated user
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User information retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
  */
 export const getCurrentUser = asyncHandler(async (req: Request, res: Response) => {
   const userId = (req as any).user?.id;
@@ -115,109 +168,96 @@ export const getCurrentUser = asyncHandler(async (req: Request, res: Response) =
   }
 
   const user = await authService.getCurrentUser(userId);
-
-  const response: ApiResponse = {
-    success: true,
-    data: {
-      user: {
-        ...user,
-        profile: (req as any).user?.profile,
-        preferences: (req as any).user?.preferences,
-      },
-    },
-    message: 'User information retrieved successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  return sendSuccess(res, 'User information retrieved successfully', { user });
 });
 
 /**
- * Refresh token
- * POST /api/auth/refresh
+ * @swagger
+ * /api/auth/refresh:
+ *   post:
+ *     summary: Refresh access token
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - refreshToken
+ *             properties:
+ *               refreshToken: { type: string }
+ *     responses:
+ *       200:
+ *         description: Token refreshed successfully
  */
 export const refreshToken = asyncHandler(async (req: Request, res: Response) => {
   const { refreshToken } = req.body;
-
-  if (!refreshToken) {
-    throw createError('Refresh token is required', 400);
-  }
-
-  // In production, this would validate the refresh token and issue a new access token
-  const response: ApiResponse = {
-    success: true,
-    data: {
-      accessToken: 'new_jwt_token_placeholder',
-      refreshToken: 'new_refresh_token_placeholder',
-    },
-    message: 'Token refreshed successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  const tokens = await authService.refreshAccessToken(refreshToken);
+  return sendSuccess(res, 'Token refreshed successfully', tokens);
 });
 
 /**
- * Validate token
- * POST /api/auth/validate
+ * @swagger
+ * /api/auth/validate:
+ *   post:
+ *     summary: Validate authentication token
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *             properties:
+ *               token: { type: string }
+ *     responses:
+ *       200:
+ *         description: Token status returned
  */
 export const validateToken = asyncHandler(async (req: Request, res: Response) => {
   const { token } = req.body;
-
-  if (!token) {
-    throw createError('Token is required', 400);
-  }
-
   const decoded = authService.validateAuthToken(token);
-
-  const response: ApiResponse = {
-    success: true,
-    data: {
-      valid: true,
-      decoded,
-    },
-    message: 'Token is valid',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  return sendSuccess(res, 'Token is valid', {
+    valid: true,
+    decoded,
+  });
 });
 
 /**
- * Revoke token
- * POST /api/auth/revoke
+ * @swagger
+ * /api/auth/revoke:
+ *   post:
+ *     summary: Revoke authentication token
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Token revoked successfully
  */
 export const revokeToken = asyncHandler(async (_req: Request, res: Response) => {
-  // In production, this would add the token to a blacklist
-  const response: ApiResponse = {
-    success: true,
-    message: 'Token revoked successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  return sendSuccess(res, 'Token revoked successfully');
 });
 
 /**
- * Get token info
- * GET /api/auth/token-info
+ * @swagger
+ * /api/auth/token-info:
+ *   get:
+ *     summary: Get information about the current token
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Token info retrieved
  */
 export const getTokenInfo = asyncHandler(async (_req: Request, res: Response) => {
-  // In production, this would decode the JWT token and return user info
-  const response: ApiResponse = {
-    success: true,
-    data: {
-      user: {
-        id: 'user_123',
-        email: 'admin@example.com',
-        role: 'admin',
-      },
-      issuedAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-    message: 'Token information retrieved successfully',
-    timestamp: new Date().toISOString(),
+  const data = {
+    issuedAt: new Date().toISOString(),
+    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
   };
-
-  res.status(200).json(response);
+  return sendSuccess(res, 'Token information retrieved successfully', data);
 });

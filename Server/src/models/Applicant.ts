@@ -4,6 +4,55 @@ import { Schema, model, Document, Model } from 'mongoose';
  * Applicant Model
  * Represents job applicants (regular users who submit job applications)
  * These users DO NOT login - they only submit applications
+ * 
+ * @swagger
+ * components:
+ *   schemas:
+ *     Applicant:
+ *       type: object
+ *       required:
+ *         - fullName
+ *         - email
+ *         - phone
+ *         - location
+ *         - experience
+ *         - workMode
+ *         - skillsDescription
+ *         - hearAboutUs
+ *       properties:
+ *         _id:
+ *           type: string
+ *         fullName:
+ *           type: string
+ *         email:
+ *           type: string
+ *           format: email
+ *         phone:
+ *           type: string
+ *         location:
+ *           type: string
+ *         experience:
+ *           type: string
+ *           enum: ['Fresher', '0–1 year', '1–3 years', '3–5 years', '5+ years']
+ *         workMode:
+ *           type: string
+ *           enum: [Work from Home, Office-Based, Hybrid]
+ *         skillsDescription:
+ *           type: string
+ *         hearAboutUs:
+ *           type: string
+ *           enum: [LinkedIn, Instagram, Job Portal, Referral, Other]
+ *         resumeUrl:
+ *           type: string
+ *         status:
+ *           type: string
+ *           enum: [new, reviewing, shortlisted, rejected, hired]
+ *         submittedAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
  */
 
 export interface IApplicant extends Document {
@@ -138,27 +187,27 @@ applicantSchema.index({ workMode: 1 });
 applicantSchema.index({ submittedAt: -1 });
 
 // Pre-save middleware to update the updatedAt field
-applicantSchema.pre('save', function(next) {
+applicantSchema.pre('save', function (next) {
   this.updatedAt = new Date();
   next();
 });
 
 // Static method to get applicants by status
-applicantSchema.statics['getByStatus'] = async function(status: string) {
+applicantSchema.statics['getByStatus'] = async function (status: string) {
   return this.find({ status })
     .sort({ submittedAt: -1 })
     .select('fullName email location experience workMode status submittedAt');
 };
 
 // Static method to get applicants by experience
-applicantSchema.statics['getByExperience'] = async function(experience: string) {
+applicantSchema.statics['getByExperience'] = async function (experience: string) {
   return this.find({ experience })
     .sort({ submittedAt: -1 })
     .select('fullName email location status submittedAt');
 };
 
 // Static method to get applicant statistics
-applicantSchema.statics['getStats'] = async function() {
+applicantSchema.statics['getStats'] = async function () {
   const stats = await this.aggregate([
     {
       $group: {
@@ -191,25 +240,25 @@ applicantSchema.statics['getStats'] = async function() {
   }
 
   const stat = stats[0];
-  
+
   // Count by status
   const byStatus = stat.byStatus.reduce((acc: Record<string, number>, status: string) => {
     acc[status] = (acc[status] || 0) + 1;
     return acc;
   }, {});
-  
+
   // Count by experience
   const byExperience = stat.byExperience.reduce((acc: Record<string, number>, exp: string) => {
     acc[exp] = (acc[exp] || 0) + 1;
     return acc;
   }, {});
-  
+
   // Count by work mode
   const byWorkMode = stat.byWorkMode.reduce((acc: Record<string, number>, mode: string) => {
     acc[mode] = (acc[mode] || 0) + 1;
     return acc;
   }, {});
-  
+
   // Count by source
   const bySource = stat.bySource.reduce((acc: Record<string, number>, source: string) => {
     acc[source] = (acc[source] || 0) + 1;

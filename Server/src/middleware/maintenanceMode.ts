@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { isMaintenanceMode } from '@/services/settingsService';
+import { getSystemSettings } from '@/services/settings.service';
 
 /**
  * Maintenance Mode Middleware
@@ -11,20 +11,20 @@ export const checkMaintenanceMode = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const maintenanceEnabled = await isMaintenanceMode();
-    
-    if (!maintenanceEnabled) {
+    const settings = await getSystemSettings();
+
+    if (!settings.maintenanceMode) {
       // Maintenance mode is off, proceed normally
       return next();
     }
 
     // Maintenance mode is on
     // Allow access to admin routes and health checks
-    const isAdminRoute = req.path.startsWith('/api/admin') || 
-                         req.path.startsWith('/admin') ||
-                         req.path.startsWith('/health') ||
-                         req.path.startsWith('/api/auth/login');
-    
+    const isAdminRoute = req.path.startsWith('/api/admin') ||
+      req.path.startsWith('/admin') ||
+      req.path.startsWith('/health') ||
+      req.path.startsWith('/api/auth/login');
+
     if (isAdminRoute) {
       // Admins can still access
       return next();
@@ -35,6 +35,11 @@ export const checkMaintenanceMode = async (
       success: false,
       message: 'The website is currently under maintenance. Please check back later.',
       maintenance: true,
+      contact: {
+        email: settings.contactEmail,
+        phone: settings.contactPhone,
+        siteName: settings.siteName
+      },
       timestamp: new Date().toISOString(),
     });
   } catch (error) {

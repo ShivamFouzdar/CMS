@@ -1,6 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Quote, ArrowLeft, Plus } from 'lucide-react';
-import { fadeIn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { Link } from 'react-router-dom';
 import { reviewsService, Review } from '@/services/reviewsService';
@@ -11,9 +10,9 @@ const StarRating = ({ rating }: { rating: number }) => {
   return (
     <div className="flex">
       {[1, 2, 3, 4, 5].map((star) => (
-        <Star 
-          key={star} 
-          className={`w-4 h-4 ${star <= rating ? 'text-purple-400 fill-current' : 'text-gray-300'}`} 
+        <Star
+          key={star}
+          className={`w-4 h-4 ${star <= rating ? 'text-purple-400 fill-current' : 'text-gray-300'}`}
         />
       ))}
     </div>
@@ -28,9 +27,8 @@ export function Reviews() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
-        const reviewsData = await reviewsService.getAllReviews();
-        setReviews(reviewsData);
+        const response = await reviewsService.getReviews();
+        setReviews(response.data || []);
       } catch (error) {
         console.error('Error fetching reviews:', error);
         setReviews([]);
@@ -46,8 +44,8 @@ export function Reviews() {
     // Refresh reviews after submission
     const fetchData = async () => {
       try {
-        const reviewsData = await reviewsService.getAllReviews();
-        setReviews(reviewsData);
+        const response = await reviewsService.getReviews();
+        setReviews(response.data || []);
       } catch (error) {
         console.error('Error fetching reviews:', error);
       }
@@ -84,7 +82,7 @@ export function Reviews() {
 
       <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-8 sm:py-12">
         {/* Reviews Count and Submit Button */}
-        <motion.div 
+        <motion.div
           className="mb-8 sm:mb-12"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -107,7 +105,7 @@ export function Reviews() {
 
         {/* Reviews Grid */}
         {reviews.length === 0 ? (
-          <motion.div 
+          <motion.div
             className="text-center py-12"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -134,19 +132,21 @@ export function Reviews() {
                   <Quote className="w-8 h-8 text-purple-100 absolute -top-2 -left-2" />
                   <Quote className="w-6 h-6 text-purple-400 relative z-10" />
                 </div>
-                
-                <p className="text-gray-600 text-sm mb-4 leading-relaxed">"{review.content}"</p>
-                
+
+                <p className="text-gray-600 text-sm mb-4 leading-relaxed break-words">"{review.content}"</p>
+
                 <div className="flex items-center justify-between mb-4">
                   <StarRating rating={review.rating} />
-                  <span className="text-xs text-gray-400">{review.date}</span>
+                  <span className="text-xs text-gray-400">
+                    {new Date(review.date || (review as any).createdAt).toLocaleDateString()}
+                  </span>
                 </div>
-                
+
                 <div className="flex items-center">
                   <div className="w-12 h-12 rounded-full bg-gray-100 p-1 mr-4 flex-shrink-0">
                     <div className="bg-white w-full h-full rounded-full overflow-hidden">
-                      <img 
-                        src={review.image} 
+                      <img
+                        src={review.image}
                         alt={review.name}
                         className="w-full h-full object-cover"
                         onError={(e) => {
@@ -170,13 +170,13 @@ export function Reviews() {
         )}
 
         {/* Load More Button */}
-        <motion.div 
+        <motion.div
           className="text-center mt-12"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
-          <Button 
+          <Button
             size="lg"
             className="bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white px-8 py-4 text-sm font-medium rounded-lg transition-all duration-300 transform hover:scale-105"
           >
@@ -199,7 +199,7 @@ export function Reviews() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
               className="max-w-2xl w-full max-h-[90vh] overflow-y-auto"
             >
               <ReviewForm

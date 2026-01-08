@@ -27,6 +27,10 @@ export class JWTConfig {
     this.secret = process.env['JWT_SECRET'] || 'your-secret-key-change-in-production';
     this.expiresIn = process.env['JWT_EXPIRES_IN'] || '7d';
     this.refreshExpiresIn = process.env['JWT_REFRESH_EXPIRES_IN'] || '30d';
+
+    if (process.env['NODE_ENV'] === 'production' && this.secret === 'your-secret-key-change-in-production') {
+      throw new Error('FATAL: JWT_SECRET is not defined in production environment!');
+    }
   }
 
   static getSecret(): string {
@@ -119,12 +123,12 @@ export const decodeToken = (token: string): JWTPayload | null => {
  */
 export const extractTokenFromHeader = (authHeader?: string): string | null => {
   if (!authHeader) return null;
-  
+
   const parts = authHeader.split(' ');
   if (parts.length !== 2 || parts[0] !== 'Bearer') {
     return null;
   }
-  
+
   return parts[1] || null;
 };
 

@@ -8,7 +8,7 @@ export const asyncHandler = (fn: AsyncHandler) => {
 };
 
 export const createError = (message: string, statusCode: number = 500) => {
-  const error = new Error(message) as any;
+  const error: any = new Error(message);
   error.statusCode = statusCode;
   error.isOperational = true;
   return error;
@@ -25,7 +25,16 @@ export const validatePhone = (phone: string): boolean => {
 };
 
 export const sanitizeInput = (input: string): string => {
-  return input.trim().replace(/[<>]/g, '');
+  if (!input) return '';
+  // Remove script tags and html entity encode special chars
+  return input
+    .trim()
+    .replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;")
+    .replace(/\//g, "&#x2F;");
 };
 
 export const generateId = (): string => {

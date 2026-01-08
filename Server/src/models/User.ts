@@ -4,6 +4,55 @@ import bcrypt from 'bcryptjs';
 /**
  * User Model
  * Represents admin users and system administrators
+ * 
+ * @swagger
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       required:
+ *         - firstName
+ *         - lastName
+ *         - email
+ *         - role
+ *       properties:
+ *         _id:
+ *           type: string
+ *         firstName:
+ *           type: string
+ *         lastName:
+ *           type: string
+ *         email:
+ *           type: string
+ *           format: email
+ *         role:
+ *           type: string
+ *           enum: [admin, moderator, viewer]
+ *         isActive:
+ *           type: boolean
+ *         isEmailVerified:
+ *           type: boolean
+ *         lastLoginAt:
+ *           type: string
+ *           format: date-time
+ *         profile:
+ *           type: object
+ *           properties:
+ *             avatar: { type: string }
+ *             phone: { type: string }
+ *             department: { type: string }
+ *             bio: { type: string }
+ *         preferences:
+ *           type: object
+ *           properties:
+ *             theme: { type: string, enum: [light, dark, auto] }
+ *             language: { type: string }
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
  */
 
 export interface IUser extends Document {
@@ -11,7 +60,7 @@ export interface IUser extends Document {
   lastName: string;
   email: string;
   password: string;
-  role: 'admin' | 'moderator' | 'viewer';
+  role: 'super_admin' | 'admin' | 'moderator' | 'viewer';
   isActive: boolean;
   isEmailVerified: boolean;
   lastLoginAt?: Date;
@@ -28,6 +77,12 @@ export interface IUser extends Document {
       email: boolean;
       sms: boolean;
       push: boolean;
+      alerts: {
+        jobApplications: boolean;
+        inquiries: boolean;
+        reviews: boolean;
+        systemAlerts: boolean;
+      };
     };
     theme: 'light' | 'dark' | 'auto';
     language: string;
@@ -42,7 +97,7 @@ export interface IUser extends Document {
   permissions: string[];
   createdAt: Date;
   updatedAt: Date;
-  
+
   // Instance methods
   comparePassword(candidatePassword: string): Promise<boolean>;
   incLoginAttempts(): Promise<void>;
@@ -100,7 +155,7 @@ const userSchema = new Schema<IUser>({
   },
   role: {
     type: String,
-    enum: ['admin', 'moderator', 'viewer'],
+    enum: ['super_admin', 'admin', 'moderator', 'viewer'],
     default: 'viewer'
   },
   isActive: {
@@ -159,6 +214,12 @@ const userSchema = new Schema<IUser>({
       push: {
         type: Boolean,
         default: true
+      },
+      alerts: {
+        jobApplications: { type: Boolean, default: true },
+        inquiries: { type: Boolean, default: true },
+        reviews: { type: Boolean, default: true },
+        systemAlerts: { type: Boolean, default: true }
       }
     },
     theme: {
@@ -218,22 +279,22 @@ userSchema.index({ isActive: 1 });
 userSchema.index({ createdAt: -1 });
 
 // Virtual for full name
-userSchema.virtual('fullName').get(function() {
+userSchema.virtual('fullName').get(function () {
   return `${this['firstName']} ${this['lastName']}`;
 });
 
 // Virtual for account locked status
-userSchema.virtual('isLocked').get(function() {
+userSchema.virtual('isLocked').get(function () {
   return !!(this['lockUntil'] && this['lockUntil'] > new Date());
 });
 
 // Virtual for display name
-userSchema.virtual('displayName').get(function() {
+userSchema.virtual('displayName').get(function () {
   return `${this['firstName']} ${this['lastName']}`;
 });
 
 // Pre-save middleware to hash password
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
   // Only hash the password if it has been modified (or is new)
   if (!this.isModified('password')) return next();
 
@@ -248,18 +309,18 @@ userSchema.pre('save', async function(next) {
 });
 
 // Pre-save middleware to update the updatedAt field
-userSchema.pre('save', function(next) {
+userSchema.pre('save', function (next) {
   this.updatedAt = new Date();
   next();
 });
 
 // Instance method to compare password
-userSchema.methods['comparePassword'] = async function(candidatePassword: string): Promise<boolean> {
+userSchema.methods['comparePassword'] = async function (candidatePassword: string): Promise<boolean> {
   return bcrypt.compare(candidatePassword, this['password']);
 };
 
 // Instance method to increment login attempts
-userSchema.methods['incLoginAttempts'] = function() {
+userSchema.methods['incLoginAttempts'] = function () {
   // If we have a previous lock that has expired, restart at 1
   if (this['lockUntil'] && this['lockUntil'] < new Date()) {
     return this['updateOne']({
@@ -269,7 +330,7 @@ userSchema.methods['incLoginAttempts'] = function() {
   }
 
   const updates: any = { $inc: { loginAttempts: 1 } };
-  
+
   // Lock account after 5 failed attempts for 2 hours
   if (this['loginAttempts'] + 1 >= 5 && !this['isLocked']) {
     updates.$set = { lockUntil: new Date(Date.now() + 2 * 60 * 60 * 1000) };
@@ -279,14 +340,14 @@ userSchema.methods['incLoginAttempts'] = function() {
 };
 
 // Instance method to reset login attempts
-userSchema.methods['resetLoginAttempts'] = function() {
+userSchema.methods['resetLoginAttempts'] = function () {
   return this['updateOne']({
     $unset: { loginAttempts: 1, lockUntil: 1 }
   });
 };
 
 // Instance method to update last login
-userSchema.methods['updateLastLogin'] = function() {
+userSchema.methods['updateLastLogin'] = function () {
   this['lastLoginAt'] = new Date();
   this['loginAttempts'] = 0;
   this['lockUntil'] = undefined;
@@ -294,42 +355,42 @@ userSchema.methods['updateLastLogin'] = function() {
 };
 
 // Instance method to activate user
-userSchema.methods['activate'] = function() {
+userSchema.methods['activate'] = function () {
   this['isActive'] = true;
   this['updatedAt'] = new Date();
   return this['save']();
 };
 
 // Instance method to deactivate user
-userSchema.methods['deactivate'] = function() {
+userSchema.methods['deactivate'] = function () {
   this['isActive'] = false;
   this['updatedAt'] = new Date();
   return this['save']();
 };
 
 // Instance method to verify email
-userSchema.methods['verifyEmail'] = function() {
+userSchema.methods['verifyEmail'] = function () {
   this['isEmailVerified'] = true;
   this['updatedAt'] = new Date();
   return this['save']();
 };
 
 // Instance method to update profile
-userSchema.methods['updateProfile'] = function(profileData: Partial<IUser['profile']>) {
+userSchema.methods['updateProfile'] = function (profileData: Partial<IUser['profile']>) {
   this['profile'] = { ...this['profile'], ...profileData };
   this['updatedAt'] = new Date();
   return this['save']();
 };
 
 // Instance method to update preferences
-userSchema.methods['updatePreferences'] = function(preferencesData: Partial<IUser['preferences']>) {
+userSchema.methods['updatePreferences'] = function (preferencesData: Partial<IUser['preferences']>) {
   this['preferences'] = { ...this['preferences'], ...preferencesData };
   this['updatedAt'] = new Date();
   return this['save']();
 };
 
 // Instance method to add permission
-userSchema.methods['addPermission'] = function(permission: string) {
+userSchema.methods['addPermission'] = function (permission: string) {
   if (!this['permissions'].includes(permission)) {
     this['permissions'].push(permission);
     this['updatedAt'] = new Date();
@@ -339,38 +400,38 @@ userSchema.methods['addPermission'] = function(permission: string) {
 };
 
 // Instance method to remove permission
-userSchema.methods['removePermission'] = function(permission: string) {
+userSchema.methods['removePermission'] = function (permission: string) {
   this['permissions'] = this['permissions'].filter((p: string) => p !== permission);
   this['updatedAt'] = new Date();
   return this['save']();
 };
 
 // Instance method to check permission
-userSchema.methods['hasPermission'] = function(permission: string): boolean {
-  return this['permissions'].includes(permission) || this['role'] === 'admin';
+userSchema.methods['hasPermission'] = function (permission: string): boolean {
+  return this['role'] === 'super_admin' || this['role'] === 'admin' || this['permissions'].includes(permission);
 };
 
 // Static method to find by email
-userSchema.statics['findByEmail'] = function(email: string) {
+userSchema.statics['findByEmail'] = function (email: string) {
   return this.findOne({ email: email.toLowerCase() });
 };
 
 // Static method to get active users
-userSchema.statics['getActive'] = function() {
+userSchema.statics['getActive'] = function () {
   return this.find({ isActive: true })
     .select('firstName lastName email role lastLoginAt createdAt')
     .sort({ createdAt: -1 });
 };
 
 // Static method to get users by role
-userSchema.statics['getByRole'] = function(role: string) {
+userSchema.statics['getByRole'] = function (role: string) {
   return this.find({ role, isActive: true })
     .select('firstName lastName email lastLoginAt createdAt')
     .sort({ createdAt: -1 });
 };
 
 // Static method to get user statistics
-userSchema.statics['getStats'] = async function() {
+userSchema.statics['getStats'] = async function () {
   const stats = await this.aggregate([
     {
       $group: {

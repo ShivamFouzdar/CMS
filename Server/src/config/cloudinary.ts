@@ -27,7 +27,7 @@ export const configureCloudinary = () => {
     api_secret: apiSecret as string,
     secure: true,
   });
-  
+
   console.log('✅ Cloudinary configured successfully');
   return cloudinary;
 };
@@ -41,8 +41,10 @@ export type CloudinaryUploadResult = {
   resource_type: string;
 };
 
+const baseFolder = process.env['CLOUDINARY_FOLDER_NAME'] || 'careermap';
+
 export const cloudinaryFolderNames = {
-  resumes: 'careermap/resumes',
+  resumes: `${baseFolder}/resumes`,
 } as const;
 
 

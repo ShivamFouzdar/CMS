@@ -1,447 +1,366 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { API_ENDPOINTS } from '@/config/api';
-import { Star, Search, Eye, EyeOff, Trash2, MessageSquare, CheckCircle, XCircle } from 'lucide-react';
+import {
+  Star, Trash2, MessageSquare,
+  CheckCircle, Eye, EyeOff, X, Award, ShieldCheck,
+  Activity
+} from 'lucide-react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
-import { useAuth } from '@/hooks/useAuth';
-import { useAsyncOperation } from '@/hooks/useAsyncOperation';
-import { handleApiError } from '@/utils/errorHandler';
-import { EmptyState } from '@/components/ui/EmptyState';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-
-interface Review {
-  _id: string;
-  name: string;
-  email: string;
-  role?: string;
-  content: string;
-  rating: number;
-  category: string;
-  isPublished: boolean;
-  isVerified: boolean;
-  isFeatured: boolean;
-  date: string;
-  createdAt: string;
-}
+import { reviewsService, Review } from '@/services/reviewsService';
+import { DataTable } from '@/components/common/DataTable';
+import { StatCard } from '@/components/ui/StatCard';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Reviews() {
-  const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const debouncedSearchTerm = useDebounce(searchTerm, 300); // Debounce search input
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [filterPublished, setFilterPublished] = useState<'all' | 'published' | 'pending'>('all');
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
-  const [showDetails, setShowDetails] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const { execute: fetchReviewsExecute, loading } = useAsyncOperation({
-    onSuccess: (data) => {
-      if (data && Array.isArray(data)) {
-        setReviews(data);
-      }
-    },
-  });
-
-  const fetchReviews = () => fetchReviewsExecute(async () => {
-    const token = localStorage.getItem('accessToken');
-    const response = await axios.get(
-      `${API_ENDPOINTS.reviews.all}?limit=100`,
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
-    );
-
-    if (response.data.success && response.data.data) {
-      const reviewsData = Array.isArray(response.data.data) ? response.data.data : [];
-      return reviewsData;
+  const fetchReviews = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await reviewsService.getAllReviews({
+        limit: 100,
+        search: debouncedSearchTerm,
+        status: filterPublished !== 'all' ? filterPublished : undefined
+      });
+      setReviews(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch reviews:', error);
+    } finally {
+      setLoading(false);
     }
-    return [];
-  });
+  }, [debouncedSearchTerm, filterPublished]);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    fetchReviews();
+  }, [fetchReviews]);
+
+  const handleStatusUpdate = async (reviewId: string, updates: any) => {
+    try {
+      await reviewsService.updateStatus(reviewId, updates);
       fetchReviews();
+      const id = selectedReview?.id || selectedReview?._id;
+      if (id === reviewId) {
+        const updated = await reviewsService.getReviewById(reviewId);
+        setSelectedReview(updated.data);
+      }
+    } catch (error) {
+      alert('Failed to update review status');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated]);
+  };
 
-  const { execute: updateStatusExecute } = useAsyncOperation({
-    onSuccess: () => {
-      fetchReviews();
-    },
-  });
-
-  const { execute: deleteReviewExecute } = useAsyncOperation({
-    onSuccess: () => {
-      fetchReviews();
-      if (selectedReview?._id) {
-        setSelectedReview(null);
-      }
-    },
-  });
-
-  const handleStatusUpdate = useCallback(async (reviewId: string, updates: Partial<{ isPublished: boolean; isVerified: boolean; isFeatured: boolean }>) => {
-    updateStatusExecute(async () => {
-      const token = localStorage.getItem('accessToken');
-      const url = API_ENDPOINTS.reviews.updateStatus(reviewId);
-      await axios.patch(
-        url,
-        updates,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-
-      // Update local state
-      setReviews(prev => prev.map(r => r._id === reviewId ? { ...r, ...updates } : r));
-      if (selectedReview?._id === reviewId) {
-        setSelectedReview(prev => prev ? { ...prev, ...updates } : null);
-      }
-    }).catch((error: unknown) => {
-      const errorInfo = handleApiError(error);
-      alert(errorInfo.message);
-    });
-  }, [updateStatusExecute, selectedReview]);
-
-  const handleDelete = useCallback(async (reviewId: string) => {
+  const handleDelete = async (reviewId: string) => {
     if (!confirm('Are you sure you want to delete this review?')) return;
+    try {
+      await reviewsService.deleteReview(reviewId);
+      fetchReviews();
+      const id = selectedReview?.id || selectedReview?._id;
+      if (id === reviewId) setSelectedReview(null);
+    } catch (error) {
+      alert('Failed to delete review');
+    }
+  };
 
-    deleteReviewExecute(async () => {
-      const token = localStorage.getItem('accessToken');
-      await axios.delete(
-        API_ENDPOINTS.reviews.delete(reviewId),
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+  const columns = [
+    {
+      header: 'Reviewer',
+      accessor: (rev: Review) => (
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 font-bold border border-purple-500/20">
+            {rev.name.charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <div className="font-bold text-slate-900 dark:text-white mb-0.5 transition-colors">{rev.name}</div>
+            <div className="text-xs text-slate-500 dark:text-slate-500">{rev.email}</div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      header: 'Rating',
+      accessor: (rev: Review) => (
+        <div className="flex items-center gap-1">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Star
+              key={i}
+              className={`w-3.5 h-3.5 ${i < rev.rating ? 'text-amber-400 fill-amber-400' : 'text-gray-300 dark:text-slate-700'}`}
+            />
+          ))}
+          <span className="ml-2 text-xs font-bold text-slate-500 dark:text-slate-400">{rev.rating}.0</span>
+        </div>
+      ),
+    },
+    {
+      header: 'Category',
+      accessor: (rev: Review) => (
+        <span className="text-slate-700 dark:text-slate-300 text-xs px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-slate-800/40 border border-gray-200 dark:border-white/5 transition-colors">
+          {rev.category}
+        </span>
+      ),
+    },
+    {
+      header: 'Status',
+      accessor: (rev: Review) => (
+        <div className="flex flex-wrap gap-2">
+          {rev.isPublished ? (
+            <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold uppercase tracking-tight">Published</span>
+          ) : (
+            <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-bold uppercase tracking-tight">Pending</span>
+          )}
+          {rev.isVerified && (
+            <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[10px] font-bold uppercase tracking-tight">Verified</span>
+          )}
+        </div>
+      ),
+    },
+    {
+      header: 'Date',
+      accessor: (rev: Review) => (
+        <span className="text-slate-400 text-xs">
+          {new Date(rev.date || rev.createdAt || '').toLocaleDateString()}
+        </span>
+      ),
+    },
+    {
+      header: 'Actions',
+      className: 'text-right',
+      accessor: (rev: Review) => {
+        const id = rev.id || rev._id || '';
+        return (
+          <div className="flex items-center justify-end gap-2">
+            <button
+              onClick={(e) => { e.stopPropagation(); setSelectedReview(rev); }}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-lg transition-colors"
+            >
+              <Eye className="w-4 h-4" />
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); handleDelete(id); }}
+              className="p-2 hover:bg-rose-500/10 text-rose-400 rounded-lg transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        );
+      },
+    },
+  ];
 
-      setReviews(prev => prev.filter(r => r._id !== reviewId));
-      if (selectedReview?._id === reviewId) {
-        setShowDetails(false);
-        setSelectedReview(null);
-      }
-    }).catch((error: unknown) => {
-      const errorInfo = handleApiError(error);
-      alert(errorInfo.message);
-    });
-  }, [deleteReviewExecute, selectedReview]);
-
-  // Memoize filtered reviews to avoid recalculating on every render
-  // Use debounced search term for better performance
-  const filteredReviews = useMemo(() => {
-    return reviews.filter(review => {
-      const lowerSearchTerm = debouncedSearchTerm.toLowerCase();
-      const matchesSearch = review.name.toLowerCase().includes(lowerSearchTerm) ||
-        review.email.toLowerCase().includes(lowerSearchTerm) ||
-        review.content.toLowerCase().includes(lowerSearchTerm);
-
-      let matchesFilter = true;
-      if (filterPublished === 'published') {
-        matchesFilter = review.isPublished === true;
-      } else if (filterPublished === 'pending') {
-        matchesFilter = review.isPublished === false;
-      }
-
-      return matchesSearch && matchesFilter;
-    });
-  }, [reviews, debouncedSearchTerm, filterPublished]);
-
-  // Memoize stats calculation
-  const stats = useMemo(() => {
-    return {
-      total: reviews.length,
-      published: reviews.filter(r => r.isPublished).length,
-      pending: reviews.filter(r => !r.isPublished).length,
-      verified: reviews.filter(r => r.isVerified).length,
-    };
-  }, [reviews]);
-
-  if (loading) {
-    return (
-      <AdminLayout>
-        <LoadingSpinner size="lg" fullScreen />
-      </AdminLayout>
-    );
-  }
+  const stats = useMemo(() => ({
+    total: reviews.length,
+    published: reviews.filter(r => r.isPublished).length,
+    pending: reviews.filter(r => !r.isPublished).length,
+    verified: reviews.filter(r => r.isVerified).length,
+  }), [reviews]);
 
   return (
     <AdminLayout>
-      <div className="p-4 sm:p-6 lg:p-8">
-        {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Reviews Management</h1>
-          <p className="text-gray-600 mt-2">Manage customer testimonials and reviews</p>
+      <div className="p-4 sm:p-6 lg:p-10 space-y-6 sm:space-y-8 lg:space-y-10">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6">
+          <div className="space-y-1">
+            <h1 className="text-2xl sm:text-3xl font-bold font-display text-slate-900 dark:text-white transition-colors">Trust & Feedback</h1>
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium transition-colors">Moderating user reviews and client testimonials for the platform.</p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search reviews..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-white dark:bg-slate-800/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 text-sm text-slate-900 dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500/20 sm:w-64 transition-all"
+              />
+            </div>
+            <select
+              value={filterPublished}
+              onChange={(e) => setFilterPublished(e.target.value as any)}
+              className="bg-white dark:bg-slate-800/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 text-sm text-slate-900 dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium"
+            >
+              <option value="all">All Status</option>
+              <option value="published">Published</option>
+              <option value="pending">Pending</option>
+            </select>
+          </div>
         </div>
 
-        <div className="max-w-7xl mx-auto">
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white rounded-lg shadow p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Reviews</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">{stats.total}</p>
-                </div>
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <MessageSquare className="w-5 h-5 text-blue-600" />
-                </div>
-              </div>
-            </div>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+          <StatCard
+            title="Total Reviews"
+            value={stats.total}
+            icon={MessageSquare}
+            gradient="blue"
+          />
+          <StatCard
+            title="Published"
+            value={stats.published}
+            icon={Activity}
+            gradient="green"
+          />
+          <StatCard
+            title="Pending Approval"
+            value={stats.pending}
+            icon={EyeOff}
+            gradient="yellow"
+          />
+          <StatCard
+            title="Verified Users"
+            value={stats.verified}
+            icon={Award}
+            gradient="purple"
+          />
+        </div>
 
-            <div className="bg-white rounded-lg shadow p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Published</p>
-                  <p className="text-2xl font-bold text-green-600 mt-1">{stats.published}</p>
-                </div>
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <Eye className="w-5 h-5 text-green-600" />
-                </div>
-              </div>
-            </div>
+        {/* Reviews Table */}
+        <DataTable
+          title="Review Log"
+          description="A moderation queue for all customer feedback."
+          columns={columns as any}
+          data={reviews}
+          loading={loading}
+          onRowClick={(rev) => setSelectedReview(rev)}
+        />
 
-            <div className="bg-white rounded-lg shadow p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Pending</p>
-                  <p className="text-2xl font-bold text-yellow-600 mt-1">{stats.pending}</p>
-                </div>
-                <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                  <EyeOff className="w-5 h-5 text-yellow-600" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Verified</p>
-                  <p className="text-2xl font-bold text-purple-600 mt-1">{stats.verified}</p>
-                </div>
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <CheckCircle className="w-5 h-5 text-purple-600" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Filters */}
-          <div className="bg-white rounded-lg shadow p-4 mb-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Search by name, email, or content..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                />
-              </div>
-              <div className="flex gap-2">
-                <select
-                  value={filterPublished}
-                  onChange={(e) => setFilterPublished(e.target.value as any)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                >
-                  <option value="all">All Reviews</option>
-                  <option value="published">Published</option>
-                  <option value="pending">Pending</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Reviews List */}
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredReviews.map((review) => (
-                    <tr key={review._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{review.name}</div>
-                        <div className="text-sm text-gray-500">{review.role}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <Star
-                              key={star}
-                              className={`w-4 h-4 ${star <= review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
-                            />
-                          ))}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{review.category}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex gap-2">
-                          {review.isPublished ? (
-                            <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Published</span>
-                          ) : (
-                            <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">Pending</span>
-                          )}
-                          {review.isVerified && (
-                            <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">Verified</span>
-                          )}
-                          {review.isFeatured && (
-                            <span className="px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded-full">Featured</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(review.date || review.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex justify-end gap-2">
-                          <button
-                            onClick={() => {
-                              setSelectedReview(review);
-                              setShowDetails(true);
-                            }}
-                            className="text-blue-600 hover:text-blue-900"
-                          >
-                            View
-                          </button>
-                          {!review.isPublished && (
-                            <button
-                              onClick={() => handleStatusUpdate(review._id, { isPublished: true })}
-                              className="text-green-600 hover:text-green-900"
-                            >
-                              Publish
-                            </button>
-                          )}
-                          <button
-                            onClick={() => handleDelete(review._id)}
-                            className="text-red-600 hover:text-red-900"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {filteredReviews.length === 0 && (
-              <tbody>
-                <EmptyState
-                  icon={MessageSquare}
-                  title="No reviews found"
-                  description="Try adjusting your search or filter criteria."
-                  colSpan={6}
-                />
-              </tbody>
-            )}
-          </div>
-
-          {/* Review Details Modal */}
-          {showDetails && selectedReview && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-              <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold text-gray-900">Review Details</h2>
-                    <button
-                      onClick={() => setShowDetails(false)}
-                      className="text-gray-400 hover:text-gray-600"
-                    >
-                      <XCircle className="w-6 h-6" />
-                    </button>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="font-semibold text-gray-700">Name</h3>
-                      <p className="text-gray-900">{selectedReview.name}</p>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-700">Email</h3>
-                      <p className="text-gray-900">{selectedReview.email}</p>
-                    </div>
-                    {selectedReview.role && (
-                      <div>
-                        <h3 className="font-semibold text-gray-700">Role</h3>
-                        <p className="text-gray-900">{selectedReview.role}</p>
-                      </div>
-                    )}
-                    <div>
-                      <h3 className="font-semibold text-gray-700">Rating</h3>
-                      <div className="flex">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star
-                            key={star}
-                            className={`w-6 h-6 ${star <= selectedReview.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-700">Category</h3>
-                      <p className="text-gray-900">{selectedReview.category}</p>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-700">Review Content</h3>
-                      <p className="text-gray-900">{selectedReview.content}</p>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-700">Submitted</h3>
-                      <p className="text-gray-900">
-                        {new Date(selectedReview.date || selectedReview.createdAt).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 flex gap-3">
-                    <button
-                      onClick={() => handleStatusUpdate(selectedReview._id, { isPublished: !selectedReview.isPublished })}
-                      className={`flex-1 px-4 py-2 rounded-lg font-medium ${selectedReview.isPublished
-                          ? 'bg-yellow-600 text-white hover:bg-yellow-700'
-                          : 'bg-green-600 text-white hover:bg-green-700'
-                        }`}
-                    >
-                      {selectedReview.isPublished ? 'Unpublish' : 'Publish'}
-                    </button>
-                    <button
-                      onClick={() => handleStatusUpdate(selectedReview._id, { isVerified: !selectedReview.isVerified })}
-                      className={`flex-1 px-4 py-2 rounded-lg font-medium ${selectedReview.isVerified
-                          ? 'bg-gray-600 text-white hover:bg-gray-700'
-                          : 'bg-blue-600 text-white hover:bg-blue-700'
-                        }`}
-                    >
-                      {selectedReview.isVerified ? 'Unverify' : 'Verify'}
-                    </button>
-                    <button
-                      onClick={() => handleStatusUpdate(selectedReview._id, { isFeatured: !selectedReview.isFeatured })}
-                      className={`flex-1 px-4 py-2 rounded-lg font-medium ${selectedReview.isFeatured
-                          ? 'bg-gray-600 text-white hover:bg-gray-700'
-                          : 'bg-purple-600 text-white hover:bg-purple-700'
-                        }`}
-                    >
-                      {selectedReview.isFeatured ? 'Unfeature' : 'Feature'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+        {/* Detail Modal */}
+        <AnimatePresence>
+          {selectedReview && (
+            <ReviewModal
+              review={selectedReview}
+              onClose={() => setSelectedReview(null)}
+              onStatusUpdate={handleStatusUpdate}
+              onDelete={handleDelete}
+            />
           )}
-        </div>
+        </AnimatePresence>
       </div>
     </AdminLayout>
   );
 }
 
+function ReviewModal({ review, onClose, onStatusUpdate, onDelete }: any) {
+  const id = review.id || review._id;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-white/10 w-full max-w-2xl rounded-3xl shadow-2xl relative overflow-hidden z-10"
+      >
+        <div className="bg-gray-50/50 dark:bg-white/[0.02] p-6 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-600 dark:text-purple-400">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <h3 className="text-xl font-bold font-display text-slate-900 dark:text-white transition-colors">Review Moderation</h3>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full text-slate-400 dark:text-slate-500 transition-colors">
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="p-8 space-y-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-2xl font-bold text-white shadow-lg shadow-purple-500/30">
+                {review.name.charAt(0).toUpperCase()}
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-2xl font-bold text-slate-900 dark:text-white transition-colors">{review.name}</h4>
+                <div className="flex items-center gap-3 text-slate-600 dark:text-slate-400 text-sm transition-colors">
+                  <span>{review.email}</span>
+                  <span className="w-1.5 h-1.5 bg-gray-300 dark:bg-slate-700 rounded-full" />
+                  <span>{review.role || 'Verified Customer'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-4 bg-gray-50/50 dark:bg-slate-800/40 rounded-2xl border border-gray-100 dark:border-white/5 transition-colors">
+              <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-2">Customer Rating</p>
+              <div className="flex gap-1">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`w-5 h-5 ${i < review.rating ? 'text-amber-400 fill-amber-400' : 'text-gray-300 dark:text-slate-700'}`}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="p-4 bg-gray-50/50 dark:bg-slate-800/40 rounded-2xl border border-gray-100 dark:border-white/5 transition-colors">
+              <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-2">Category</p>
+              <p className="text-slate-900 dark:text-white font-bold transition-colors">{review.category}</p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Review Transcript</label>
+            <div className="p-6 bg-gray-50/50 dark:bg-slate-800/40 rounded-2xl border border-gray-100 dark:border-white/5 text-slate-700 dark:text-slate-300 text-sm leading-relaxed italic break-words transition-colors">
+              "{review.content}"
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-gray-50/50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 transition-colors">
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-lg ${review.isPublished ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'}`}>
+                {review.isPublished ? <CheckCircle className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 uppercase font-bold">Visibility Status</p>
+                <p className="text-sm font-bold text-slate-900 dark:text-white transition-colors">{review.isPublished ? 'Live on Site' : 'Hidden / Pending'}</p>
+              </div>
+            </div>
+            <div className="text-right text-xs text-slate-500">
+              Submitted: {new Date(review.date || review.createdAt || '').toLocaleDateString()}
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 bg-gray-50/50 dark:bg-white/[0.02] border-t border-gray-100 dark:border-white/5 flex items-center justify-between gap-3 overflow-x-auto">
+          <button
+            onClick={() => onDelete(id)}
+            className="text-sm text-rose-600 dark:text-rose-500 hover:text-rose-700 dark:hover:text-rose-400 font-bold px-4 py-2 transition-colors shrink-0"
+          >
+            Delete Review
+          </button>
+
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              onClick={() => onStatusUpdate(id, { isVerified: !review.isVerified })}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${review.isVerified ? 'bg-indigo-500/20 border-indigo-500/30 text-indigo-600 dark:text-indigo-400' : 'bg-white dark:bg-white/5 border-gray-200 dark:border-white/5 text-slate-500 dark:text-slate-400'}`}
+            >
+              {review.isVerified ? 'Unverify' : 'Verify Reviewer'}
+            </button>
+            <button
+              onClick={() => onStatusUpdate(id, { isFeatured: !review.isFeatured })}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${review.isFeatured ? 'bg-purple-500/20 border-purple-500/30 text-purple-600 dark:text-purple-400' : 'bg-white dark:bg-white/5 border-gray-200 dark:border-white/5 text-slate-500 dark:text-slate-400'}`}
+            >
+              {review.isFeatured ? 'Unfeature' : 'Feature Review'}
+            </button>
+            <button
+              onClick={() => onStatusUpdate(id, { isPublished: !review.isPublished })}
+              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${review.isPublished ? 'bg-amber-500/10 text-amber-600 dark:text-amber-500 border border-amber-500/20 hover:bg-amber-500/20' : 'premium-button'}`}
+            >
+              {review.isPublished ? 'Unpublish' : 'Publish to Site'}
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}

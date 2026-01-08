@@ -12,9 +12,9 @@ const StarRating = ({ rating }: { rating: number }) => {
   return (
     <div className="flex">
       {[1, 2, 3, 4, 5].map((star) => (
-        <Star 
-          key={star} 
-          className={`w-5 h-5 ${star <= rating ? 'text-purple-400 fill-current' : 'text-gray-400'}`} 
+        <Star
+          key={star}
+          className={`w-5 h-5 ${star <= rating ? 'text-purple-400 fill-current' : 'text-gray-400'}`}
         />
       ))}
     </div>
@@ -42,7 +42,7 @@ export function ReviewModal({ isOpen, onClose, review }: ReviewModalProps) {
             exit={{ opacity: 0 }}
             onClick={onClose}
           />
-          
+
           {/* Modal Content */}
           <motion.div
             className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden"
@@ -56,8 +56,8 @@ export function ReviewModal({ isOpen, onClose, review }: ReviewModalProps) {
               <div className="flex items-center space-x-3">
                 <div className="w-12 h-12 rounded-full bg-gray-100 p-1">
                   <div className="bg-white w-full h-full rounded-full overflow-hidden">
-                    <img 
-                      src={review.image} 
+                    <img
+                      src={review.image}
                       alt={review.name}
                       className="w-full h-full object-cover"
                       onError={(e) => {
@@ -87,13 +87,13 @@ export function ReviewModal({ isOpen, onClose, review }: ReviewModalProps) {
                   <StarRating rating={review.rating} />
                   <span className="ml-2 text-sm text-gray-600">{review.rating}/5 stars</span>
                 </div>
-                
+
                 <div className="relative">
                   <Quote className="w-8 h-8 text-purple-100 absolute -top-2 -left-2" />
                   <Quote className="w-6 h-6 text-purple-400 relative z-10" />
                 </div>
-                
-                <blockquote className="text-gray-700 text-base leading-relaxed mt-4 pl-6">
+
+                <blockquote className="text-gray-700 text-base leading-relaxed mt-4 pl-6 break-words">
                   "{review.content}"
                 </blockquote>
               </div>

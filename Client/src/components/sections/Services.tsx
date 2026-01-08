@@ -1,13 +1,16 @@
 "use client"
 
-import { Briefcase, Scale, BarChart3, ArrowRight, Check, Code, UserPlus, Megaphone, Sparkles } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Briefcase, Scale, BarChart3, ArrowRight, Check, Code, UserPlus, Megaphone, Sparkles, Headphones } from "lucide-react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/Button"
 import { fadeIn } from "@/lib/utils"
 import Ballpit from "@/components/ui/Ballpit"
+import { servicesService } from "@/services/servicesService"
 
-const services = [
+const servicesData = [
   {
+    slug: "bpo",
     icon: <Briefcase className="w-6 h-6 text-white" />,
     title: "BPO Services",
     description: "Comprehensive business process outsourcing solutions to streamline your operations and reduce costs.",
@@ -22,6 +25,7 @@ const services = [
     bgGradient: "from-blue-50 to-cyan-50",
   },
   {
+    slug: "kpo",
     icon: <BarChart3 className="w-6 h-6 text-white" />,
     title: "KPO Services",
     description: "Knowledge process outsourcing for research, analysis, and intellectual property solutions.",
@@ -36,6 +40,7 @@ const services = [
     bgGradient: "from-purple-50 to-pink-50",
   },
   {
+    slug: "legal",
     icon: <Scale className="w-6 h-6 text-white" />,
     title: "Legal Services",
     description: "Expert legal support and documentation services for businesses of all sizes.",
@@ -50,6 +55,7 @@ const services = [
     bgGradient: "from-indigo-50 to-purple-50",
   },
   {
+    slug: "recruitment",
     icon: <UserPlus className="w-6 h-6 text-white" />,
     title: "Recruitment",
     description: "Comprehensive talent acquisition and HR solutions to build high-performing teams.",
@@ -64,6 +70,7 @@ const services = [
     bgGradient: "from-emerald-50 to-teal-50",
   },
   {
+    slug: "it",
     icon: <Code className="w-6 h-6 text-white" />,
     title: "IT Services",
     description: "Full-stack development services for modern web applications and digital solutions.",
@@ -78,6 +85,7 @@ const services = [
     bgGradient: "from-violet-50 to-purple-50",
   },
   {
+    slug: "brand-promotion",
     icon: <Megaphone className="w-6 h-6 text-white" />,
     title: "Brand Promotion & Marketing",
     description: "Build a strong professional identity with comprehensive branding and marketing solutions.",
@@ -91,6 +99,21 @@ const services = [
     gradient: "from-orange-500 to-pink-500",
     bgGradient: "from-orange-50 to-pink-50",
   },
+  {
+    slug: "support",
+    icon: <Headphones className="w-6 h-6 text-white" />,
+    title: "Customer Support",
+    description: "24/7 round-the-clock customer assistance across multiple channels to keep your customers happy.",
+    features: [
+      "24/7 Availability",
+      "Multi-channel Support",
+      "AI-Powered Chatbots",
+      "Global Coverage",
+    ],
+    href: "/services/support",
+    gradient: "from-indigo-500 to-blue-500",
+    bgGradient: "from-indigo-50 to-blue-50",
+  },
 ]
 
 interface ServicesProps {
@@ -98,6 +121,37 @@ interface ServicesProps {
 }
 
 export function Services({ showAll = false }: ServicesProps) {
+  const [services, setServices] = useState(servicesData)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchVisibility = async () => {
+      try {
+        const response = await servicesService.getActiveServices()
+        if (response.success) {
+          const activeSlugs = response.data
+            .filter((s: any) => s.isActive)
+            .map((s: any) => s.slug)
+
+          setServices(servicesData.filter(service => activeSlugs.includes(service.slug)))
+        }
+      } catch (error) {
+        console.error('Failed to sync services visibility:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchVisibility()
+  }, [])
+
+  if (isLoading) {
+    return (
+      <div className="py-20 flex justify-center items-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      </div>
+    )
+  }
+
   return (
     <section
       id="services"
@@ -134,14 +188,14 @@ export function Services({ showAll = false }: ServicesProps) {
               <Sparkles className="w-4 h-4 text-purple-600" />
               <span className="text-sm font-semibold text-purple-700 uppercase tracking-wider">Our Services</span>
             </motion.div>
-            
+
             <motion.h2
               variants={fadeIn('up', 0.3)}
               className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6 bg-gradient-to-r from-gray-900 via-purple-900 to-gray-900 bg-clip-text text-transparent leading-tight"
             >
               Comprehensive Business Solutions
             </motion.h2>
-            
+
             <motion.p
               variants={fadeIn('up', 0.4)}
               className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed"
@@ -156,21 +210,21 @@ export function Services({ showAll = false }: ServicesProps) {
           {/* Mobile: Horizontal scrollable container */}
           <div className="md:hidden overflow-x-auto scrollbar-hide overscroll-x-contain touch-pan-x pb-4 -mx-4 px-4" style={{ WebkitOverflowScrolling: 'touch' }}>
             <div className="flex gap-4" style={{ width: 'max-content' }}>
-              {services.slice(0, showAll ? services.length : 3).map((service, index) => (
+              {services.slice(0, showAll ? services.length : 3).map((service) => (
                 <motion.div
                   key={service.title}
                   className="group relative flex-shrink-0"
                   initial="hidden"
                   whileInView="show"
                   viewport={{ once: true, margin: "-50px" }}
-                  variants={fadeIn("up", 0.1 * index)}
+                  variants={fadeIn("up", 0)}
                   style={{ width: '85vw', maxWidth: '380px', minWidth: '320px' }}
                 >
                   {/* Card with modern design */}
                   <div className="relative h-full bg-white rounded-2xl p-6 border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden w-full">
                     {/* Gradient Background on Hover */}
                     <div className={`absolute inset-0 bg-gradient-to-br ${service.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
-                    
+
                     {/* Icon with Gradient Background */}
                     <div className={`relative mb-6 w-16 h-16 rounded-2xl bg-gradient-to-br ${service.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
                       {service.icon}
@@ -182,7 +236,7 @@ export function Services({ showAll = false }: ServicesProps) {
                       <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-blue-600 transition-all duration-300">
                         {service.title}
                       </h3>
-                      
+
                       <p className="text-gray-600 mb-6 leading-relaxed line-clamp-3">
                         {service.description}
                       </p>
@@ -218,20 +272,20 @@ export function Services({ showAll = false }: ServicesProps) {
 
           {/* Desktop: Grid layout */}
           <div className="hidden md:contents">
-            {services.slice(0, showAll ? services.length : 3).map((service, index) => (
+            {services.slice(0, showAll ? services.length : 3).map((service) => (
               <motion.div
                 key={service.title}
                 className="group relative"
                 initial="hidden"
                 whileInView="show"
                 viewport={{ once: true, margin: "-50px" }}
-                variants={fadeIn("up", 0.1 * index)}
+                variants={fadeIn("up", 0)}
               >
                 {/* Card with modern design */}
                 <div className="relative h-full bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden">
                   {/* Gradient Background on Hover */}
                   <div className={`absolute inset-0 bg-gradient-to-br ${service.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
-                  
+
                   {/* Icon with Gradient Background */}
                   <div className={`relative mb-6 w-16 h-16 rounded-2xl bg-gradient-to-br ${service.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
                     {service.icon}
@@ -240,10 +294,10 @@ export function Services({ showAll = false }: ServicesProps) {
 
                   {/* Content */}
                   <div className="relative z-10">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-blue-600 transition-all duration-300">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 transition-all duration-300">
                       {service.title}
                     </h3>
-                    
+
                     <p className="text-gray-600 mb-6 leading-relaxed line-clamp-3">
                       {service.description}
                     </p>
@@ -308,7 +362,7 @@ export function Services({ showAll = false }: ServicesProps) {
             {/* Ballpit Background */}
             <div className="absolute inset-0 w-full h-full">
               <Ballpit
-                count={200}
+                count={80}
                 gravity={0.7}
                 friction={0.8}
                 wallBounce={0.95}
@@ -317,7 +371,7 @@ export function Services({ showAll = false }: ServicesProps) {
                 className="opacity-30"
               />
             </div>
-            
+
             {/* Content Overlay */}
             <div className="relative z-10 flex items-center justify-center min-h-[400px] sm:min-h-[500px] p-6 sm:p-12 md:p-16 lg:p-20">
               <div className="text-center max-w-3xl mx-auto px-4">

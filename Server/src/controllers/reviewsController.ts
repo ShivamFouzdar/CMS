@@ -1,130 +1,179 @@
 import { Request, Response } from 'express';
 import { asyncHandler, createError } from '@/utils/helpers';
-import { ApiResponse } from '@/types';
-import * as reviewsService from '@/services/reviewsService';
+import { sendSuccess } from '@/utils/response.utils';
+import { ReviewService, ReviewFilters } from '@/services/review.service';
 
 /**
  * Reviews Controller
  * Handles testimonials and reviews management
  */
 
+// Initialize Service
+const reviewService = new ReviewService();
+
 /**
- * Get all published reviews
- * GET /api/reviews
+ * @swagger
+ * tags:
+ *   name: Reviews
+ *   description: Testimonials and Customer Reviews
+ */
+
+/**
+ * @swagger
+ * /api/reviews:
+ *   get:
+ *     summary: Get all published reviews
+ *     tags: [Reviews]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 10 }
+ *       - in: query
+ *         name: rating
+ *         schema: { type: integer, minimum: 1, maximum: 5 }
+ *       - in: query
+ *         name: category
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: List of reviews retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Review'
  */
 export const getReviews = asyncHandler(async (req: Request, res: Response) => {
-  const { 
-    page = '1', 
-    limit = '10', 
-    category, 
-    rating, 
+  const {
+    page = '1',
+    limit = '10',
+    category,
+    rating,
     search,
     sort = 'date',
     order = 'desc',
     isPublished = 'true'
   } = req.query;
 
-  const isPublishedStr = isPublished?.toString();
-  const isPublishedValue = isPublishedStr === 'true';
-
-  const filters: reviewsService.ReviewFilters = {
+  const filters: ReviewFilters = {
     page: parseInt(page.toString()),
     limit: parseInt(limit.toString()),
     category: category?.toString(),
     rating: rating ? parseInt(rating.toString()) : undefined,
     search: search?.toString(),
     sort: sort.toString(),
-    order: order.toString() as 'asc' | 'desc',
-    isPublished: isPublishedValue
+    order: order.toString() as any,
+    isPublished: isPublished === 'true'
   };
 
-  const result = await reviewsService.getReviews(filters);
-  
-  const response: ApiResponse = {
-    success: true,
-    data: result.reviews,
-    message: `Retrieved ${result.reviews.length} reviews`,
-    meta: {
-      pagination: result.pagination
-    },
-    timestamp: new Date().toISOString(),
-  };
+  const result = await reviewService.getReviews(filters);
 
-  res.status(200).json(response);
+  return sendSuccess(res, `Retrieved ${result.reviews.length} reviews`, result.reviews);
 });
 
 /**
- * Get all reviews (including unpublished - Admin only)
- * GET /api/reviews/all
+ * @swagger
+ * /api/reviews/all:
+ *   get:
+ *     summary: Get all reviews (including unpublished - Admin only)
+ *     tags: [Reviews]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: All reviews retrieved
  */
 export const getAllReviewsAdmin = asyncHandler(async (req: Request, res: Response) => {
-  const { 
-    page = '1', 
-    limit = '10', 
-    category, 
-    rating, 
+  const {
+    page = '1',
+    limit = '10',
+    category,
+    rating,
     search,
     sort = 'createdAt',
     order = 'desc',
-    isPublished
+    isPublished,
+    status
   } = req.query;
 
-  const filters: reviewsService.ReviewFilters = {
+  const filters: ReviewFilters = {
     page: parseInt(page.toString()),
     limit: parseInt(limit.toString()),
     category: category?.toString(),
     rating: rating ? parseInt(rating.toString()) : undefined,
     search: search?.toString(),
     sort: sort.toString(),
-    order: order.toString() as 'asc' | 'desc',
+    order: order.toString() as any,
   };
 
   if (isPublished !== undefined) {
-    const isPublishedStr = isPublished.toString();
-    filters.isPublished = isPublishedStr === 'true';
+    filters.isPublished = isPublished === 'true';
+  } else if (status === 'published') {
+    filters.isPublished = true;
+  } else if (status === 'pending') {
+    filters.isPublished = false;
   }
 
-  const result = await reviewsService.getAllReviews(filters);
-  
-  const response: ApiResponse = {
-    success: true,
-    data: result.reviews,
-    message: `Retrieved ${result.reviews.length} reviews`,
-    meta: {
-      pagination: result.pagination
-    },
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  const result = await reviewService.getAllReviews(filters);
+  return sendSuccess(res, `Retrieved ${result.reviews.length} reviews`, result.reviews);
 });
 
 /**
- * Get review by ID
- * GET /api/reviews/:id
+ * @swagger
+ * /api/reviews/{id}:
+ *   get:
+ *     summary: Get review by ID
+ *     tags: [Reviews]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Review retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 data:
+ *                   $ref: '#/components/schemas/Review'
  */
 export const getReviewById = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  
+
   if (!id) {
     throw createError('Review ID is required', 400);
   }
-  
-  const review = await reviewsService.getReviewById(id);
-  
-  const response: ApiResponse = {
-    success: true,
-    data: review,
-    message: 'Review retrieved successfully',
-    timestamp: new Date().toISOString(),
-  };
 
-  res.status(200).json(response);
+  const review = await reviewService.getReviewById(id);
+  return sendSuccess(res, 'Review retrieved successfully', review);
 });
 
 /**
- * Get reviews by category
- * GET /api/reviews/category/:category
+ * @swagger
+ * /api/reviews/category/{category}:
+ *   get:
+ *     summary: Get reviews by category
+ *     tags: [Reviews]
+ *     parameters:
+ *       - in: path
+ *         name: category
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Reviews retrieved
  */
 export const getReviewsByCategory = asyncHandler(async (req: Request, res: Response) => {
   const { category } = req.params;
@@ -133,44 +182,48 @@ export const getReviewsByCategory = asyncHandler(async (req: Request, res: Respo
   if (!category) {
     throw createError('Category is required', 400);
   }
-  
-  const reviews = await reviewsService.getReviewsByCategory(category, parseInt(limit.toString()));
 
-  const response: ApiResponse = {
-    success: true,
-    data: reviews,
-    message: `Retrieved ${reviews.length} reviews for ${category}`,
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  const reviews = await reviewService.getReviewsByCategory(category, parseInt(limit.toString()));
+  return sendSuccess(res, `Retrieved ${reviews.length} reviews for ${category}`, reviews);
 });
 
 /**
- * Get review statistics
- * GET /api/reviews/stats
+ * @swagger
+ * /api/reviews/stats:
+ *   get:
+ *     summary: Get review statistics
+ *     tags: [Reviews]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Review statistics retrieved
  */
 export const getReviewStats = asyncHandler(async (_req: Request, res: Response) => {
-  const stats = await reviewsService.getReviewStatistics();
-
-  const response: ApiResponse = {
-    success: true,
-    data: stats,
-    message: 'Review statistics retrieved successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  const stats = await reviewService.getReviewStatistics();
+  return sendSuccess(res, 'Review statistics retrieved successfully', stats);
 });
 
 /**
- * Submit a new review (Public)
- * POST /api/reviews
+ * @swagger
+ * /api/reviews:
+ *   post:
+ *     summary: Submit a new review (Public)
+ *     tags: [Reviews]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Review'
+ *     responses:
+ *       201:
+ *         description: Review submitted successfully
  */
 export const submitReview = asyncHandler(async (req: Request, res: Response) => {
   const { name, email, role, content, rating, category, image } = req.body;
 
-  const review = await reviewsService.createReview({
+  const review = await reviewService.createReview({
     name,
     email,
     role,
@@ -182,7 +235,7 @@ export const submitReview = asyncHandler(async (req: Request, res: Response) => 
 
   // Send notification to admins (non-blocking)
   try {
-    const { notifyNewReview } = await import('@/services/notificationService');
+    const { notifyNewReview } = await import('@/services/notification.service');
     notifyNewReview({
       reviewerName: name,
       company: role || 'N/A',
@@ -193,22 +246,28 @@ export const submitReview = asyncHandler(async (req: Request, res: Response) => 
     console.error('Failed to send notification:', notifError);
   }
 
-  const response: ApiResponse = {
-    success: true,
-    message: 'Thank you for your review! It will be published after moderation.',
-    data: {
-      id: review._id,
-      submittedAt: review.createdAt,
-    },
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(201).json(response);
+  return sendSuccess(res, 'Thank you for your review! It will be published after moderation.', {
+    id: review._id,
+    submittedAt: review.createdAt,
+  }, 201);
 });
 
 /**
- * Update review status (Admin only)
- * PATCH /api/reviews/:id/status
+ * @swagger
+ * /api/reviews/{id}/status:
+ *   patch:
+ *     summary: Update review status (Admin only)
+ *     tags: [Reviews]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Status updated
  */
 export const updateReviewStatus = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -217,26 +276,32 @@ export const updateReviewStatus = asyncHandler(async (req: Request, res: Respons
   if (!id) {
     throw createError('Review ID is required', 400);
   }
-  
-  const review = await reviewsService.updateReviewStatus(id, {
+
+  const review = await reviewService.updateReviewStatus(id, {
     isPublished,
     isVerified,
     isFeatured
   });
 
-  const response: ApiResponse = {
-    success: true,
-    data: review,
-    message: 'Review status updated successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  return sendSuccess(res, 'Review status updated successfully', review);
 });
 
 /**
- * Update review (Admin only)
- * PATCH /api/reviews/:id
+ * @swagger
+ * /api/reviews/{id}:
+ *   patch:
+ *     summary: Update review details (Admin only)
+ *     tags: [Reviews]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Review updated
  */
 export const updateReview = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -245,8 +310,8 @@ export const updateReview = asyncHandler(async (req: Request, res: Response) => 
   if (!id) {
     throw createError('Review ID is required', 400);
   }
-  
-  const review = await reviewsService.updateReview(id, {
+
+  const review = await reviewService.updateReview(id, {
     name,
     role,
     content,
@@ -255,19 +320,25 @@ export const updateReview = asyncHandler(async (req: Request, res: Response) => 
     image
   });
 
-  const response: ApiResponse = {
-    success: true,
-    data: review,
-    message: 'Review updated successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  return sendSuccess(res, 'Review updated successfully', review);
 });
 
 /**
- * Delete review (Admin only)
- * DELETE /api/reviews/:id
+ * @swagger
+ * /api/reviews/{id}:
+ *   delete:
+ *     summary: Delete review (Admin only)
+ *     tags: [Reviews]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Review deleted
  */
 export const deleteReview = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -275,59 +346,59 @@ export const deleteReview = asyncHandler(async (req: Request, res: Response) => 
   if (!id) {
     throw createError('Review ID is required', 400);
   }
-  
-  await reviewsService.deleteReview(id);
 
-  const response: ApiResponse = {
-    success: true,
-    message: 'Review deleted successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  await reviewService.deleteReview(id);
+  return sendSuccess(res, 'Review deleted successfully');
 });
 
 /**
- * Get featured reviews
- * GET /api/reviews/featured
+ * @swagger
+ * /api/reviews/featured:
+ *   get:
+ *     summary: Get featured reviews
+ *     tags: [Reviews]
+ *     responses:
+ *       200:
+ *         description: Featured reviews retrieved
  */
 export const getFeaturedReviews = asyncHandler(async (req: Request, res: Response) => {
   const { limit = '5' } = req.query;
-  
-  const reviews = await reviewsService.getFeaturedReviews(parseInt(limit.toString()));
-
-  const response: ApiResponse = {
-    success: true,
-    data: reviews,
-    message: `Retrieved ${reviews.length} featured reviews`,
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  const reviews = await reviewService.getFeaturedReviews(parseInt(limit.toString()));
+  return sendSuccess(res, `Retrieved ${reviews.length} featured reviews`, reviews);
 });
 
 /**
- * Get recent reviews
- * GET /api/reviews/recent
+ * @swagger
+ * /api/reviews/recent:
+ *   get:
+ *     summary: Get recent reviews
+ *     tags: [Reviews]
+ *     responses:
+ *       200:
+ *         description: Recent reviews retrieved
  */
 export const getRecentReviews = asyncHandler(async (req: Request, res: Response) => {
   const { limit = '10' } = req.query;
-  
-  const reviews = await reviewsService.getRecentReviews(parseInt(limit.toString()));
-
-  const response: ApiResponse = {
-    success: true,
-    data: reviews,
-    message: `Retrieved ${reviews.length} recent reviews`,
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  const reviews = await reviewService.getRecentReviews(parseInt(limit.toString()));
+  return sendSuccess(res, `Retrieved ${reviews.length} recent reviews`, reviews);
 });
 
 /**
- * Add admin response to review
- * PATCH /api/reviews/:id/response
+ * @swagger
+ * /api/reviews/{id}/response:
+ *   patch:
+ *     summary: Add admin response to review
+ *     tags: [Reviews]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Response added
  */
 export const addReviewResponse = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -341,21 +412,19 @@ export const addReviewResponse = asyncHandler(async (req: Request, res: Response
     throw createError('Content and respondedBy are required', 400);
   }
 
-  const review = await reviewsService.addReviewResponse(id, content, respondedBy);
-
-  const response: ApiResponse = {
-    success: true,
-    data: review,
-    message: 'Review response added successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  const review = await reviewService.addReviewResponse(id, content, respondedBy);
+  return sendSuccess(res, 'Review response added successfully', review);
 });
 
 /**
- * Vote on review helpfulness
- * POST /api/reviews/:id/vote
+ * @swagger
+ * /api/reviews/{id}/vote:
+ *   post:
+ *     summary: Vote on review helpfulness
+ *     tags: [Reviews]
+ *     responses:
+ *       200:
+ *         description: Vote recorded
  */
 export const voteReviewHelpful = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -369,14 +438,6 @@ export const voteReviewHelpful = asyncHandler(async (req: Request, res: Response
     throw createError('Helpful field must be a boolean', 400);
   }
 
-  const result = await reviewsService.voteReviewHelpful(id, helpful);
-
-  const response: ApiResponse = {
-    success: true,
-    data: result,
-    message: 'Vote recorded successfully',
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(200).json(response);
+  const result = await reviewService.voteReviewHelpful(id, helpful);
+  return sendSuccess(res, 'Vote recorded successfully', result);
 });

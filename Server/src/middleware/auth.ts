@@ -1,3 +1,4 @@
+
 import { Request, Response, NextFunction } from 'express';
 import { User } from '@/models';
 import { verifyToken, extractTokenFromHeader, JWTPayload } from '@/utils/jwt.utils';
@@ -44,9 +45,12 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
 
     // Verify token
     const decoded = verifyToken(token) as JWTPayload;
-    
+
     // Get user from database
-    const user = await User.findById(decoded.userId).select('-password');
+    // Optimization: Select only necessary fields and use lean() if available/needed
+    // We check isActive here which requires a DB call. To optimize further, consider caching.
+    const user = await User.findById(decoded.userId).select('email role permissions isActive').exec();
+
     if (!user || !user.isActive) {
       res.status(401).json({
         success: false,
@@ -98,7 +102,7 @@ export const requireRole = (roles: string[]) => {
       return;
     }
 
-    if (!roles.includes(req.user.role)) {
+    if (req.user.role !== 'super_admin' && !roles.includes(req.user.role)) {
       res.status(403).json({
         success: false,
         error: {
@@ -130,13 +134,13 @@ export const requirePermission = (permissions: string[]) => {
       });
     }
 
-    // Admin users have all permissions
-    if (req.user.role === 'admin') {
+    // Super admin and admin users have all permissions
+    if (req.user.role === 'super_admin' || req.user.role === 'admin') {
       return next();
     }
 
     // Check if user has required permissions
-    const hasPermission = permissions.some(permission => 
+    const hasPermission = permissions.some(permission =>
       req.user!.permissions.includes(permission)
     );
 
@@ -164,8 +168,8 @@ export const optionalAuth = async (req: Request, _res: Response, next: NextFunct
 
     if (token) {
       const decoded = verifyToken(token) as JWTPayload;
-      const user = await User.findById(decoded.userId).select('-password');
-      
+      const user = await User.findById(decoded.userId).select('email role permissions isActive').exec();
+
       if (user && user.isActive) {
         req.user = {
           id: (user._id as any).toString(),
@@ -186,25 +190,39 @@ export const optionalAuth = async (req: Request, _res: Response, next: NextFunct
 
 /**
  * Rate limiting middleware
+ * Warning: Uses in-memory storage. Not suitable for horizontal scaling.
  */
-export const rateLimit = (maxRequests: number, windowMs: number) => {
-  const requests = new Map<string, { count: number; resetTime: number }>();
+// Use a shared cleanup interval to avoid O(N) scan on every request
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+let cleanupInterval: NodeJS.Timeout | null = null;
 
-  return (req: Request, res: Response, next: NextFunction): void => {
-    const clientId = req.ip || req.connection.remoteAddress || 'unknown';
+const startCleanup = () => {
+  if (cleanupInterval) return;
+  cleanupInterval = setInterval(() => {
     const now = Date.now();
-
-    // Clean up old entries
-    for (const [key, value] of requests.entries()) {
+    for (const [key, value] of rateLimitMap.entries()) {
       if (value.resetTime < now) {
-        requests.delete(key);
+        rateLimitMap.delete(key);
       }
     }
+    if (rateLimitMap.size === 0 && cleanupInterval) {
+      clearInterval(cleanupInterval);
+      cleanupInterval = null;
+    }
+  }, 60000); // Cleanup every minute
+};
 
-    const clientRequests = requests.get(clientId);
-    
+export const rateLimit = (maxRequests: number, windowMs: number) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    const clientId = req.ip || (req.connection.remoteAddress) || 'unknown';
+    const now = Date.now();
+
+    const clientRequests = rateLimitMap.get(clientId);
+
+    // If no record or expired, reset
     if (!clientRequests || clientRequests.resetTime < now) {
-      requests.set(clientId, { count: 1, resetTime: now + windowMs });
+      rateLimitMap.set(clientId, { count: 1, resetTime: now + windowMs });
+      startCleanup(); // Ensure cleanup is running
       return next();
     }
 

@@ -6,8 +6,9 @@ import { User } from '@/models';
  */
 export const seedAdminUser = async () => {
   try {
-    const adminExists = await User.findByEmail('admin@careermapsolutions.com');
-    
+    const adminEmail = process.env['ADMIN_INITIAL_EMAIL'] || 'admin@careermapsolutions.com';
+    const adminExists = await User.findByEmail(adminEmail);
+
     if (adminExists) {
       console.log('✅ Admin user already exists');
       return;
@@ -16,8 +17,8 @@ export const seedAdminUser = async () => {
     const admin = await User.create({
       firstName: 'Admin',
       lastName: 'User',
-      email: 'admin@careermapsolutions.com',
-      password: 'Admin@123', // Change this in production!
+      email: adminEmail,
+      password: process.env['ADMIN_INITIAL_PASSWORD'] || 'Admin@123', // Default only if env missing
       role: 'admin',
       isActive: true,
       isEmailVerified: true,
@@ -43,10 +44,10 @@ export const seedAdminUser = async () => {
     });
 
     console.log('✅ Admin user created successfully!');
-    console.log('📧 Email: admin@careermapsolutions.com');
-    console.log('🔑 Password: Admin@123');
+    console.log(`📧 Email: ${adminEmail}`);
+    console.log(`🔑 Password: ${process.env['ADMIN_INITIAL_PASSWORD'] || 'Admin@123'}`);
     console.log('⚠️  Please change the password after first login!');
-    
+
     return admin;
   } catch (error) {
     console.error('❌ Error creating admin user:', error);
@@ -78,7 +79,7 @@ export const seedTestUsers = async () => {
 
     for (const userData of users) {
       const existingUser = await User.findByEmail(userData.email);
-      
+
       if (!existingUser) {
         await User.create({
           ...userData,

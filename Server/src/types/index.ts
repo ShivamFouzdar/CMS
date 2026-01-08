@@ -37,7 +37,7 @@ export type AsyncHandler = (
   req: Request,
   res: Response,
   next: any
-) => Promise<void>;
+) => Promise<any>;
 
 export interface ContactFormData {
   name: string;
