@@ -131,15 +131,15 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
           <StatCard
             title="Total Inquiries"
-            value={stats?.contacts.total || 0}
+            value={stats?.contacts?.total || 0}
             icon={Users}
             gradient="blue"
-            subtitle={`${stats?.contacts.new || 0} new today`}
+            subtitle={`${stats?.contacts?.new || 0} new today`}
             onClick={() => navigate('/admin/leads')}
           />
           <StatCard
             title="Applications"
-            value={stats?.jobs.total || 0}
+            value={stats?.jobs?.total || 0}
             icon={Briefcase}
             gradient="indigo"
             subtitle="Processing active"
@@ -147,18 +147,18 @@ export default function AdminDashboard() {
           />
           <StatCard
             title="Site Reviews"
-            value={stats?.reviews.total || 0}
+            value={stats?.reviews?.total || 0}
             icon={Star}
             gradient="purple"
-            subtitle={`${stats?.reviews.pending || 0} pending approval`}
+            subtitle={`${stats?.reviews?.pending || 0} pending approval`}
             onClick={() => navigate('/admin/reviews')}
           />
           <StatCard
             title="Service Listings"
-            value={stats?.services.total || 0}
+            value={stats?.services?.total || 0}
             icon={Layers}
             gradient="green"
-            subtitle={`${stats?.services.active || 0} active • ${(healthData?.database?.status === 'connected' ? 1 : 0) +
+            subtitle={`${stats?.services?.active || 0} active • ${(healthData?.database?.status === 'connected' ? 1 : 0) +
               (healthData?.smtp?.connected ? 1 : 0)
               } connected APIs`}
             onClick={() => setShowHealthModal(true)}
