@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import { IApplicant } from '@/models/Applicant';
 import { JobApplicationRepository } from '@/repositories/jobApplication.repository';
+import { configureCloudinary } from '@/config/cloudinary';
 
 export interface JobApplicationData {
     id: string;
@@ -97,6 +98,29 @@ export class JobApplicationService {
     async getResumePath(id: string): Promise<string> {
         const applicant = await this.repository.findById(id);
         if (!applicant) throw createError('Job application not found', 404);
+
+        // If stored in Cloudinary logic 
+        if (applicant.resumePublicId) {
+            try {
+                const cloudinary = configureCloudinary();
+                // Generate signed URL for secure access
+                // resource_type 'raw' is required for non-image files uploaded as raw
+                // Using private_download_url helper which handles signature generation effectively
+                // Format must be empty string to avoid double extension if public_id already has it
+                const url = cloudinary.utils.private_download_url(applicant.resumePublicId, '', {
+                    resource_type: 'raw',
+                    type: 'upload',
+                    attachment: true,
+                    expires_at: Math.floor(Date.now() / 1000) + 3600 // 1 hour validity
+                });
+
+                return url;
+            } catch (error) {
+                console.warn('Failed to generate signed Cloudinary URL, falling back to stored URL:', error);
+                if (applicant.resumeUrl) return applicant.resumeUrl;
+                if (applicant.resumePath && applicant.resumePath.startsWith('http')) return applicant.resumePath;
+            }
+        }
 
         // Prefer resumeUrl or resumePath
         const resumeLocation = applicant.resumeUrl || applicant.resumePath;

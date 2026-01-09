@@ -26,7 +26,7 @@ export default function ServicesPage() {
   }, []);
 
   return (
-    <div className="space-y-4 md:space-y-6">
+    <div className="min-h-screen bg-white">
       {/* Page Header */}
       <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-20 md:py-32 relative overflow-hidden">
         {/* Decorative elements */}
@@ -88,10 +88,8 @@ export default function ServicesPage() {
         </div>
       </div>
 
-      {/* All Services */}
-      <div className="container mx-auto px-4">
-        <Services showAll={true} />
-      </div>
+      {/* All Services - Removed container wrapper to allow full width background */}
+      <Services showAll={true} />
 
       {/* Call to Action */}
       {/* <CallToAction 
