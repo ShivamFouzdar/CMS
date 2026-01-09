@@ -1,4 +1,3 @@
-
 import { Router } from 'express';
 import {
   getServices,
@@ -19,7 +18,8 @@ import {
   toggleServiceStatus
 } from '@/controllers/servicesController';
 import { authenticateToken, requireRole } from '@/middleware/auth';
-import { validate, ValidationRule } from '@/middleware/validate';
+import { z } from 'zod';
+import { validate } from '@/middleware/validate';
 
 const router = Router();
 
@@ -29,25 +29,22 @@ const router = Router();
  */
 
 // Validation Rules
-const createServiceRules: ValidationRule[] = [
-  { field: 'name', type: 'string', required: true, min: 2, max: 100 },
-  { field: 'slug', type: 'string', required: true, min: 2, max: 50, pattern: /^[a-z0-9-]+$/ },
-  { field: 'description', type: 'string', required: true, min: 50, max: 2000 },
-  { field: 'shortDescription', type: 'string', required: true, min: 20, max: 200 },
-  { field: 'category', type: 'string', required: true },
-  { field: 'icon', type: 'string', required: true, max: 50 },
-  { field: 'features', type: 'array', required: false },
-  { field: 'benefits', type: 'array', required: false }
-];
+const createServiceSchema = z.object({
+  body: z.object({
+    name: z.string().min(2).max(100),
+    slug: z.string().min(2).max(50).regex(/^[a-z0-9-]+$/),
+    description: z.string().min(50).max(2000),
+    shortDescription: z.string().min(20).max(200),
+    category: z.string().min(1),
+    icon: z.string().max(50),
+    features: z.array(z.string()).optional(),
+    benefits: z.array(z.string()).optional()
+  })
+});
 
-const updateServiceRules: ValidationRule[] = [
-  { field: 'name', type: 'string', required: false, min: 2, max: 100 },
-  { field: 'slug', type: 'string', required: false, min: 2, max: 50, pattern: /^[a-z0-9-]+$/ },
-  { field: 'description', type: 'string', required: false, min: 50, max: 2000 },
-  { field: 'shortDescription', type: 'string', required: false, min: 20, max: 200 },
-  { field: 'category', type: 'string', required: false },
-  { field: 'icon', type: 'string', required: false, max: 50 }
-];
+const updateServiceSchema = z.object({
+  body: createServiceSchema.shape.body.partial()
+});
 
 // Public routes
 router.get('/', getServices);
@@ -61,8 +58,8 @@ router.get('/id/:id', getServiceById);
 router.use(authenticateToken);
 
 // Service management routes
-router.post('/', requireRole(['admin']), validate(createServiceRules), createService);
-router.put('/:id', requireRole(['admin']), validate(updateServiceRules), updateService);
+router.post('/', requireRole(['admin']), validate(createServiceSchema), createService);
+router.put('/:id', requireRole(['admin']), validate(updateServiceSchema), updateService);
 router.delete('/:id', requireRole(['admin']), deleteService);
 
 // Status management

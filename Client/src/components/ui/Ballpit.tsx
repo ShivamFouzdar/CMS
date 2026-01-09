@@ -73,9 +73,9 @@ class X {
     pixelRatio: 0
   };
   render: () => void = this.#render.bind(this);
-  onBeforeRender: (state: { elapsed: number; delta: number }) => void = () => {};
-  onAfterRender: (state: { elapsed: number; delta: number }) => void = () => {};
-  onAfterResize: (size: SizeData) => void = () => {};
+  onBeforeRender: (state: { elapsed: number; delta: number }) => void = () => { };
+  onAfterRender: (state: { elapsed: number; delta: number }) => void = () => { };
+  onAfterResize: (size: SizeData) => void = () => { };
   isDisposed: boolean = false;
 
   constructor(config: XConfig) {
@@ -518,6 +518,9 @@ interface PointerData {
   onClick: (data: PointerData) => void;
   onLeave: (data: PointerData) => void;
   dispose?: () => void;
+  touchInteraction?: 'always' | 'long-hold' | 'none';
+  longPressTimer?: ReturnType<typeof setTimeout>;
+  isLongPressing?: boolean;
 }
 
 const pointerMap = new Map<HTMLElement, PointerData>();
@@ -528,10 +531,11 @@ function createPointerData(options: Partial<PointerData> & { domElement: HTMLEle
     nPosition: new Vector2(),
     hover: false,
     touching: false,
-    onEnter: () => {},
-    onMove: () => {},
-    onClick: () => {},
-    onLeave: () => {},
+    touchInteraction: 'always',
+    onEnter: () => { },
+    onMove: () => { },
+    onClick: () => { },
+    onLeave: () => { },
     ...options
   };
 
@@ -606,26 +610,49 @@ function onTouchStart(e: TouchEvent) {
       // Allow link/button to work normally
       return;
     }
-    
+
     // Check if touch is inside any Ballpit element
     let isInsideBallpit = false;
+    let targetData: PointerData | null = null;
+
     pointerPosition.set(e.touches[0].clientX, e.touches[0].clientY);
     for (const [elem, data] of pointerMap) {
       const rect = elem.getBoundingClientRect();
       if (isInside(rect)) {
         isInsideBallpit = true;
-        data.touching = true;
-        updatePointerData(data, rect);
-        if (!data.hover) {
-          data.hover = true;
-          data.onEnter(data);
+        targetData = data;
+
+        // If long-hold mode, start timer and DON'T activate yet
+        if (data.touchInteraction === 'long-hold') {
+          data.isLongPressing = false; // Reset
+          data.longPressTimer = setTimeout(() => {
+            data.isLongPressing = true;
+            data.touching = true;
+            updatePointerData(data, rect);
+            if (!data.hover) {
+              data.hover = true;
+              data.onEnter(data);
+            }
+            data.onMove(data);
+            // Vibrate if available to indicate activation
+            if (navigator.vibrate) navigator.vibrate(50);
+          }, 500); // 500ms long press
+
+          // Do NOT set touching=true yet
+        } else if (data.touchInteraction !== 'none') {
+          data.touching = true;
+          updatePointerData(data, rect);
+          if (!data.hover) {
+            data.hover = true;
+            data.onEnter(data);
+          }
+          data.onMove(data);
         }
-        data.onMove(data);
       }
     }
-    
-    // Only prevent default if actually interacting with a Ballpit element
-    if (isInsideBallpit) {
+
+    // Only prevent default if actually interacting (and not waiting for long press)
+    if (isInsideBallpit && targetData && targetData.touchInteraction === 'always') {
       e.preventDefault();
     }
   }
@@ -641,30 +668,65 @@ function onTouchMove(e: TouchEvent) {
       // Allow link/button scrolling/navigation to work normally
       return;
     }
-    
+
     // Check if touch is inside any Ballpit element
     let isInsideBallpit = false;
+    let activeInteraction = false;
+
     pointerPosition.set(e.touches[0].clientX, e.touches[0].clientY);
     for (const [elem, data] of pointerMap) {
       const rect = elem.getBoundingClientRect();
       updatePointerData(data, rect);
+
+      // If long press timer is running, check if moved too much (cancel timer)
+      if (data.longPressTimer) {
+        // If moved significantly, it's a scroll. Cancel timer.
+        // Simple check: if we moved, browser likely started scrolling.
+        // Actually, strict check:
+        const dist = Math.abs(e.touches[0].clientY - (pointerPosition.y)); // Approximation
+        // Better: clear timer on ANY move if not yet activated, 
+        // because a move implies scroll intention or drag, but if strict position check needed we need start pos.
+        // For simplicity: any move cancels pending long press.
+        clearTimeout(data.longPressTimer);
+        data.longPressTimer = undefined;
+      }
+
       if (isInside(rect)) {
         isInsideBallpit = true;
-        if (!data.hover) {
-          data.hover = true;
-          data.touching = true;
-          data.onEnter(data);
+
+        if (data.touchInteraction === 'long-hold') {
+          if (data.isLongPressing) {
+            // Active after long press
+            activeInteraction = true;
+            if (!data.hover) {
+              data.hover = true;
+              data.touching = true; // Ensure set
+              data.onEnter(data);
+            }
+            data.onMove(data);
+          }
+        } else if (data.touchInteraction !== 'none') {
+          activeInteraction = true;
+          if (!data.hover) {
+            data.hover = true;
+            data.touching = true;
+            data.onEnter(data);
+          }
+          data.onMove(data);
         }
-        data.onMove(data);
+
       } else if (data.hover && data.touching) {
         // Still tracking if we were previously inside
         isInsideBallpit = true;
+        if (data.touchInteraction === 'always' || (data.touchInteraction === 'long-hold' && data.isLongPressing)) {
+          activeInteraction = true;
+        }
         data.onMove(data);
       }
     }
-    
+
     // Only prevent default if actually interacting with a Ballpit element
-    if (isInsideBallpit) {
+    if (isInsideBallpit && activeInteraction) {
       e.preventDefault();
     }
   }
@@ -679,8 +741,15 @@ function onTouchEnd(e: TouchEvent) {
     // Allow link/button to work normally
     return;
   }
-  
+
   for (const [, data] of pointerMap) {
+    // Clear any pending long press timers
+    if (data.longPressTimer) {
+      clearTimeout(data.longPressTimer);
+      data.longPressTimer = undefined;
+    }
+    data.isLongPressing = false;
+
     if (data.touching) {
       data.touching = false;
       if (data.hover) {
@@ -700,7 +769,7 @@ function onPointerClick(e: PointerEvent) {
     // Allow link/button to work normally
     return;
   }
-  
+
   pointerPosition.set(e.clientX, e.clientY);
   for (const [elem, data] of pointerMap) {
     const rect = elem.getBoundingClientRect();
@@ -850,12 +919,23 @@ function createBallpit(canvas: HTMLCanvasElement, config: any = {}): CreateBallp
   const intersectionPoint = new Vector3();
   let isPaused = false;
 
-  canvas.style.touchAction = 'none';
+  // Determine touch action based on configured interaction mode
+  const touchInteraction = config.touchInteraction || 'always';
+
+  if (touchInteraction === 'always') {
+    canvas.style.touchAction = 'none';
+  } else if (touchInteraction === 'long-hold') {
+    canvas.style.touchAction = 'pan-y'; // Allow vertical scroll initially
+  } else {
+    canvas.style.touchAction = 'auto';
+  }
+
   canvas.style.userSelect = 'none';
   (canvas.style as any).webkitUserSelect = 'none';
 
   const pointerData = createPointerData({
     domElement: canvas,
+    touchInteraction: touchInteraction,
     onMove() {
       raycaster.setFromCamera(pointerData.nPosition, threeInstance.camera);
       threeInstance.camera.getWorldDirection(plane.normal);
@@ -912,18 +992,20 @@ interface BallpitProps {
   friction?: number;
   wallBounce?: number;
   colors?: number[];
+  touchInteraction?: 'always' | 'long-hold' | 'none';
   [key: string]: any;
 }
 
-const Ballpit: React.FC<BallpitProps> = ({ 
-  className = '', 
+const Ballpit: React.FC<BallpitProps> = ({
+  className = '',
   followCursor = true,
   count = 200,
   gravity = 0.7,
   friction = 0.8,
   wallBounce = 0.95,
   colors,
-  ...props 
+  touchInteraction = 'always',
+  ...props
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const spheresInstanceRef = useRef<CreateBallpitReturn | null>(null);
@@ -939,6 +1021,7 @@ const Ballpit: React.FC<BallpitProps> = ({
       friction,
       wallBounce,
       colors,
+      touchInteraction,
       ...props
     });
 

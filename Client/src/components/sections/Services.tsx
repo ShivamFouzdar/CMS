@@ -1,11 +1,14 @@
 "use client"
 
-import "react"
+"use client"
+
+import { Suspense, lazy } from "react"
 import { ArrowRight, Check, Sparkles } from "lucide-react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/Button"
 import { fadeIn } from "@/lib/utils"
-import Ballpit from "@/components/ui/Ballpit"
+// Lazy load heavy 3D component
+const Ballpit = lazy(() => import("@/components/ui/Ballpit"))
 
 import { useServices } from "@/context/ServiceContext"
 import { getServiceIcon, getServiceGradient, getServiceFeatures } from "@/utils/serviceUtils"
@@ -33,12 +36,7 @@ export function Services({ showAll = false }: ServicesProps) {
       id="services"
       className="relative py-16 sm:py-20 md:py-24 lg:py-32 overflow-hidden bg-white"
     >
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-purple-200/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-purple-100/10 to-blue-100/10 rounded-full blur-3xl"></div>
-      </div>
+
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Modern Section Header */}
@@ -84,19 +82,15 @@ export function Services({ showAll = false }: ServicesProps) {
         {/* Modern Services Grid - Horizontal scroll on mobile, grid on desktop */}
         <div className="md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6 lg:gap-8 mb-8 sm:mb-12">
           {/* Mobile: Horizontal scrollable container */}
-          <div className="md:hidden overflow-x-auto scrollbar-hide overscroll-x-contain touch-pan-x pb-4 -mx-4 px-4" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <div className="md:hidden overflow-x-auto scrollbar-hide overscroll-x-contain pb-4 -mx-4 px-4 snap-x snap-mandatory" style={{ WebkitOverflowScrolling: 'touch' }}>
             <div className="flex gap-4" style={{ width: 'max-content' }}>
               {activeServices.slice(0, showAll ? activeServices.length : 3).map((service) => {
                 const { gradient, bgGradient } = getServiceGradient(service.slug)
                 const features = getServiceFeatures(service.slug)
                 return (
-                  <motion.div
+                  <div
                     key={service.name}
-                    className="group relative flex-shrink-0"
-                    initial="hidden"
-                    whileInView="show"
-                    viewport={{ once: true, margin: "-50px" }}
-                    variants={fadeIn("up", 0)}
+                    className="group relative flex-shrink-0 snap-center"
                     style={{ width: '85vw', maxWidth: '380px', minWidth: '320px' }}
                   >
                     {/* Card with modern design */}
@@ -104,17 +98,20 @@ export function Services({ showAll = false }: ServicesProps) {
                       {/* Gradient Background on Hover */}
                       <div className={`absolute inset-0 bg-gradient-to-br ${bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
 
-                      {/* Icon with Gradient Background */}
-                      <div className={`relative mb-6 w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
-                        {getServiceIcon(service.icon, "w-6 h-6 text-white")}
-                        <div className="absolute inset-0 rounded-2xl bg-white/20 blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-                      </div>
-
                       {/* Content */}
                       <div className="relative z-10">
-                        <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-blue-600 transition-all duration-300">
-                          {service.name}
-                        </h3>
+                        {/* Header with Icon and Title Side-by-Side */}
+                        <div className="flex items-center gap-4 mb-4">
+                          {/* Icon with Gradient Background */}
+                          <div className={`relative flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
+                            {getServiceIcon(service.icon, "w-5 h-5 text-white")}
+                            <div className="absolute inset-0 rounded-xl bg-white/20 blur-md group-hover:blur-xl transition-all duration-500"></div>
+                          </div>
+
+                          <h3 className="text-xl font-bold text-gray-900 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-blue-600 transition-all duration-300">
+                            {service.name}
+                          </h3>
+                        </div>
 
                         <p className="text-gray-600 mb-6 leading-relaxed line-clamp-3">
                           {service.description}
@@ -144,7 +141,7 @@ export function Services({ showAll = false }: ServicesProps) {
                       {/* Decorative Corner Element */}
                       <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${gradient} opacity-5 rounded-bl-full group-hover:opacity-10 transition-opacity duration-500`}></div>
                     </div>
-                  </motion.div>
+                  </div>
                 )
               })}
             </div>
@@ -170,17 +167,20 @@ export function Services({ showAll = false }: ServicesProps) {
                     {/* Gradient Background on Hover */}
                     <div className={`absolute inset-0 bg-gradient-to-br ${bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
 
-                    {/* Icon with Gradient Background */}
-                    <div className={`relative mb-6 w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
-                      {getServiceIcon(service.icon, "w-6 h-6 text-white")}
-                      <div className="absolute inset-0 rounded-2xl bg-white/20 blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-                    </div>
-
                     {/* Content */}
                     <div className="relative z-10">
-                      <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 transition-all duration-300">
-                        {service.name}
-                      </h3>
+                      {/* Header with Icon and Title Side-by-Side */}
+                      <div className="flex items-center gap-5 mb-5">
+                        {/* Icon with Gradient Background */}
+                        <div className={`relative flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
+                          {getServiceIcon(service.icon, "w-6 h-6 text-white")}
+                          <div className="absolute inset-0 rounded-2xl bg-white/20 blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                        </div>
+
+                        <h3 className="text-2xl font-bold text-gray-900 group-hover:text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 transition-all duration-300 leading-tight">
+                          {service.name}
+                        </h3>
+                      </div>
 
                       <p className="text-gray-600 mb-6 leading-relaxed line-clamp-3">
                         {service.description}
@@ -243,33 +243,36 @@ export function Services({ showAll = false }: ServicesProps) {
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
         >
-          <div className="relative bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 rounded-3xl overflow-hidden min-h-[500px] max-h-[500px]">
+          <div className="relative bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 rounded-3xl overflow-hidden min-h-[300px] sm:min-h-[500px] max-h-[300px] sm:max-h-[500px]">
             {/* Ballpit Background */}
             <div className="absolute inset-0 w-full h-full">
-              <Ballpit
-                count={80}
-                gravity={0.7}
-                friction={0.8}
-                wallBounce={0.95}
-                followCursor={true}
-                colors={[0x8b5cf6, 0x3b82f6, 0x6366f1]}
-                className="opacity-30"
-              />
+              <Suspense fallback={<div className="w-full h-full bg-transparent" />}>
+                <Ballpit
+                  count={80}
+                  gravity={0.7}
+                  friction={0.8}
+                  wallBounce={0.95}
+                  followCursor={true}
+                  colors={[0x8b5cf6, 0x3b82f6, 0x6366f1]}
+                  className="opacity-30"
+                  touchInteraction="long-hold"
+                />
+              </Suspense>
             </div>
 
             {/* Content Overlay */}
-            <div className="relative z-10 flex items-center justify-center min-h-[400px] sm:min-h-[500px] p-6 sm:p-12 md:p-16 lg:p-20">
-              <div className="text-center max-w-3xl mx-auto px-4">
-                <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-4 sm:mb-6">
+            <div className="relative z-10 flex items-center justify-center min-h-[300px] sm:min-h-[500px] p-4 sm:p-12 md:p-16 lg:p-20">
+              <div className="text-center max-w-3xl mx-auto px-2 sm:px-4">
+                <h3 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-2 sm:mb-6">
                   Ready to Transform Your Business?
                 </h3>
-                <p className="text-base sm:text-lg md:text-xl text-gray-300 mb-6 sm:mb-8 md:mb-10 leading-relaxed">
+                <p className="text-sm sm:text-lg md:text-xl text-gray-300 mb-4 sm:mb-8 md:mb-10 leading-relaxed line-clamp-2 sm:line-clamp-none">
                   Let's discuss how we can create a custom solution tailored to your unique needs and goals.
                 </p>
                 <Button
                   href="/contact"
                   size="lg"
-                  className="bg-white text-gray-900 hover:bg-gray-100 px-6 sm:px-8 md:px-10 py-4 sm:py-5 md:py-6 text-base sm:text-lg font-bold rounded-xl sm:rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 min-h-[48px] touch-manipulation"
+                  className="bg-white text-gray-900 hover:bg-gray-100 px-4 xs:px-6 sm:px-8 md:px-10 py-2 sm:py-5 md:py-6 text-sm xs:text-base sm:text-lg font-bold rounded-xl sm:rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 min-h-[40px] sm:min-h-[48px] touch-manipulation"
                 >
                   Get Started Today
                 </Button>

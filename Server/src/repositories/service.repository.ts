@@ -23,7 +23,9 @@ export class ServiceRepository extends BaseRepository<IService> {
             query.isFeatured = true;
         }
 
-        const dbQuery = this.model.find(query).sort({ order: 1, createdAt: -1 });
+        const dbQuery = this.model.find(query)
+            .select('name slug description shortDescription icon features category isActive isFeatured order createdAt')
+            .sort({ order: 1, createdAt: -1 });
 
         if (limit) {
             dbQuery.limit(limit);

@@ -9,7 +9,7 @@
 // Get API base URL from environment variable or use default
 // Defaults to relative path for production, full URL for development
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ||
-  (import.meta.env.DEV ? 'http://localhost:5000' : '');
+  (import.meta.env.DEV ? '' : '');
 
 // Get app base URL for SEO and absolute URLs (different from API base URL)
 export const APP_BASE_URL = import.meta.env.VITE_APP_BASE_URL ||

@@ -62,27 +62,20 @@ const values = [
 
 interface AboutProps {
   showFullContent?: boolean;
-  showHeader?: boolean;
 }
 
-export function About({ showFullContent = false, showHeader = true }: AboutProps) {
+export function About({ showFullContent = false }: AboutProps) {
   return (
     <section
       id="about"
-      className={`relative py-2 sm:py-2 md:py-2 lg:py-2 overflow-hidden ${showHeader ? 'bg-gradient-to-b from-white via-purple-50/30 to-blue-50/30' : ''
-        }`}
+      className="relative py-2 sm:py-2 md:py-2 lg:py-2 overflow-hidden bg-white"
     >
-      {/* Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl"></div>
-      </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-6xl mx-auto">
           {/* Mission and Vision Section */}
           <motion.div
-            className="grid md:grid-cols-2 gap-8 mb-16"
+            className="grid grid-cols-2 md:grid-cols-2 gap-3 sm:gap-4 md:gap-8 mb-8 sm:mb-16"
             initial="hidden"
             whileInView="show"
             viewport={{ once: true }}
@@ -100,16 +93,15 @@ export function About({ showFullContent = false, showHeader = true }: AboutProps
               variants={fadeIn('right', 0)}
               className="relative group"
             >
-              <div className="relative h-full bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-8 border border-blue-100 shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-transparent rounded-bl-full"></div>
+              <div className="relative h-full bg-white rounded-2xl sm:rounded-3xl p-3 xs:p-4 sm:p-6 md:p-8 border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden">
                 <div className="relative z-10">
-                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 mb-6">
-                    <Target className="w-5 h-5 text-blue-600" />
-                    <span className="text-sm font-semibold text-blue-700">Our Mission</span>
+                  <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-blue-50 mb-3 sm:mb-6">
+                    <Target className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-blue-600" />
+                    <span className="text-[10px] xs:text-xs sm:text-sm font-semibold text-blue-700">Mission</span>
                   </div>
-                  <h3 className="text-3xl font-bold text-gray-900 mb-4">Empowering Success</h3>
-                  <p className="text-lg text-gray-700 leading-relaxed">
-                    To empower businesses with innovative, efficient, and scalable solutions that drive sustainable growth and success in an ever-changing global marketplace.
+                  <h3 className="text-base xs:text-lg sm:text-3xl font-bold text-gray-900 mb-2 sm:mb-4">Empowering Success</h3>
+                  <p className="text-xs xs:text-sm sm:text-lg text-gray-700 leading-relaxed line-clamp-4 xs:line-clamp-none">
+                    To empower businesses with innovative, efficient, and scalable solutions that drive sustainable growth.
                   </p>
                 </div>
               </div>
@@ -120,16 +112,15 @@ export function About({ showFullContent = false, showHeader = true }: AboutProps
               variants={fadeIn('left', 0)}
               className="relative group"
             >
-              <div className="relative h-full bg-gradient-to-br from-purple-50 to-pink-50 rounded-3xl p-8 border border-purple-100 shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden">
-                <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-transparent rounded-br-full"></div>
+              <div className="relative h-full bg-white rounded-2xl sm:rounded-3xl p-3 xs:p-4 sm:p-6 md:p-8 border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden">
                 <div className="relative z-10">
-                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-100 mb-6">
-                    <Lightbulb className="w-5 h-5 text-purple-600" />
-                    <span className="text-sm font-semibold text-purple-700">Our Vision</span>
+                  <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-purple-50 mb-3 sm:mb-6">
+                    <Lightbulb className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-purple-600" />
+                    <span className="text-[10px] xs:text-xs sm:text-sm font-semibold text-purple-700">Vision</span>
                   </div>
-                  <h3 className="text-3xl font-bold text-gray-900 mb-4">Leading Innovation</h3>
-                  <p className="text-lg text-gray-700 leading-relaxed">
-                    To be the most trusted and preferred partner for businesses seeking to transform their operations and achieve operational excellence through our comprehensive suite of services.
+                  <h3 className="text-base xs:text-lg sm:text-3xl font-bold text-gray-900 mb-2 sm:mb-4">Leading Innovation</h3>
+                  <p className="text-xs xs:text-sm sm:text-lg text-gray-700 leading-relaxed line-clamp-4 xs:line-clamp-none">
+                    To be the most trusted and preferred partner for businesses seeking to transform their operations.
                   </p>
                 </div>
               </div>

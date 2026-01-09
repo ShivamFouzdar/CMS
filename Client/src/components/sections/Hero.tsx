@@ -75,16 +75,19 @@ export function Hero() {
           </motion.p>
 
           <motion.div
-            className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-6 sm:mb-8 px-4"
+            className="flex flex-row gap-2 sm:gap-4 justify-center items-center mb-6 sm:mb-8 px-2 sm:px-4 w-full max-w-lg md:max-w-none mx-auto"
             variants={fadeIn('up', 0.4)}
           >
-            <JobApplicationTrigger />
-            <Link to="/services" className="w-full sm:w-auto">
+            {/* Find Your Job Button */}
+            <JobApplicationTrigger className="flex-1 md:flex-none w-full md:w-auto text-[0.7rem] xs:text-sm sm:text-base px-1 xs:px-3 sm:px-6 md:px-8 h-11 xs:h-12 sm:h-14 min-h-[44px] sm:min-h-[56px] whitespace-nowrap" />
+
+            {/* Grow With CMS Button */}
+            <Link to="/contact" className="flex-1 md:flex-none w-full md:w-auto min-w-0">
               <Button
                 size="lg"
-                className="h-12 sm:h-14 min-h-[48px] px-6 sm:px-8 md:px-10 py-3 sm:py-4 text-sm sm:text-base md:text-lg bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 hover:from-yellow-500 hover:via-pink-600 hover:to-purple-700 text-white shadow-2xl hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] transition-all duration-300 rounded-xl font-semibold w-full sm:w-auto border-none touch-manipulation"
+                className="w-full md:w-auto h-11 xs:h-12 sm:h-14 min-h-[44px] sm:min-h-[56px] px-1 xs:px-3 sm:px-8 md:px-10 py-2 sm:py-4 text-[0.7rem] xs:text-sm sm:text-base md:text-lg bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 hover:from-yellow-500 hover:via-pink-600 hover:to-purple-700 text-white shadow-2xl hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] transition-all duration-300 rounded-xl font-semibold border-none touch-manipulation flex items-center justify-center whitespace-nowrap"
               >
-                Grow With CMS <ArrowRight className="ml-2 inline-block w-4 h-4 sm:w-5 sm:h-5" />
+                Grow With CMS <ArrowRight className="ml-1 sm:ml-2 inline-block w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5" />
               </Button>
             </Link>
           </motion.div>
@@ -92,33 +95,33 @@ export function Hero() {
 
         {/* Trust Indicators */}
         <motion.div
-          className="flex flex-wrap justify-center items-center gap-3 sm:gap-4 md:gap-6 mt-6 sm:mt-8 md:mt-12 px-4"
+          className="flex flex-row flex-wrap sm:flex-nowrap justify-center items-center gap-2 sm:gap-4 md:gap-6 mt-4 xs:mt-6 sm:mt-8 md:mt-12 px-1"
           initial="hidden"
           whileInView="show"
           viewport={{ once: true }}
           variants={fadeIn('up', 0.5)}
         >
-          <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 bg-white/10 backdrop-blur-md rounded-full border border-white/20 min-h-[44px]">
-            <div className="flex -space-x-2">
+          <div className="flex items-center gap-1.5 sm:gap-3 px-2 sm:px-4 md:px-6 py-1.5 xs:py-2 sm:py-2.5 md:py-3 bg-white/10 backdrop-blur-md rounded-full border border-white/20 min-h-[36px] xs:min-h-[44px] max-w-[48%] flex-1 justify-center sm:flex-none">
+            <div className="flex -space-x-1.5 sm:-space-x-2 flex-shrink-0">
               {[1, 2, 3].map((i) => (
                 <img
                   key={i}
                   src={`/${i}.png`}
                   alt={`Trusted business ${i}`}
-                  className="h-7 w-7 xs:h-8 xs:w-8 sm:h-10 sm:w-10 rounded-full border-2 border-white/50 object-cover"
+                  className="h-5 w-5 xs:h-6 xs:w-6 sm:h-10 sm:w-10 rounded-full border border-white/50 object-cover"
                   style={{ zIndex: 3 - i }}
                   loading="lazy"
                   decoding="async"
                 />
               ))}
             </div>
-            <span className="text-white/90 font-medium text-xs xs:text-sm sm:text-base whitespace-nowrap">Trusted by businesses</span>
+            <span className="text-white/90 font-medium text-[0.65rem] xs:text-xs sm:text-base whitespace-nowrap text-ellipsis overflow-hidden">Trusted by businesses</span>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 bg-white/10 backdrop-blur-md rounded-full border border-white/20 min-h-[44px]">
-            <div className="w-7 h-7 xs:w-8 xs:h-8 sm:w-10 sm:h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 flex-shrink-0">
-              <CheckCircle className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 text-yellow-300" />
+          <div className="flex items-center gap-1.5 sm:gap-3 px-2 sm:px-4 md:px-6 py-1.5 xs:py-2 sm:py-2.5 md:py-3 bg-white/10 backdrop-blur-md rounded-full border border-white/20 min-h-[36px] xs:min-h-[44px] max-w-[48%] flex-1 justify-center sm:flex-none">
+            <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-10 sm:h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 flex-shrink-0">
+              <CheckCircle className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-5 sm:h-5 text-yellow-300" />
             </div>
-            <span className="text-white/90 font-medium text-xs xs:text-sm sm:text-base whitespace-nowrap">99.9% Success Rate</span>
+            <span className="text-white/90 font-medium text-[0.65rem] xs:text-xs sm:text-base whitespace-nowrap">99.9% Success Rate</span>
           </div>
         </motion.div>
       </div>

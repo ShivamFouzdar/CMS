@@ -11,7 +11,9 @@ import {
   markContactAsContacted
 } from '@/controllers/contactController';
 import { authenticateToken, requireRole } from '@/middleware/auth';
-import { validate, ValidationRule } from '@/middleware/validate';
+import { z } from 'zod';
+import { authLimiter } from '@/middleware/rateLimiter';
+import { validate } from '@/middleware/validate';
 
 const router = Router();
 
@@ -20,22 +22,25 @@ const router = Router();
  * Handles contact form submissions and management
  */
 
-const contactRules: ValidationRule[] = [
-  { field: 'name', type: 'string', required: true, min: 2, message: 'Name is required' },
-  { field: 'email', type: 'email', required: true, message: 'Valid email is required' },
-  { field: 'message', type: 'string', required: true, min: 10, message: 'Message is required (min 10 chars)' },
-  // Optional fields
-  { field: 'phone', type: 'string', required: false },
-  { field: 'company', type: 'string', required: false },
-  { field: 'service', type: 'string', required: false }
-];
+const contactSchema = z.object({
+  body: z.object({
+    name: z.string().min(2, 'Name is required'),
+    email: z.string().email('Valid email is required'),
+    message: z.string().min(10, 'Message is required (min 10 chars)'),
+    phone: z.string().optional(),
+    company: z.string().optional(),
+    service: z.string().optional()
+  })
+});
 
-const updateStatusRules: ValidationRule[] = [
-  { field: 'status', type: 'string', required: true, message: 'Status is required' }
-];
+const updateStatusSchema = z.object({
+  body: z.object({
+    status: z.string().min(1, 'Status is required')
+  })
+});
 
 // Public routes
-router.post('/', validate(contactRules), submitContactForm);
+router.post('/', authLimiter, validate(contactSchema), submitContactForm);
 
 // Protected routes (require authentication)
 router.use(authenticateToken);
@@ -43,7 +48,7 @@ router.use(authenticateToken);
 // Contact management routes
 router.get('/submissions', requireRole(['admin', 'moderator']), getContactSubmissions);
 router.get('/submissions/:id', requireRole(['admin', 'moderator']), getContactSubmissionById);
-router.patch('/submissions/:id/status', requireRole(['admin', 'moderator']), validate(updateStatusRules), updateContactSubmissionStatus);
+router.patch('/submissions/:id/status', requireRole(['admin', 'moderator']), validate(updateStatusSchema), updateContactSubmissionStatus);
 router.patch('/submissions/:id/contacted', requireRole(['admin', 'moderator']), markContactAsContacted);
 router.delete('/submissions/:id', requireRole(['admin']), deleteContactSubmission);
 

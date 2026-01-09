@@ -9,7 +9,8 @@ import {
   deleteJobApplication
 } from '@/controllers/jobApplicationController';
 import { authenticateToken } from '@/middleware/auth'; // Ensure this path is correct, might be '../middleware/auth' if relative? No, using aliases
-import { validate, ValidationRule } from '@/middleware/validate';
+import { z } from 'zod';
+import { validate } from '@/middleware/validate';
 import { uploadResume } from '@/middleware/upload';
 
 const router = Router();
@@ -19,20 +20,22 @@ const router = Router();
  * Handles job application submissions and management
  */
 
-const jobApplicationRules: ValidationRule[] = [
-  { field: 'fullName', type: 'string', required: true, min: 2, message: 'Full name is required (min 2 chars)' },
-  { field: 'email', type: 'email', required: true, message: 'Valid email is required' },
-  { field: 'phone', type: 'string', required: true, message: 'Phone number is required' },
-  { field: 'location', type: 'string', required: true, message: 'Location is required' },
-  { field: 'experience', type: 'string', required: true, message: 'Experience level is required' }, // Enum check handled by Mongoose or custom rule? String is fine for basic
-  { field: 'workMode', type: 'string', required: true, message: 'Work mode is required' },
-  { field: 'skillsDescription', type: 'string', required: true, min: 20, message: 'Skills description is required (min 20 chars)' },
-  { field: 'hearAboutUs', type: 'string', required: true, message: 'How you heard about us is required' }
-];
+const jobApplicationSchema = z.object({
+  body: z.object({
+    fullName: z.string().min(2, 'Full name is required (min 2 chars)'),
+    email: z.string().email('Valid email is required'),
+    phone: z.string().min(1, 'Phone number is required'),
+    location: z.string().min(1, 'Location is required'),
+    experience: z.string().min(1, 'Experience level is required'),
+    workMode: z.string().min(1, 'Work mode is required'),
+    skillsDescription: z.string().min(20, 'Skills description is required (min 20 chars)'),
+    hearAboutUs: z.string().min(1, 'How you heard about us is required')
+  })
+});
 
 // Public route for submitting applications
 // uploadResume must come first to parse multipart/form-data
-router.post('/', uploadResume.single('resume'), validate(jobApplicationRules), submitJobApplication);
+router.post('/', uploadResume.single('resume'), validate(jobApplicationSchema), submitJobApplication);
 
 // Protected routes (require authentication)
 router.use(authenticateToken);

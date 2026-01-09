@@ -73,12 +73,7 @@ export function Testimonials() {
 
   return (
     <section id="testimonials" className="py-12 sm:py-16 md:py-20 lg:py-24 bg-gray-50 relative overflow-hidden">
-      {/* Decorative elements */}
-      <div className="absolute inset-0 w-full h-full opacity-30 sm:opacity-40 pointer-events-none">
-        <div className="absolute -top-10 -right-10 sm:-top-20 sm:-right-20 w-36 h-36 sm:w-72 sm:h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
-        <div className="absolute -bottom-10 -left-10 sm:-bottom-20 sm:-left-20 w-40 h-40 sm:w-80 sm:h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 sm:w-96 sm:h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
-      </div>
+
 
       <div className="container mx-auto px-3 sm:px-4 lg:px-6 relative z-10">
         {/* Section Header */}
@@ -100,7 +95,7 @@ export function Testimonials() {
 
         {/* Scrollable Testimonials Carousel */}
         <div className="relative">
-          <div className="overflow-x-auto scrollbar-hide overscroll-x-contain touch-pan-x" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <div className="overflow-x-auto scrollbar-hide overscroll-x-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
             <div className="flex gap-3 sm:gap-4 md:gap-6 pb-4" style={{ width: 'max-content' }}>
               {/* Regular Testimonial Cards */}
               {testimonials.map((testimonial) => (

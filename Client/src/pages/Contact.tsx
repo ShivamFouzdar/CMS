@@ -11,9 +11,9 @@ export default function ContactPage() {
           <div className="absolute -top-10 -right-10 sm:-top-20 sm:-right-20 w-36 h-36 sm:w-72 sm:h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
           <div className="absolute -bottom-10 -left-10 sm:-bottom-20 sm:-left-20 w-40 h-40 sm:w-80 sm:h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
         </div>
-        
+
         <div className="container mx-auto px-3 sm:px-4 lg:px-6 text-center relative z-10">
-          <motion.h1 
+          <motion.h1
             className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-blue-900 mb-4 sm:mb-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -21,7 +21,7 @@ export default function ContactPage() {
           >
             Get In Touch
           </motion.h1>
-          <motion.p 
+          <motion.p
             className="text-base sm:text-lg md:text-xl text-blue-800/80 max-w-3xl mx-auto leading-relaxed"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -33,7 +33,7 @@ export default function ContactPage() {
       </div>
 
       {/* Contact Section - Using the existing Contact component */}
-      <ContactSection showHeader={false} />
+      <ContactSection showHeader={false} showInfoOnMobile={true} />
 
       {/* Map Section
       <div className="bg-gray-50 py-12 sm:py-16 md:py-20">

@@ -6,6 +6,7 @@ const defaultAllowedOrigins = [
   'http://localhost:5173',
   'http://localhost:8000',
   'http://localhost:8001',
+  'https://0dt1r7wk-8001.inc1.devtunnels.ms/',
 ];
 
 const productionOrigins = [

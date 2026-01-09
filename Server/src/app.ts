@@ -16,6 +16,7 @@ import { corsConfig } from '@/config/cors';
 import { checkMaintenanceMode } from '@/middleware/maintenanceMode';
 import { errorHandler } from '@/middleware/errorHandler';
 import { notFoundHandler } from '@/middleware/notFoundHandler';
+import { apiLimiter } from '@/middleware/rateLimiter';
 
 // Import routes
 import healthRoutes from '@/routes/health';
@@ -68,7 +69,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Routes
 app.use('/health', healthRoutes);
-app.use('/api', apiRoutes);
+app.use('/api', apiLimiter, apiRoutes);
 
 // Error handling middleware
 app.use(notFoundHandler);
