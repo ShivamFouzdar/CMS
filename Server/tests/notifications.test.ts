@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import app from '../src/app';
 import Notification from '../src/models/Notification';
@@ -50,6 +50,18 @@ vi.mock('../src/repositories/user.repository', () => ({
 
 describe('Notification System', () => {
     let notificationService: NotificationService;
+
+    // Connect to MongoDB before running tests
+    beforeAll(async () => {
+        if (mongoose.connection.readyState === 0) {
+            await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/test_db');
+        }
+    });
+
+    // Close connection after tests
+    afterAll(async () => {
+        await mongoose.connection.close();
+    });
 
     beforeEach(async () => {
         notificationService = new NotificationService();
