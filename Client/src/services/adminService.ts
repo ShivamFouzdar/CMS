@@ -1,23 +1,5 @@
 import apiClient from './api';
-
-export interface UserProfile {
-    avatar?: string;
-    phone?: string;
-    department?: string;
-    bio?: string;
-}
-
-export interface AdminUser {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    role: 'super_admin' | 'admin' | 'moderator' | 'viewer';
-    isActive: boolean;
-    lastLoginAt?: string;
-    createdAt: string;
-    profile?: UserProfile;
-}
+import { ApiResponse, ActivityLog, SystemHealth, SystemSettings, RegisterData, LogEntry, DatabaseStats, AdminUser } from '@/types';
 
 export interface DashboardStats {
     contacts: {
@@ -58,14 +40,14 @@ export const adminService = {
     /**
      * Get recent system activity
      */
-    async getRecentActivity(): Promise<{ success: boolean; data: any[] }> {
+    async getRecentActivity(): Promise<ApiResponse<ActivityLog[]>> {
         return apiClient.get('/api/admin/activity');
     },
 
     /**
      * Get system health monitoring
      */
-    async getSystemHealth(): Promise<{ success: boolean; data: any }> {
+    async getSystemHealth(): Promise<ApiResponse<SystemHealth>> {
         return apiClient.get('/api/admin/health');
     },
 
@@ -73,23 +55,23 @@ export const adminService = {
      * Get all admin users
      */
     async getAllUsers(): Promise<AdminUser[]> {
-        const response: any = await apiClient.get('/api/users');
+        const response = await apiClient.get<ApiResponse<AdminUser[]>>('/api/users') as unknown as ApiResponse<AdminUser[]>;
         return response.data;
     },
 
     /**
      * Create a new admin user (restricted to super_admin)
      */
-    async createUser(userData: any): Promise<AdminUser> {
-        const response: any = await apiClient.post('/api/auth/register', userData);
+    async createUser(userData: RegisterData): Promise<AdminUser> {
+        const response = await apiClient.post<ApiResponse<{ user: AdminUser }>>('/api/auth/register', userData) as unknown as ApiResponse<{ user: AdminUser }>;
         return response.data.user;
     },
 
     /**
      * Update an existing user's role or status
      */
-    async updateUser(userId: string, updateData: any): Promise<AdminUser> {
-        const response: any = await apiClient.patch(`/api/users/${userId}`, updateData);
+    async updateUser(userId: string, updateData: Partial<AdminUser>): Promise<AdminUser> {
+        const response = await apiClient.patch<ApiResponse<AdminUser>>(`/api/users/${userId}`, updateData) as unknown as ApiResponse<AdminUser>;
         return response.data;
     },
 
@@ -110,14 +92,14 @@ export const adminService = {
     /**
      * Get system settings
      */
-    async getSystemSettings(): Promise<any> {
+    async getSystemSettings(): Promise<ApiResponse<SystemSettings>> {
         return apiClient.get('/api/admin/settings');
     },
 
     /**
      * Update system settings
      */
-    async updateSystemSettings(settings: any): Promise<any> {
+    async updateSystemSettings(settings: Partial<SystemSettings>): Promise<ApiResponse<SystemSettings>> {
         return apiClient.put('/api/admin/settings', settings);
     },
 
@@ -126,34 +108,49 @@ export const adminService = {
      */
     async backupDatabase(): Promise<Blob> {
         const response = await apiClient.get('/api/admin/database/backup', { responseType: 'blob' });
-        return response as any;
+        return response as unknown as Blob;
     },
 
     /**
      * Restore database
      */
-    async restoreDatabase(data: any): Promise<any> {
+    async restoreDatabase(data: FormData): Promise<ApiResponse<void>> {
         return apiClient.post('/api/admin/database/restore', data);
     },
 
     /**
      * Get database stats
      */
-    async getDatabaseStats(): Promise<any> {
+    async getDatabaseStats(): Promise<ApiResponse<DatabaseStats>> {
         return apiClient.get('/api/admin/database/stats');
     },
 
     /**
      * Get system logs
      */
-    async getSystemLogs(): Promise<any> {
-        return apiClient.get('/api/admin/logs');
+    async getSystemLogs(page: number = 1, limit: number = 20, filters: any = {}): Promise<ApiResponse<LogEntry[]>> {
+        const params = new URLSearchParams();
+        params.append('page', page.toString());
+        params.append('limit', limit.toString());
+
+        Object.keys(filters).forEach(key => {
+            if (filters[key]) params.append(key, filters[key]);
+        });
+
+        return apiClient.get(`/api/admin/logs?${params.toString()}`);
+    },
+
+    /**
+     * Clear system logs
+     */
+    async clearSystemLogs(): Promise<ApiResponse<void>> {
+        return apiClient.delete('/api/admin/logs');
     },
 
     /**
      * Test SMTP connection
      */
-    async testSmtpConnection(smtp: any): Promise<any> {
+    async testSmtpConnection(smtp: SystemSettings['smtp']): Promise<ApiResponse<{ success: boolean; message: string }>> {
         return apiClient.post('/api/admin/settings/test-smtp', smtp);
     }
 };

@@ -14,23 +14,39 @@ import { AdminLayout } from '@/components/layout/AdminLayout';
 import { usePagination } from '@/hooks/usePagination';
 import { DataTable } from '@/components/common/DataTable';
 import { StatCard } from '@/components/ui/StatCard';
+import { SearchBar } from '@/components/ui/SearchBar';
 
 export default function JobApplicants() {
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [stats, setStats] = useState<JobApplicationStats | null>(null);
   const [selectedApplication, setSelectedApplication] = useState<JobApplication | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [search, setSearch] = useState('');
+  const [exporting, setExporting] = useState(false);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
   const { page, totalPages, total, setPage, setTotalPages, setTotal } = usePagination({
     initialPage: 1,
     itemsPerPage: 10,
   });
 
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 500);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // Reset page when search changes
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, setPage]);
+
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const [appsRes, statsRes] = await Promise.all([
-        jobApplicationService.getAllApplications(page, 10),
+        jobApplicationService.getAllApplications(page, 10, debouncedSearch),
         jobApplicationService.getStats(),
       ]);
 
@@ -38,16 +54,36 @@ export default function JobApplicants() {
       setStats(statsRes.data);
       setTotalPages(appsRes.meta?.pagination?.totalPages || 1);
       setTotal(appsRes.meta?.pagination?.total || 0);
-    } catch (err) {
-      console.error('Failed to fetch applications:', err);
+    } catch {
+      console.error('Failed to fetch applications');
     } finally {
       setLoading(false);
     }
-  }, [page, setTotal, setTotalPages]);
+  }, [page, debouncedSearch, setTotal, setTotalPages]);
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  }, [page, fetchData]);
+
+  const handleExport = async () => {
+    try {
+      setExporting(true);
+      const blob = await jobApplicationService.exportApplications();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `applications-export-${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Failed to export applications');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this application?')) return;
@@ -55,7 +91,7 @@ export default function JobApplicants() {
       await jobApplicationService.deleteApplication(id);
       fetchData();
       if (selectedApplication?.id === id) setSelectedApplication(null);
-    } catch (err) {
+    } catch {
       alert('Failed to delete application');
     }
   };
@@ -63,8 +99,21 @@ export default function JobApplicants() {
   const handleDownload = async (id: string) => {
     try {
       await jobApplicationService.downloadResume(id);
-    } catch (err) {
+    } catch {
       alert('Failed to download resume');
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    if (!confirm(`Are you sure you want to delete ${selectedIds.length} applications?`)) return;
+    try {
+      await jobApplicationService.bulkDeleteApplications(selectedIds);
+      setSelectedIds([]);
+      fetchData();
+    } catch (error) {
+      console.error('Bulk delete failed:', error);
+      alert('Failed to delete applications');
     }
   };
 
@@ -146,6 +195,25 @@ export default function JobApplicants() {
             <h1 className="text-2xl sm:text-3xl font-bold font-display text-slate-900 dark:text-white transition-colors">Talent Pipeline</h1>
             <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium transition-colors">Review and manage professional applications and resumes.</p>
           </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleExport}
+              disabled={exporting}
+              className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-gray-200 dark:border-white/10 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Download className="w-4 h-4" />
+              {exporting ? 'Exporting...' : 'Export CSV'}
+            </button>
+            {selectedIds.length > 0 && (
+              <button
+                onClick={handleBulkDelete}
+                className="flex items-center gap-2 px-4 py-2 bg-rose-500 text-white rounded-xl hover:bg-rose-600 transition-colors font-medium shadow-sm"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete Selected ({selectedIds.length})
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Stats Grid */}
@@ -180,7 +248,7 @@ export default function JobApplicants() {
         <DataTable
           title="Candidate Log"
           description="A comprehensive list of all professional inquiries."
-          columns={columns as any}
+          columns={columns}
           data={applications}
           loading={loading}
           pagination={{
@@ -190,6 +258,16 @@ export default function JobApplicants() {
             onPageChange: setPage
           }}
           onRowClick={(app) => setSelectedApplication(app)}
+          selectable={true}
+          onSelectionChange={setSelectedIds}
+          searchBar={
+            <SearchBar
+              value={search}
+              onChange={setSearch}
+              placeholder="Search by name, email, or experience..."
+              className="w-full md:w-[400px]"
+            />
+          }
         />
 
         {/* Details Modal */}
@@ -208,7 +286,14 @@ export default function JobApplicants() {
   );
 }
 
-function ApplicationModal({ application, onClose, onDownload, onDelete }: any) {
+interface ApplicationModalProps {
+  application: JobApplication;
+  onClose: () => void;
+  onDownload: (id: string) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+}
+
+function ApplicationModal({ application, onClose, onDownload, onDelete }: ApplicationModalProps) {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <motion.div

@@ -3,30 +3,30 @@
  * Central export point for all database models
  */
 
-export { Contact, IContact } from './Contact';
-export { Review, IReview } from './Review';
-export { Service, IService, IServiceProcess, IServicePricing } from './Service';
-export { User, IUser } from './User';
-export { Applicant, IApplicant } from './Applicant';
-export { Settings, ISettings } from './Settings';
+export { Contact, type IContact } from './Contact.js';
+export { Review, type IReview } from './Review.js';
+export { Service, type IService, type IServiceProcess, type IServicePricing } from './Service.js';
+export { User, type IUser } from './User.js';
+export { Applicant, type IApplicant } from './Applicant.js';
+export { Settings, type ISettings } from './Settings.js';
 
 // Re-export all models as default exports for convenience
-export { default as ContactModel } from './Contact';
-export { default as ReviewModel } from './Review';
-export { default as ServiceModel } from './Service';
-export { default as UserModel } from './User';
-export { default as ApplicantModel } from './Applicant';
-export { default as SettingsModel } from './Settings';
+export { default as ContactModel } from './Contact.js';
+export { default as ReviewModel } from './Review.js';
+export { default as ServiceModel } from './Service.js';
+export { default as UserModel } from './User.js';
+export { default as ApplicantModel } from './Applicant.js';
+export { default as SettingsModel } from './Settings.js';
 // Settings doesn't have a default export
 
 // Model registry for dynamic access
 export const models = {
-  Contact: () => import('./Contact'),
-  Review: () => import('./Review'),
-  Service: () => import('./Service'),
-  User: () => import('./User'),
-  Applicant: () => import('./Applicant'),
-  Settings: () => import('./Settings')
+  Contact: () => import('./Contact.js'),
+  Review: () => import('./Review.js'),
+  Service: () => import('./Service.js'),
+  User: () => import('./User.js'),
+  Applicant: () => import('./Applicant.js'),
+  Settings: () => import('./Settings.js')
 };
 
 // Database connection helper

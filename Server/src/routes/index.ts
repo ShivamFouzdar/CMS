@@ -4,16 +4,17 @@
  * Central export point for all route modules
  */
 
-export { default as apiRoutes } from './api';
-export { default as healthRoutes } from './health';
-export { default as contactRoutes } from './contact';
-export { default as reviewRoutes } from './reviews';
-export { default as serviceRoutes } from './services';
-export { default as userRoutes } from './users';
-export { default as adminRoutes } from './admin';
-export { default as authRoutes } from './auth';
-export { default as twoFactorRoutes } from './twoFactor';
-export { default as publicRoutes } from './public'; // New public routes export
+export { default as apiRoutes } from './api.js';
+export { default as healthRoutes } from './health.js';
+export { default as contactRoutes } from './contact.js';
+export { default as reviewRoutes } from './reviews.js';
+export { default as serviceRoutes } from './services.js';
+export { default as userRoutes } from './users.js';
+export { default as adminRoutes } from './admin.js';
+export { default as authRoutes } from './auth.js';
+export { default as twoFactorRoutes } from './twoFactor.js';
+export { default as publicRoutes } from './public.js';
+export { default as notificationRoutes } from './notifications.js'; // New public routes export
 
 // Route configuration
 export const routeConfig = {

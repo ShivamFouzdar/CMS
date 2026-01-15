@@ -1,6 +1,6 @@
 
-import { Service, Review, Settings } from '@/models';
-import { seedAdminUser, seedTestUsers } from '@/seeds/seedAdmin';
+import { Service, Review, Settings } from '@/models/index.js';
+import { seedAdminUser, seedTestUsers } from '@/seeds/seedAdmin.js';
 
 /**
  * Seed database with initial data

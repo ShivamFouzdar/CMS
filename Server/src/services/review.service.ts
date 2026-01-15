@@ -1,7 +1,7 @@
 
-import { createError, validateEmail, sanitizeInput } from '@/utils/helpers';
-import { IReview } from '@/models/Review';
-import { ReviewRepository } from '@/repositories/review.repository';
+import { createError, validateEmail, sanitizeInput } from '@/utils/helpers.js';
+import { IReview } from '@/models/Review.js';
+import { ReviewRepository } from '@/repositories/review.repository.js';
 
 export interface ReviewFilters {
     page?: number;
@@ -142,6 +142,11 @@ export class ReviewService {
     async deleteReview(id: string): Promise<void> {
         const deleted = await this.repository.delete(id);
         if (!deleted) throw createError('Review not found', 404);
+    }
+
+    async bulkDeleteReviews(ids: string[]): Promise<number> {
+        if (!ids || ids.length === 0) return 0;
+        return await this.repository.deleteMany(ids);
     }
 
     async getReviewsByCategory(category: string, limit: number = 10): Promise<IReview[]> {

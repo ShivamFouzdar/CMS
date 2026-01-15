@@ -32,5 +32,5 @@ declare namespace NodeJS {
 // Global types
 interface Window {
   // Add any global window properties here if needed
-  gtag?: (...args: any[]) => void;
+  gtag?: (...args: unknown[]) => void;
 }

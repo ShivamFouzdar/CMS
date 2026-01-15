@@ -54,5 +54,12 @@ export const servicesService = {
      */
     async toggleStatus(id: string): Promise<ApiResponse<Service>> {
         return apiClient.patch(`/api/services/${id}/status`);
+    },
+
+    /**
+     * Reorder services (Admin)
+     */
+    async reorderServices(items: { id: string; order: number }[]): Promise<ApiResponse<void>> {
+        return apiClient.put('/api/services/reorder', { items });
     }
 };

@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { asyncHandler, createError } from '@/utils/helpers';
-import { sendSuccess } from '@/utils/response.utils';
+import { asyncHandler, createError } from '@/utils/helpers.js';
+import { sendSuccess } from '@/utils/response.utils.js';
 import path from 'path';
-import { JobApplicationService } from '@/services/jobApplication.service';
+import { JobApplicationService } from '@/services/jobApplication.service.js';
 
 /**
  * Job Application Controller
@@ -69,7 +69,7 @@ export const submitJobApplication = asyncHandler(async (req: Request, res: Respo
 
   // Send notification to admins (non-blocking)
   try {
-    const { notifyNewJobApplication } = await import('@/services/notification.service');
+    const { notifyNewJobApplication } = await import('@/services/notification.service.js');
     notifyNewJobApplication({
       fullName: application.fullName,
       email: application.email,
@@ -111,9 +111,31 @@ export const submitJobApplication = asyncHandler(async (req: Request, res: Respo
 export const getJobApplications = asyncHandler(async (req: Request, res: Response) => {
   const page = parseInt((req.query['page'] as string) || '1') || 1;
   const limit = parseInt((req.query['limit'] as string) || '10') || 10;
+  const search = (req.query['search'] as string) || '';
 
-  const result = await jobApplicationService.getAllJobApplications(page, limit);
+  const result = await jobApplicationService.getAllJobApplications(page, limit, search);
   return sendSuccess(res, `Retrieved ${result.data.length} job applications`, result.data);
+});
+
+/**
+ * @swagger
+ * /api/job-application/export:
+ *   get:
+ *     summary: Export applications to CSV (Admin)
+ *     tags: [Job Applications]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: CSV file download
+ */
+export const exportApplications = asyncHandler(async (_req: Request, res: Response) => {
+  const csv = await jobApplicationService.exportApplications();
+  const date = new Date().toISOString().split('T')[0];
+
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', `attachment; filename=applications-${date}.csv`);
+  res.status(200).send(csv);
 });
 
 /**
@@ -222,4 +244,36 @@ export const deleteJobApplication = asyncHandler(async (req: Request, res: Respo
 
   await jobApplicationService.deleteJobApplication(id);
   return sendSuccess(res, 'Job application deleted successfully');
+});
+
+/**
+ * @swagger
+ * /api/job-application/submissions/bulk-delete:
+ *   post:
+ *     summary: Bulk delete job applications (Admin)
+ *     tags: [Job Applications]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               ids:
+ *                 type: array
+ *                 items: { type: string }
+ *     responses:
+ *       200:
+ *         description: Applications deleted
+ */
+export const bulkDeleteJobApplications = asyncHandler(async (req: Request, res: Response) => {
+  const { ids } = req.body;
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    throw createError('IDs array is required', 400);
+  }
+
+  const count = await jobApplicationService.bulkDeleteJobApplications(ids);
+  return sendSuccess(res, `Deleted ${count} job applications successfully`, { count });
 });

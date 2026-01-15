@@ -13,15 +13,12 @@ import {
   deleteUser,
   activateUser,
   deactivateUser,
-  getUserStats,
-  resetPassword,
-  forgotPassword,
-  verifyEmail
-} from '@/controllers/usersController';
-import { authenticateToken, requireRole } from '@/middleware/auth';
+  getUserStats
+} from '@/controllers/users.controller.js';
+import { authenticateToken, requireRole } from '@/middleware/auth.js';
 import { z } from 'zod';
-import { authLimiter } from '@/middleware/rateLimiter';
-import { validate } from '@/middleware/validate';
+import { authLimiter } from '@/middleware/rateLimiter.js';
+import { validate } from '@/middleware/validate.js';
 
 const router = Router();
 
@@ -44,25 +41,6 @@ const loginUserSchema = z.object({
   body: z.object({
     email: z.string().email('Valid email is required'),
     password: z.string().min(1, 'Password is required')
-  })
-});
-
-const forgotPasswordSchema = z.object({
-  body: z.object({
-    email: z.string().email('Valid email is required')
-  })
-});
-
-const resetPasswordSchema = z.object({
-  body: z.object({
-    token: z.string().min(1, 'Token is required'),
-    newPassword: z.string().min(8, 'New password is required (min 8 chars)')
-  })
-});
-
-const verifyEmailSchema = z.object({
-  body: z.object({
-    token: z.string().min(1, 'Token is required')
   })
 });
 
@@ -91,9 +69,6 @@ const updateUserSchema = z.object({
 router.post('/register', authLimiter, validate(registerUserSchema), registerUser);
 router.post('/login', authLimiter, validate(loginUserSchema), loginUser);
 router.post('/logout', logoutUser);
-router.post('/forgot-password', authLimiter, validate(forgotPasswordSchema), forgotPassword);
-router.post('/reset-password', validate(resetPasswordSchema), resetPassword);
-router.post('/verify-email', validate(verifyEmailSchema), verifyEmail);
 
 // Protected routes (require authentication)
 router.use(authenticateToken);
@@ -107,10 +82,15 @@ router.put('/me/password', validate(changePasswordSchema), changePassword);
 // User management routes (admin only)
 router.get('/', requireRole(['admin']), getAllUsers);
 router.get('/stats', requireRole(['admin']), getUserStats);
+
+// Specific ID actions (Must be before generic /:id)
+router.patch('/:id/activate', requireRole(['super_admin']), activateUser);
+router.patch('/:id/deactivate', requireRole(['super_admin']), deactivateUser);
+
+// Generic ID operations
 router.get('/:id', requireRole(['admin']), getUserById);
-router.put('/:id', requireRole(['admin']), validate(updateUserSchema), updateUser);
-router.delete('/:id', requireRole(['admin']), deleteUser);
-router.patch('/:id/activate', requireRole(['admin']), activateUser);
-router.patch('/:id/deactivate', requireRole(['admin']), deactivateUser);
+router.put('/:id', requireRole(['super_admin']), validate(updateUserSchema), updateUser);
+router.patch('/:id', requireRole(['super_admin']), validate(updateUserSchema), updateUser);
+router.delete('/:id', requireRole(['super_admin']), deleteUser);
 
 export default router;

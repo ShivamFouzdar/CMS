@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { 
+import {
   getReviews,
   getAllReviewsAdmin,
   getReviewById,
@@ -12,9 +12,10 @@ import {
   getFeaturedReviews,
   getRecentReviews,
   addReviewResponse,
-  voteReviewHelpful
-} from '@/controllers/reviewsController';
-import { authenticateToken, requireRole } from '@/middleware/auth';
+  voteReviewHelpful,
+  bulkDeleteReviews
+} from '@/controllers/review.controller.js';
+import { authenticateToken, requireRole } from '@/middleware/auth.js';
 
 const router = Router();
 
@@ -38,6 +39,7 @@ router.patch('/:id/status', authenticateToken, requireRole(['admin', 'moderator'
 router.patch('/:id/response', authenticateToken, requireRole(['admin', 'moderator']), addReviewResponse);
 router.patch('/:id', authenticateToken, requireRole(['admin', 'moderator']), updateReview);
 router.delete('/:id', authenticateToken, requireRole(['admin']), deleteReview);
+router.post('/bulk-delete', authenticateToken, requireRole(['admin']), bulkDeleteReviews);
 
 // Public get by ID - must be last to avoid conflicts
 router.get('/:id', getReviewById);

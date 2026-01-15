@@ -1,9 +1,10 @@
 import { Request, Response } from 'express';
-import { asyncHandler, createError } from '@/utils/helpers';
-import { sendSuccess } from '@/utils/response.utils';
-import { UserService } from '@/services/user.service';
-import { AuthService } from '@/services/auth.service';
-import { AuthenticatedRequest } from '@/types';
+import { asyncHandler, createError } from '@/utils/helpers.js';
+import { sendSuccess } from '@/utils/response.utils.js';
+import { UserService } from '@/services/user.service.js';
+import { AuthService } from '@/services/auth.service.js';
+import { AuthenticatedRequest } from '@/types/index.js';
+import { auditService } from '@/services/audit.service.js';
 
 /**
  * Users Controller
@@ -166,6 +167,9 @@ export const changePassword = asyncHandler(async (req: Request, res: Response) =
   }
 
   await authService.changePassword(userId, currentPassword, newPassword);
+
+  await auditService.logAction(req, 'CHANGE_PASSWORD', 'User', userId);
+
   return sendSuccess(res, 'Password changed successfully');
 });
 
@@ -252,8 +256,12 @@ export const getUserById = asyncHandler(async (req: Request, res: Response) => {
  */
 export const updateUser = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
+  console.log(`[DEBUG] updateUser called for ID: ${id}, Body keys:`, Object.keys(req.body));
   if (!id) throw createError('ID is required', 400);
   const user = await userService.updateUser(id, req.body);
+
+  await auditService.logAction(req, 'UPDATE', 'User', id, { updates: req.body });
+
   return sendSuccess(res, 'User updated successfully', user);
 });
 
@@ -273,6 +281,9 @@ export const deleteUser = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   if (!id) throw createError('ID is required', 400);
   await userService.deleteUser(id);
+
+  await auditService.logAction(req, 'DELETE', 'User', id);
+
   return sendSuccess(res, 'User deleted successfully');
 });
 
@@ -292,6 +303,9 @@ export const activateUser = asyncHandler(async (req: Request, res: Response) => 
   const { id } = req.params;
   if (!id) throw createError('ID is required', 400);
   const user = await userService.activateUser(id);
+
+  await auditService.logAction(req, 'ACTIVATE', 'User', id);
+
   return sendSuccess(res, 'User activated successfully', user);
 });
 
@@ -311,6 +325,9 @@ export const deactivateUser = asyncHandler(async (req: Request, res: Response) =
   const { id } = req.params;
   if (!id) throw createError('ID is required', 400);
   const user = await userService.deactivateUser(id);
+
+  await auditService.logAction(req, 'DEACTIVATE', 'User', id);
+
   return sendSuccess(res, 'User deactivated successfully', user);
 });
 
@@ -331,56 +348,3 @@ export const getUserStats = asyncHandler(async (_req: Request, res: Response) =>
   return sendSuccess(res, 'User statistics retrieved successfully', stats);
 });
 
-/**
- * @swagger
- * /api/users/forgot-password:
- *   post:
- *     summary: Forgot Password request
- *     tags: [Users]
- *     responses:
- *       200:
- *         description: Reset email sent
- */
-export const forgotPassword = asyncHandler(async (req: Request, res: Response) => {
-  const { email } = req.body;
-  if (!email) throw createError('Email is required', 400);
-
-  await authService.requestPasswordReset(email);
-  return sendSuccess(res, 'If an account exists with that email, a password reset link has been sent.');
-});
-
-/**
- * @swagger
- * /api/users/reset-password:
- *   post:
- *     summary: Reset Password with token
- *     tags: [Users]
- *     responses:
- *       200:
- *         description: Password reset successful
- */
-export const resetPassword = asyncHandler(async (req: Request, res: Response) => {
-  const { token, newPassword } = req.body;
-  if (!token || !newPassword) throw createError('Token and new password are required', 400);
-
-  await authService.resetPassword(token, newPassword);
-  return sendSuccess(res, 'Password has been reset successfully');
-});
-
-/**
- * @swagger
- * /api/users/verify-email:
- *   post:
- *     summary: Verify email with token
- *     tags: [Users]
- *     responses:
- *       200:
- *         description: Email verified successfully
- */
-export const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
-  const { token } = req.body;
-  if (!token) throw createError('Token is required', 400);
-
-  await authService.verifyEmail(token);
-  return sendSuccess(res, 'Email verified successfully');
-});

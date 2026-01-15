@@ -1,7 +1,7 @@
 
-import { ServiceRepository } from '@/repositories/service.repository';
-import { IService } from '@/models/Service';
-import { createError } from '@/utils/helpers';
+import { ServiceRepository } from '@/repositories/service.repository.js';
+import { IService } from '@/models/Service.js';
+import { createError } from '@/utils/helpers.js';
 
 interface ServiceData {
     name: string;
@@ -35,6 +35,13 @@ export class OfferingService {
     }
 
     /**
+     * Bulk write operation for reordering
+     */
+    async bulkWrite(ops: any[]): Promise<any> {
+        return await this.repository.bulkWrite(ops);
+    }
+
+    /**
      * Get all active services
      */
     async getServices(category?: string, featured?: boolean): Promise<IService[]> {
@@ -49,7 +56,7 @@ export class OfferingService {
      * Get all services including inactive (Admin)
      */
     async getAllServicesAdmin(): Promise<IService[]> {
-        return await this.repository.findAll();
+        return await this.repository.findAll({}, { order: 1, createdAt: -1 });
     }
 
     /**

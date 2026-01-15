@@ -12,9 +12,9 @@ interface AnalyticsEvent {
 // Google Analytics configuration
 declare global {
   interface Window {
-    gtag?: (...args: any[]) => void;
-    dataLayer?: any[];
-    hj?: (...args: any[]) => void;
+    gtag?: (...args: unknown[]) => void;
+    dataLayer?: unknown[];
+    hj?: (...args: unknown[]) => void;
     _hjSettings?: {
       hjid: string;
       hjsv: number;
@@ -51,9 +51,9 @@ export function initAnalytics() {
   if (isHotjarAvailable && import.meta.env.VITE_HOTJAR_ID) {
     const hotjarId = import.meta.env.VITE_HOTJAR_ID;
     const hotjarVersion = 6; // Hotjar tracking code version
-    
-    (function(h: any, o: any, t: any, j: any, a?: any, r?: any) {
-      h.hj = h.hj || function() { (h.hj.q = h.hj.q || []).push(arguments); };
+
+    (function (h: any, o: any, t: any, j: any, a?: any, r?: any) {
+      h.hj = h.hj || function () { (h.hj.q = h.hj.q || []).push(arguments); };
       h._hjSettings = { hjid: hotjarId, hjsv: hotjarVersion };
       a = o.getElementsByTagName('head')[0];
       r = o.createElement('script');
@@ -209,6 +209,23 @@ export function trackSearch(query: string, resultCount?: number) {
     label: query,
     search_term: query,
     search_results_count: resultCount,
+  });
+}
+
+/**
+ * Track a form error
+ * @param formId - The ID of the form
+ * @param formName - The name of the form (optional)
+ * @param errorMessage - The error message
+ */
+export function trackFormError(formId: string, formName: string | undefined, errorMessage: string) {
+  trackEvent({
+    action: 'form_error',
+    category: 'Form',
+    label: errorMessage,
+    form_id: formId,
+    form_name: formName,
+    error_message: errorMessage,
   });
 }
 

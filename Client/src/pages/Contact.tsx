@@ -1,9 +1,14 @@
 import { motion } from 'framer-motion';
 import { Contact as ContactSection } from '@/components/sections/Contact';
+import { SEO } from '@/components/seo/SEO';
 
 export default function ContactPage() {
   return (
     <div className="space-y-0">
+      <SEO
+        title="Contact Us"
+        description="Get in touch with CareerMap Solutions. We are here to answer your questions and help you find the right business solutions."
+      />
       {/* Page Header */}
       <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 pt-16 sm:pt-20 md:pt-24 pb-4 sm:pb-5 md:pb-6 relative overflow-hidden">
         {/* Decorative elements */}

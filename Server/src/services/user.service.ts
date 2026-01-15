@@ -1,7 +1,7 @@
 
-import { createError, sanitizeInput } from '@/utils/helpers';
-import { UserRepository } from '@/repositories/user.repository';
-import { IUser } from '@/models/User';
+import { createError, sanitizeInput } from '@/utils/helpers.js';
+import { UserRepository } from '@/repositories/user.repository.js';
+import { IUser } from '@/models/User.js';
 
 export interface UserFilters {
     role?: string;
@@ -118,6 +118,7 @@ export class UserService {
         if (updates.lastName) sanitizedUpdates.lastName = sanitizeInput(updates.lastName);
         if (updates.email) sanitizedUpdates.email = sanitizeInput(updates.email);
         if (updates.role) sanitizedUpdates.role = updates.role;
+        if (updates.isActive !== undefined) sanitizedUpdates.isActive = updates.isActive;
         // ... other fields
 
         return (await this.repository.update(id, sanitizedUpdates))!;

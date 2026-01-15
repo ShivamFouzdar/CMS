@@ -1,15 +1,17 @@
-import app from './app';
+import 'dotenv/config';
+import app from './app.js';
 // Note: dotenv is already configured in app.ts, but standard practice is to configure it at the very top of the entry point too implicitly.
 // However, since we import 'app' which configures it, we are safe. 
 // Ideally, we move dotenv.config() here or to a separate config loader.
 
-import { initializeDatabase, createIndexes } from '@/config/database';
+import { initializeDatabase, createIndexes } from '@/config/database.js';
 
-import { seedDatabase } from '@/seeds/index'; // We will create this next
+import { seedDatabase } from '@/seeds/index.js'; // We will create this next
 
 const PORT = process.env['PORT'] || 5000;
 
 // Initialize database and start server
+// Trigger restart
 const startServer = async () => {
     try {
         // Try to initialize database connection

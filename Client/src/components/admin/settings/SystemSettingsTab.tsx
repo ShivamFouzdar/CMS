@@ -28,6 +28,11 @@ export const SystemSettingsTab: React.FC = () => {
                     value={systemSettings.contactPhone}
                     onChange={(e) => setSystemSettings({ ...systemSettings, contactPhone: e.target.value })}
                 />
+                <SettingField
+                    label="Contact Address"
+                    value={systemSettings.contactAddress}
+                    onChange={(e) => setSystemSettings({ ...systemSettings, contactAddress: e.target.value })}
+                />
                 <div className="col-span-2 space-y-2">
                     <label className="text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-widest ml-1">Core Description</label>
                     <textarea

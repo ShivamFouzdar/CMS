@@ -11,26 +11,30 @@ import cors from 'cors';
 import morgan from 'morgan';
 
 // Import configurations
-import { helmetConfig } from '@/config/helmet';
-import { corsConfig } from '@/config/cors';
-import { checkMaintenanceMode } from '@/middleware/maintenanceMode';
-import { errorHandler } from '@/middleware/errorHandler';
-import { notFoundHandler } from '@/middleware/notFoundHandler';
-import { apiLimiter } from '@/middleware/rateLimiter';
+import { helmetConfig } from '@/config/helmet.js';
+import { corsConfig } from '@/config/cors.js';
+import { checkMaintenanceMode } from '@/middleware/maintenanceMode.js';
+import { errorHandler } from '@/middleware/errorHandler.js';
+import { notFoundHandler } from '@/middleware/notFoundHandler.js';
+import { apiLimiter } from '@/middleware/rateLimiter.js';
 
 // Import routes
-import healthRoutes from '@/routes/health';
-import apiRoutes from '@/routes/api';
+import healthRoutes from '@/routes/health.js';
+import apiRoutes from '@/routes/api.js';
 
 // Swagger documentation
 import swaggerUi from 'swagger-ui-express';
-import { swaggerSpec } from '@/config/swagger';
+import { swaggerSpec } from '@/config/swagger.js';
 
 const app = express();
 const isDev = process.env['NODE_ENV'] === 'development';
 
 import fs from 'fs';
 import path from 'path';
+
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Ensure logs directory exists
 const logDirectory = path.join(__dirname, '../logs');

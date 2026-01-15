@@ -1,17 +1,17 @@
 import { Request, Response } from 'express';
-import { asyncHandler, createError } from '@/utils/helpers';
-import { sendSuccess } from '@/utils/response.utils';
-import { User } from '@/models';
+import { asyncHandler, createError } from '@/utils/helpers.js';
+import { sendSuccess } from '@/utils/response.utils.js';
+import { User } from '@/models/index.js';
 import {
   setupTwoFactor,
   verifyToken,
   verifyBackupCode,
   hashBackupCodes,
   generateBackupCodes,
-} from '@/services/twoFactor.service';
-import { comparePassword } from '@/utils/auth.utils';
-import { verifyToken as verifyJWT } from '@/utils/jwt.utils';
-import { generateTokenPair } from '@/utils/jwt.utils';
+} from '@/services/twoFactor.service.js';
+import { comparePassword } from '@/utils/auth.utils.js';
+import { verifyToken as verifyJWT } from '@/utils/jwt.utils.js';
+import { generateTokenPair } from '@/utils/jwt.utils.js';
 
 /**
  * Two Factor Controller
@@ -261,7 +261,7 @@ export const verifyTwoFactorLogin = asyncHandler(async (req: Request, res: Respo
   user.twoFactor.lastUsed = new Date();
   await user.save();
 
-  const { generateSessionId } = await import('@/utils/uuid.utils');
+  const { generateSessionId } = await import('@/utils/uuid.utils.js');
   const sessionId = generateSessionId();
   const userId = (user._id as any).toString();
   const tokens = generateTokenPair({

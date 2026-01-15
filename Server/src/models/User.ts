@@ -94,6 +94,8 @@ export interface IUser extends Document {
     verifiedAt?: Date;
     lastUsed?: Date;
   };
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
   permissions: string[];
   createdAt: Date;
   updatedAt: Date;
@@ -252,6 +254,14 @@ const userSchema = new Schema<IUser>({
     lastUsed: {
       type: Date
     }
+  },
+  resetPasswordToken: {
+    type: String,
+    select: false
+  },
+  resetPasswordExpires: {
+    type: Date,
+    select: false
   },
   permissions: [{
     type: String,

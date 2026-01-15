@@ -9,6 +9,7 @@ import { AdminLayout } from '@/components/layout/AdminLayout';
 import { reviewsService, Review } from '@/services/reviewsService';
 import { DataTable } from '@/components/common/DataTable';
 import { StatCard } from '@/components/ui/StatCard';
+import { SearchBar } from '@/components/ui/SearchBar';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Reviews() {
@@ -18,6 +19,7 @@ export default function Reviews() {
   const [filterPublished, setFilterPublished] = useState<'all' | 'published' | 'pending'>('all');
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const fetchReviews = useCallback(async () => {
     try {
@@ -28,8 +30,8 @@ export default function Reviews() {
         status: filterPublished !== 'all' ? filterPublished : undefined
       });
       setReviews(response.data || []);
-    } catch (error) {
-      console.error('Failed to fetch reviews:', error);
+    } catch {
+      console.error('Failed to fetch stats');
     } finally {
       setLoading(false);
     }
@@ -39,7 +41,31 @@ export default function Reviews() {
     fetchReviews();
   }, [fetchReviews]);
 
-  const handleStatusUpdate = async (reviewId: string, updates: any) => {
+  // Filter reviews based on search term and published status
+  const filteredReviews = useMemo(() => {
+    let filtered = reviews;
+
+    // Filter by search term
+    if (debouncedSearchTerm.trim()) {
+      const searchLower = debouncedSearchTerm.toLowerCase();
+      filtered = filtered.filter(review =>
+        review.name.toLowerCase().includes(searchLower) ||
+        review.content.toLowerCase().includes(searchLower) ||
+        review.role?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Filter by published status
+    if (filterPublished !== 'all') {
+      filtered = filtered.filter(review =>
+        filterPublished === 'published' ? review.isPublished : !review.isPublished
+      );
+    }
+
+    return filtered;
+  }, [reviews, debouncedSearchTerm, filterPublished]);
+
+  const handleStatusUpdate = async (reviewId: string, updates: Partial<Review>) => {
     try {
       await reviewsService.updateStatus(reviewId, updates);
       fetchReviews();
@@ -48,7 +74,7 @@ export default function Reviews() {
         const updated = await reviewsService.getReviewById(reviewId);
         setSelectedReview(updated.data);
       }
-    } catch (error) {
+    } catch {
       alert('Failed to update review status');
     }
   };
@@ -60,8 +86,21 @@ export default function Reviews() {
       fetchReviews();
       const id = selectedReview?.id || selectedReview?._id;
       if (id === reviewId) setSelectedReview(null);
-    } catch (error) {
+    } catch {
       alert('Failed to delete review');
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    if (!confirm(`Are you sure you want to delete ${selectedIds.length} reviews?`)) return;
+    try {
+      await reviewsService.bulkDeleteReviews(selectedIds);
+      setSelectedIds([]);
+      fetchReviews();
+    } catch (error) {
+      console.error('Bulk delete failed:', error);
+      alert('Failed to delete reviews');
     }
   };
 
@@ -168,24 +207,15 @@ export default function Reviews() {
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search reviews..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-white dark:bg-slate-800/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 text-sm text-slate-900 dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500/20 sm:w-64 transition-all"
-              />
-            </div>
-            <select
-              value={filterPublished}
-              onChange={(e) => setFilterPublished(e.target.value as any)}
-              className="bg-white dark:bg-slate-800/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 text-sm text-slate-900 dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium"
-            >
-              <option value="all">All Status</option>
-              <option value="published">Published</option>
-              <option value="pending">Pending</option>
-            </select>
+            {selectedIds.length > 0 && (
+              <button
+                onClick={handleBulkDelete}
+                className="flex items-center gap-2 px-4 py-2 bg-rose-500 text-white rounded-xl hover:bg-rose-600 transition-colors font-medium shadow-sm"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete Selected ({selectedIds.length})
+              </button>
+            )}
           </div>
         </div>
 
@@ -222,9 +252,30 @@ export default function Reviews() {
           title="Review Log"
           description="A moderation queue for all customer feedback."
           columns={columns as any}
-          data={reviews}
+          data={filteredReviews}
           loading={loading}
           onRowClick={(rev) => setSelectedReview(rev)}
+          selectable={true}
+          onSelectionChange={setSelectedIds}
+          searchBar={
+            <SearchBar
+              value={searchTerm}
+              onChange={setSearchTerm}
+              placeholder="Search reviews..."
+              className="w-full md:w-[400px]"
+            />
+          }
+          actions={
+            <select
+              value={filterPublished}
+              onChange={(e) => setFilterPublished(e.target.value as 'all' | 'published' | 'pending')}
+              className="bg-white dark:bg-slate-800/40 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 text-sm text-slate-900 dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium"
+            >
+              <option value="all">All Status</option>
+              <option value="published">Published</option>
+              <option value="pending">Pending</option>
+            </select>
+          }
         />
 
         {/* Detail Modal */}
@@ -243,8 +294,15 @@ export default function Reviews() {
   );
 }
 
-function ReviewModal({ review, onClose, onStatusUpdate, onDelete }: any) {
-  const id = review.id || review._id;
+interface ReviewModalProps {
+  review: Review;
+  onClose: () => void;
+  onStatusUpdate: (id: string, updates: Partial<Review>) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+}
+
+function ReviewModal({ review, onClose, onStatusUpdate, onDelete }: ReviewModalProps) {
+  const id = review.id || review._id || '';
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">

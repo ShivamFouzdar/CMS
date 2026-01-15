@@ -74,7 +74,7 @@ export function Footer() {
     },
     {
       icon: MapPin,
-      text: 'Gurgaon, Haryana, India',
+      text: settings?.contactAddress || 'Gurgaon, Haryana, India',
       href: 'https://maps.google.com',
     },
   ];
@@ -85,7 +85,13 @@ export function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
           {/* Company Info */}
           <div className="sm:col-span-2 lg:col-span-2">
-            <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4">{settings?.siteName || 'CareerMap'} <span className="text-purple-300">Solutions</span></h3>
+            <a href="/" className="block -mt-2 mb-0">
+              <img
+                src="/logo2.png"
+                alt={settings?.siteName || 'CareerMap Solutions'}
+                className="h-20 sm:h-28 w-auto object-contain object-left"
+              />
+            </a>
             <p className="mb-4 sm:mb-6 text-gray-200 text-sm sm:text-base leading-relaxed font-semibold">
               {settings?.siteDescription || "Empowering businesses with comprehensive outsourcing solutions to drive growth and efficiency in today's competitive landscape."}
             </p>

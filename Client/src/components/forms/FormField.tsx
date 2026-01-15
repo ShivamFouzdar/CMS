@@ -40,7 +40,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     ref
   ) => {
     const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
-    
+
     return (
       <div className={cn('space-y-1.5', containerClassName)}>
         <label
@@ -50,7 +50,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           {label}
           {required && <span className="text-red-500 ml-0.5">*</span>}
         </label>
-        
+
         <div className="relative">
           {leftIcon && (
             <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
@@ -74,13 +74,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
         </div>
-        
+
         {description && !error && (
           <p id={`${inputId}-description`} className="text-sm text-gray-500">
             {description}
           </p>
         )}
-        
+
         {error && (
           <p id={`${inputId}-error`} className="text-sm text-red-600">
             {error}
@@ -109,7 +109,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
     ref
   ) => {
     const textareaId = id || `textarea-${Math.random().toString(36).substr(2, 9)}`;
-    
+
     return (
       <div className={cn('space-y-1.5', containerClassName)}>
         <label
@@ -119,7 +119,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           {label}
           {required && <span className="text-red-500 ml-0.5">*</span>}
         </label>
-        
+
         <textarea
           id={textareaId}
           ref={ref}
@@ -137,13 +137,13 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           }
           {...props}
         />
-        
+
         {description && !error && (
           <p id={`${textareaId}-description`} className="text-sm text-gray-500">
             {description}
           </p>
         )}
-        
+
         {error && (
           <p id={`${textareaId}-error`} className="text-sm text-red-600">
             {error}
@@ -189,7 +189,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     ref
   ) => {
     const selectId = id || `select-${Math.random().toString(36).substr(2, 9)}`;
-    
+
     return (
       <div className={cn('space-y-1.5', containerClassName)}>
         <label
@@ -199,7 +199,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           {label}
           {required && <span className="text-red-500 ml-0.5">*</span>}
         </label>
-        
+
         <div className="relative">
           <select
             id={selectId}
@@ -211,7 +211,6 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
               error && 'border-red-500 focus:ring-red-500 focus:border-red-500',
               className
             )}
-            style={{ color: '#111827' }}
             aria-invalid={!!error}
             aria-required={required}
             aria-describedby={
@@ -224,20 +223,20 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
                 key={option.value}
                 value={option.value}
                 disabled={option.disabled}
-                style={{ color: '#111827', backgroundColor: '#ffffff' }}
+                className="text-gray-900 bg-white"
               >
                 {option.label}
               </option>
             ))}
           </select>
         </div>
-        
+
         {description && !error && (
           <p id={`${selectId}-description`} className="text-sm text-gray-500">
             {description}
           </p>
         )}
-        
+
         {error && (
           <p id={`${selectId}-error`} className="text-sm text-red-600">
             {error}

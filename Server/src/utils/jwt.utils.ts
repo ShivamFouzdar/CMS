@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { createError } from './helpers';
+import { createError } from './helpers.js';
 
 /**
  * JWT Utilities

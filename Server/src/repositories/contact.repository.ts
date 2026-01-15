@@ -1,6 +1,6 @@
 
-import { BaseRepository } from './base.repository';
-import { Contact, IContact } from '@/models';
+import { BaseRepository } from './base.repository.js';
+import { Contact, IContact } from '@/models/index.js';
 
 export class ContactRepository extends BaseRepository<IContact> {
     constructor() {

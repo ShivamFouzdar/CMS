@@ -15,11 +15,12 @@ import {
   featureService,
   unfeatureService,
   getAdminServices,
-  toggleServiceStatus
-} from '@/controllers/servicesController';
-import { authenticateToken, requireRole } from '@/middleware/auth';
+  toggleServiceStatus,
+  reorderServices
+} from '@/controllers/services.controller.js';
+import { authenticateToken, requireRole } from '@/middleware/auth.js';
 import { z } from 'zod';
-import { validate } from '@/middleware/validate';
+import { validate } from '@/middleware/validate.js';
 
 const router = Router();
 
@@ -58,6 +59,7 @@ router.get('/id/:id', getServiceById);
 router.use(authenticateToken);
 
 // Service management routes
+router.put('/reorder', requireRole(['admin']), reorderServices);
 router.post('/', requireRole(['admin']), validate(createServiceSchema), createService);
 router.put('/:id', requireRole(['admin']), validate(updateServiceSchema), updateService);
 router.delete('/:id', requireRole(['admin']), deleteService);

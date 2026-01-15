@@ -1,9 +1,11 @@
-import { createError } from '@/utils/helpers';
+import { createError } from '@/utils/helpers.js';
 import path from 'path';
 import fs from 'fs/promises';
-import { IApplicant } from '@/models/Applicant';
-import { JobApplicationRepository } from '@/repositories/jobApplication.repository';
-import { configureCloudinary } from '@/config/cloudinary';
+import { IApplicant } from '@/models/Applicant.js';
+import { JobApplicationRepository } from '@/repositories/jobApplication.repository.js';
+import { configureCloudinary } from '@/config/cloudinary.js';
+import { emailService, emailTemplates } from './email.service.js';
+import { Settings } from '@/models/Settings.js';
 
 export interface JobApplicationData {
     id: string;
@@ -44,15 +46,51 @@ export class JobApplicationService {
             status: 'new',
         } as any);
 
+        // Send Admin Notification
+        try {
+            const settings = await Settings.findOne();
+            if (settings?.emailNotifications && settings?.notificationAlerts.jobApplications) {
+                const adminEmail = settings.contactEmail || process.env['CONTACT_EMAIL'];
+                if (adminEmail) {
+                    const emailData = emailTemplates.newJobApplication({
+                        fullName: applicant.fullName,
+                        email: applicant.email,
+                        phone: applicant.phone,
+                        position: 'General Application', // Or add position field if available
+                        experience: applicant.experience
+                    });
+
+                    await emailService.sendEmail({
+                        to: adminEmail,
+                        subject: emailData.subject,
+                        html: emailData.html
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Failed to send job application notification email:', error);
+            // Fail silently
+        }
+
         return this.mapToDTO(applicant);
     }
 
-    async getAllJobApplications(page: number = 1, limit: number = 10): Promise<{ data: JobApplicationData[]; total: number; page: number; totalPages: number }> {
+    async getAllJobApplications(page: number = 1, limit: number = 10, search?: string): Promise<{ data: JobApplicationData[]; total: number; page: number; totalPages: number }> {
         const skip = (page - 1) * limit;
+        const query: any = {};
+
+        if (search) {
+            const searchRegex = { $regex: search, $options: 'i' };
+            query.$or = [
+                { fullName: searchRegex },
+                { email: searchRegex },
+                { experience: searchRegex }
+            ];
+        }
 
         const [applicants, total] = await Promise.all([
-            this.repository.findWithPagination({}, { submittedAt: -1 }, skip, limit),
-            this.repository.count({})
+            this.repository.findWithPagination(query, { submittedAt: -1 }, skip, limit),
+            this.repository.count(query)
         ]);
 
         const data = applicants.map(app => this.mapToDTO(app));
@@ -93,6 +131,46 @@ export class JobApplicationService {
         }
 
         await this.repository.delete(id);
+    }
+
+    async bulkDeleteJobApplications(ids: string[]): Promise<number> {
+        if (!ids || ids.length === 0) return 0;
+
+        // Note: This does not delete associated files for each application efficiently. 
+        // Ideally, we should fetch all applications, delete files, then delete records.
+        // For now, doing a simple database delete. File cleanup can be a background cron or improved later.
+
+        return await this.repository.deleteMany(ids);
+    }
+
+    async exportApplications(): Promise<string> {
+        // Fetch all applications
+        const applicants = await this.repository.findWithPagination({}, { submittedAt: -1 }, 0, 10000);
+
+        const headers = ['Full Name', 'Email', 'Phone', 'Location', 'Experience', 'Work Mode', 'Skills Description', 'Hear About Us', 'Submitted At'];
+
+        const escapeCsv = (field: any) => {
+            if (field === null || field === undefined) return '';
+            const stringField = String(field);
+            if (stringField.includes(',') || stringField.includes('"') || stringField.includes('\n')) {
+                return `"${stringField.replace(/"/g, '""')}"`;
+            }
+            return stringField;
+        };
+
+        const rows = applicants.map(app => [
+            escapeCsv(app.fullName),
+            escapeCsv(app.email),
+            escapeCsv(app.phone),
+            escapeCsv(app.location),
+            escapeCsv(app.experience),
+            escapeCsv(app.workMode),
+            escapeCsv(app.skillsDescription),
+            escapeCsv(app.hearAboutUs),
+            escapeCsv(app.submittedAt.toISOString())
+        ]);
+
+        return [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     }
 
     async getResumePath(id: string): Promise<string> {

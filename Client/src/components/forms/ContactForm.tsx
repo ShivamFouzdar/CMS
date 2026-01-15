@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Send, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { API_ENDPOINTS } from '@/config/api';
+import { contactService } from '@/services/contactService';
 import { servicesService } from '@/services/servicesService';
 
 type FormData = {
@@ -70,15 +70,10 @@ export function ContactForm() {
     setStatus('submitting');
 
     try {
-      const response = await fetch(API_ENDPOINTS.contact.submit, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
+      const response = await contactService.submitContact(formData);
 
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err?.error?.message || err?.message || 'Failed to submit');
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to submit');
       }
 
       setStatus('success');

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { mediaService, MediaItem } from '@/services/mediaService';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Button } from '@/components/ui/Button';
+import { SearchBar } from '@/components/ui/SearchBar';
 
 interface MediaLibraryProps {
     onSelect?: (media: MediaItem) => void;
@@ -19,16 +20,35 @@ export const MediaLibrary: React.FC<MediaLibraryProps> = ({
     const [totalPages, setTotalPages] = useState(1);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
 
+    // Search & Filter State
+    const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [filterType, setFilterType] = useState<string>('all');
+
+    // Debounce Search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchQuery);
+            setPage(1); // Reset page on search change
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
     useEffect(() => {
         fetchMedia();
-    }, [page, refreshTrigger]);
+    }, [page, refreshTrigger, debouncedSearch, filterType]);
 
     const fetchMedia = async () => {
         setLoading(true);
         try {
-            const response = await mediaService.getMedia(page, 20); // Limit 20
+            const response = await mediaService.getMedia(page, 20, filterType, debouncedSearch);
             setMedia(response.data);
             setTotalPages(response.pagination.pages);
+
+            // If page > totalPages (e.g. after filtering), reset to page 1
+            if (page > response.pagination.pages && response.pagination.pages > 0) {
+                setPage(1);
+            }
         } catch (error) {
             console.error('Failed to load media', error);
             // toast.error('Failed to load media');
@@ -43,25 +63,22 @@ export const MediaLibrary: React.FC<MediaLibraryProps> = ({
 
         setUploading(true);
         try {
-            // Loop if multiple (but backend might only handle single for now as per my route)
-            // Route is `uploadGeneric.single('file')`. So one by one.
             for (let i = 0; i < files.length; i++) {
                 await mediaService.uploadMedia(files[i]);
             }
             setRefreshTrigger(prev => prev + 1);
-            setPage(1); // Reset to first page to see new uploads
+            setPage(1);
         } catch (error) {
             console.error('Upload failed', error);
             alert('Upload failed');
         } finally {
             setUploading(false);
-            // clear input
             e.target.value = '';
         }
     };
 
     const handleDelete = async (id: string, e: React.MouseEvent) => {
-        e.stopPropagation(); // Prevent selection
+        e.stopPropagation();
         if (!confirm('Are you sure you want to delete this file?')) return;
 
         try {
@@ -75,11 +92,35 @@ export const MediaLibrary: React.FC<MediaLibraryProps> = ({
 
     return (
         <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                 <h2 className="text-xl font-semibold text-gray-800">Media Library</h2>
-                <div>
+
+                <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+                    {/* Search Bar */}
+                    <div className="w-full md:w-64">
+                        <SearchBar
+                            value={searchQuery}
+                            onChange={setSearchQuery}
+                            placeholder="Search files..."
+                        />
+                    </div>
+
+                    {/* Filter Dropdown */}
+                    <select
+                        value={filterType}
+                        onChange={(e) => {
+                            setFilterType(e.target.value);
+                            setPage(1);
+                        }}
+                        className="px-3 py-2 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/50 outline-none text-sm text-gray-700"
+                    >
+                        <option value="all">All Types</option>
+                        <option value="image">Images</option>
+                        <option value="document">Documents</option>
+                    </select>
+
                     <label htmlFor="media-upload" className="cursor-pointer">
-                        <span className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                        <span className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 whitespace-nowrap h-[42px]">
                             {uploading ? 'Uploading...' : 'Upload New'}
                         </span>
                         <input

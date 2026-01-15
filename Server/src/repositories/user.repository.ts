@@ -1,7 +1,7 @@
 
-import { BaseRepository } from './base.repository';
-import { IUser } from '@/models/User';
-import User from '@/models/User';
+import { BaseRepository } from './base.repository.js';
+import { IUser } from '@/models/User.js';
+import User from '@/models/User.js';
 
 export class UserRepository extends BaseRepository<IUser> {
     constructor() {
@@ -41,5 +41,9 @@ export class UserRepository extends BaseRepository<IUser> {
 
     async findByIdWithPassword(id: string): Promise<IUser | null> {
         return this.model.findById(id).select('+password');
+    }
+
+    async findByIdWithTwoFactor(id: string): Promise<IUser | null> {
+        return this.model.findById(id).select('+twoFactor.secret +twoFactor.backupCodes');
     }
 }

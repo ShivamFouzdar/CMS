@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
+import { AxiosError } from 'axios';
 import { AuthCard, AuthInput, AuthPasswordInput, AuthButton, AuthLink } from '@/components/auth';
 import { Mail, Lock, Shield, AlertCircle, Compass } from 'lucide-react';
-import axios from 'axios';
-import { API_ENDPOINTS, API_BASE_URL } from '@/config/api';
+import { authService } from '@/services/authService';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function LoginPage() {
@@ -35,43 +35,30 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(API_ENDPOINTS.auth.login, {
+      const response = await authService.login({
         email: formData.email,
         password: formData.password,
       });
 
-      if (response.data.success && response.data.data?.requires2FA) {
-        setTempToken(response.data.data.tempToken);
+      if (response.success && response.data?.requires2FA) {
+        setTempToken(response.data.tempToken || null);
         setRequires2FA(true);
         setIsLoading(false);
         return;
       }
 
-      if (response.data.success && response.data.data?.tokens) {
-        const { accessToken, refreshToken } = response.data.data.tokens;
-        const user = response.data.data.user;
-
-        if (accessToken && user) {
-          localStorage.setItem('accessToken', accessToken);
-          if (refreshToken) {
-            localStorage.setItem('refreshToken', refreshToken);
-          }
-          localStorage.setItem('user', JSON.stringify(user));
-
-          // Small delay for animation
-          setTimeout(() => {
-            window.location.href = '/admin/dashboard';
-          }, 800);
-        } else {
-          setErrors({ general: 'Login response missing required data. Please try again.' });
-          setIsLoading(false);
-        }
+      if (response.success && response.data?.user) {
+        // Session is already set by authService.login on success
+        setTimeout(() => {
+          window.location.href = '/admin/dashboard';
+        }, 800);
       } else {
-        setErrors({ general: 'Unexpected response from server. Please try again.' });
+        setErrors({ general: 'Login response missing required data. Please try again.' });
         setIsLoading(false);
       }
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.error?.message || error.response?.data?.message || 'Login failed. Please try again.';
+    } catch (err) {
+      const error = err as AxiosError<{ error?: { message?: string } }>;
+      const errorMessage = error.response?.data?.error?.message || error.message || 'Login failed. Please try again.';
       setErrors({ general: errorMessage });
       setIsLoading(false);
     }
@@ -95,40 +82,24 @@ export default function LoginPage() {
         return;
       }
 
-      const verifyLoginUrl = API_ENDPOINTS.twoFactor?.verifyLogin || `${API_BASE_URL}/api/2fa/verify-login`;
-      const response = await axios.post(
-        verifyLoginUrl,
-        {
-          tempToken,
-          code: useBackupCode ? undefined : twoFactorCode,
-          backupCode: useBackupCode ? twoFactorCode : undefined,
-        }
-      );
+      const response = await authService.verify2FALogin({
+        tempToken,
+        code: useBackupCode ? undefined : twoFactorCode,
+        backupCode: useBackupCode ? twoFactorCode : undefined,
+      });
 
-      if (response.data.success && response.data.data?.tokens) {
-        const tokens = response.data.data.tokens;
-        const user = response.data.data.user;
-
-        if (tokens.accessToken && user) {
-          localStorage.setItem('accessToken', tokens.accessToken);
-          if (tokens.refreshToken) {
-            localStorage.setItem('refreshToken', tokens.refreshToken);
-          }
-          localStorage.setItem('user', JSON.stringify(user));
-
-          setTimeout(() => {
-            window.location.href = '/admin/dashboard';
-          }, 800);
-        } else {
-          setErrors({ twoFactor: 'Verification response missing required data. Please try again.' });
-          setVerifying2FA(false);
-        }
+      if (response.success && response.data?.user) {
+        // Session is already set by authService on success
+        setTimeout(() => {
+          window.location.href = '/admin/dashboard';
+        }, 800);
       } else {
-        setErrors({ twoFactor: 'Unexpected response from server. Please try again.' });
+        setErrors({ twoFactor: 'Verification response missing required data. Please try again.' });
         setVerifying2FA(false);
       }
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.response?.data?.error?.message || 'Invalid verification code. Please try again.';
+    } catch (err) {
+      const error = err as Error;
+      const errorMessage = error.message || 'Invalid verification code. Please try again.';
       setErrors({ twoFactor: errorMessage });
       setTwoFactorCode('');
       setVerifying2FA(false);
@@ -137,7 +108,7 @@ export default function LoginPage() {
 
   if (requires2FA) {
     return (
-      <div className="min-h-screen relative flex items-center justify-center bg-[#0F172A] overflow-hidden py-12 px-4 font-sans selection:bg-indigo-500/30">
+      <div className="min-h-screen relative flex items-center justify-center bg-slate-900 overflow-hidden py-12 px-4 font-sans selection:bg-indigo-500/30">
         {/* Abstract Background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-0 right-0 w-[1000px] h-[1000px] bg-indigo-900/20 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
@@ -254,7 +225,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center bg-[#0B0F19] overflow-hidden py-12 px-4 font-sans selection:bg-indigo-500/30">
+    <div className="min-h-screen relative flex items-center justify-center bg-slate-950 overflow-hidden py-12 px-4 font-sans selection:bg-indigo-500/30">
       {/* Premium Background Effects */}
       <div className="absolute inset-0 pointer-events-none">
         {/* Gradient Orbs */}
@@ -370,7 +341,7 @@ export default function LoginPage() {
                   <div className="w-full border-t border-slate-800"></div>
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-[#0f1522] px-2 text-slate-500">Secure Environment</span>
+                  <span className="bg-slate-950 px-2 text-slate-500">Secure Environment</span>
                 </div>
               </div>
 

@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
-import { createError } from './helpers';
-import { generateUUID } from './uuid.utils';
+import { createError } from './helpers.js';
+import { generateUUID } from './uuid.utils.js';
 
 /**
  * Authentication Utilities

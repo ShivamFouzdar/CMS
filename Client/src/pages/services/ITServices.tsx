@@ -3,11 +3,11 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { CallToAction } from '@/components/sections/CallToAction';
 import { ServiceCard } from '@/components/ui/ServiceCard';
-import { 
-  CheckCircle, 
-  Star, 
-  ArrowRight, 
-  Shield, 
+import {
+
+  Star,
+  ArrowRight,
+  Shield,
   ChevronRight,
   Quote,
   Code,
@@ -19,7 +19,8 @@ import {
   Network,
   Cloud,
   PenTool,
-  ExternalLink} from 'lucide-react';
+  ExternalLink
+} from 'lucide-react';
 
 export default function ITServices() {
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
@@ -81,7 +82,7 @@ export default function ITServices() {
           <div className="absolute -top-20 -right-20 w-72 h-72 bg-cyan-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
           <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
         </div>
-        
+
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-6xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -94,17 +95,17 @@ export default function ITServices() {
                   <Code className="w-4 h-4 mr-2" />
                   Full-Stack Development
                 </div>
-                
+
                 <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                  Expert Full Stack 
+                  Expert Full Stack
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-blue-600">
                     {" "}Development
                   </span>
                 </h1>
-                
+
                 <p className="text-xl text-gray-700 mb-8 leading-relaxed">
-                  Specialized in MERN stack development - MongoDB, Express.js, React, and Node.js. 
-                  We build robust, scalable full-stack applications that deliver exceptional 
+                  Specialized in MERN stack development - MongoDB, Express.js, React, and Node.js.
+                  We build robust, scalable full-stack applications that deliver exceptional
                   performance and user experience.
                 </p>
 
@@ -142,9 +143,9 @@ export default function ITServices() {
               >
                 <div className="bg-white rounded-2xl shadow-2xl overflow-hidden transition-all duration-500 group-hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] group-hover:scale-[1.02]">
                   <div className="relative overflow-hidden">
-                    <img 
-                      src="/IT.png" 
-                      alt="IT Services" 
+                    <img
+                      src="/IT.png"
+                      alt="IT Services"
                       className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-cyan-600/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -172,7 +173,7 @@ export default function ITServices() {
                 Featured Projects
               </h2>
               <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                Explore our portfolio of successful web development projects. 
+                Explore our portfolio of successful web development projects.
                 Each project showcases our expertise in modern technologies and innovative solutions.
               </p>
             </motion.div>
@@ -205,11 +206,11 @@ export default function ITServices() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="p-6">
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">{project.title}</h3>
                     <p className="text-gray-600 mb-4">{project.description}</p>
-                    
+
                     <div className="flex justify-center">
                       <a
                         href={project.liveUrl}
@@ -516,13 +517,13 @@ export default function ITServices() {
                       <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
                     ))}
                   </div>
-                  
+
                   <Quote className="w-8 h-8 text-cyan-500 mb-4" />
-                  
+
                   <p className="text-gray-700 mb-6 italic">
                     "{testimonial.comment}"
                   </p>
-                  
+
                   <div className="flex items-center">
                     <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold mr-4">
                       {testimonial.avatar}
@@ -613,7 +614,7 @@ export default function ITServices() {
                       )}
                     </div>
                   </button>
-                  
+
                   <AnimatePresence>
                     {openFAQ === index && (
                       <motion.div

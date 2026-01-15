@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Shield, CheckCircle, X, Loader2, AlertCircle, Copy, Check } from 'lucide-react';
-import axios from 'axios';
-import { API_ENDPOINTS } from '@/config/api';
+import { authService } from '@/services/authService';
 
 interface TwoFactorSetupProps {
   onComplete: () => void;
@@ -24,21 +23,16 @@ export function TwoFactorSetup({ onComplete, onCancel }: TwoFactorSetupProps) {
     setError(null);
 
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await axios.post(
-        API_ENDPOINTS.twoFactor?.enable || '/api/2fa/enable',
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await authService.enable2FA();
 
-      if (response.data.success) {
-        setQrCode(response.data.data.qrCode);
-        setSecret(response.data.data.secret);
-        setBackupCodes(response.data.data.backupCodes);
+      if (response.success && response.data) {
+        setQrCode(response.data.qrCode);
+        setSecret(response.data.secret);
+        setBackupCodes(response.data.backupCodes);
         setStep('qr');
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to enable 2FA');
+      setError(err.message || 'Failed to enable 2FA');
     } finally {
       setLoading(false);
     }
@@ -54,18 +48,13 @@ export function TwoFactorSetup({ onComplete, onCancel }: TwoFactorSetupProps) {
     setError(null);
 
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await axios.post(
-        API_ENDPOINTS.twoFactor?.verify || '/api/2fa/verify',
-        { code: verificationCode },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await authService.verify2FASetup(verificationCode);
 
-      if (response.data.success) {
+      if (response.success) {
         setStep('backup');
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Invalid verification code');
+      setError(err.message || 'Invalid verification code');
     } finally {
       setLoading(false);
     }
@@ -92,7 +81,7 @@ export function TwoFactorSetup({ onComplete, onCancel }: TwoFactorSetupProps) {
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Enable Two-Factor Authentication</h2>
             <p className="text-gray-600 mb-6">Add an extra layer of security to your account</p>
-            
+
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 flex items-center">
                 <AlertCircle className="w-5 h-5 text-red-500 mr-2" />
@@ -146,7 +135,7 @@ export function TwoFactorSetup({ onComplete, onCancel }: TwoFactorSetupProps) {
             <p className="text-gray-600 mb-4">
               Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)
             </p>
-            
+
             <div className="bg-white p-4 rounded-lg border-2 border-gray-200 inline-block mb-4">
               <img src={qrCode} alt="QR Code" className="w-64 h-64" />
             </div>

@@ -5,8 +5,8 @@ import {
   disableTwoFactor,
   verifyTwoFactorLogin,
   regenerateBackupCodes,
-} from '@/controllers/twoFactorController';
-import { authenticateToken } from '@/middleware/auth';
+} from '@/controllers/twoFactor.controller.js';
+import { authenticateToken } from '@/middleware/auth.js';
 
 const router = Router();
 

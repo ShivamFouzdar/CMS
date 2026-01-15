@@ -138,7 +138,7 @@ export function Reviews() {
                 <div className="flex items-center justify-between mb-4">
                   <StarRating rating={review.rating} />
                   <span className="text-xs text-gray-400">
-                    {new Date(review.date || (review as any).createdAt).toLocaleDateString()}
+                    {new Date(review.date || review.createdAt || new Date().toISOString()).toLocaleDateString()}
                   </span>
                 </div>
 

@@ -1,6 +1,6 @@
 
-import { BaseRepository } from '@/repositories/base.repository';
-import { Settings, ISettings } from '@/models/Settings';
+import { BaseRepository } from '@/repositories/base.repository.js';
+import { Settings, ISettings } from '@/models/Settings.js';
 
 export class SettingsRepository extends BaseRepository<ISettings> {
     constructor() {

@@ -83,7 +83,7 @@ export const AdminSidebar = memo(function AdminSidebar({
       <div className={`h-14 flex items-center border-b border-gray-100 dark:border-white/5 ${collapsed ? 'justify-center px-2' : 'px-4'}`}>
         <div className={`flex items-center ${collapsed ? '' : 'gap-3'}`}>
           <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0">
-            <img src="/logo2.png" alt="Logo" className="w-full h-full object-contain" />
+            <img src="/Fav.logo.svg" alt="Logo" className="w-full h-full object-contain" />
           </div>
           {!collapsed && (
             <span className="text-sm font-semibold text-gray-900 dark:text-white">Admin Panel</span>

@@ -1,4 +1,4 @@
-import AuditLog, { IAuditLog } from '@/models/AuditLog';
+import AuditLog, { IAuditLog } from '@/models/AuditLog.js';
 import { Request } from 'express';
 
 export class AuditService {

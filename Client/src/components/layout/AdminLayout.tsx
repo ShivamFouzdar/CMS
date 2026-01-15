@@ -50,7 +50,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0f172a] text-slate-900 dark:text-slate-200 flex overflow-hidden selection:bg-indigo-500/30 transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-200 flex overflow-hidden selection:bg-indigo-500/30 transition-colors duration-300">
       {/* Background Decorative Elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/10 dark:bg-indigo-500/10 rounded-full blur-[120px] animate-pulse" />

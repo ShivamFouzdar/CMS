@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
-import { asyncHandler } from '@/utils/helpers';
-import { sendSuccess } from '@/utils/response.utils';
-import { adminService } from '@/services/admin.service';
-import { Settings } from '@/models/Settings';
-import { emailService } from '@/services/email.service';
-import { updateSystemSettings as updateSettings } from '@/services/settings.service';
-import { models } from '@/models';
+import { asyncHandler } from '@/utils/helpers.js';
+import { sendSuccess } from '@/utils/response.utils.js';
+import { adminService } from '@/services/admin.service.js';
+import { Settings } from '@/models/Settings.js';
+import { emailService } from '@/services/email.service.js';
+import { updateSystemSettings as updateSettings } from '@/services/settings.service.js';
+import { models } from '@/models/index.js';
 
 /**
  * Admin Controller
@@ -128,9 +128,58 @@ export const exportData = (dataType: string) => {
  *       200:
  *         description: Logs retrieved
  */
-export const getSystemLogs = asyncHandler(async (_req: Request, res: Response) => {
-  const logs = await adminService.getSystemLogs();
-  return sendSuccess(res, 'System logs retrieved successfully', logs);
+/**
+ * @swagger
+ * /api/admin/logs:
+ *   get:
+ *     summary: Get system logs
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Logs retrieved
+ */
+export const getSystemLogs = asyncHandler(async (req: Request, res: Response) => {
+  const page = parseInt(req.query['page'] as string || '1');
+  const limit = parseInt(req.query['limit'] as string || '20');
+  const filters: any = {};
+
+  if (req.query['action']) filters.action = req.query['action'];
+  if (req.query['resource']) filters.resource = req.query['resource'];
+  if (req.query['userId']) filters.userId = req.query['userId'];
+  if (req.query['startDate']) filters.startDate = req.query['startDate'];
+  if (req.query['endDate']) filters.endDate = req.query['endDate'];
+
+  const result = await adminService.getSystemLogs(page, limit, filters);
+
+  const meta = {
+    pagination: {
+      page: result.currentPage,
+      limit,
+      total: result.total,
+      totalPages: result.pages
+    }
+  };
+
+  return sendSuccess(res, 'System logs retrieved successfully', result.logs, 200, meta);
+});
+
+/**
+ * @swagger
+ * /api/admin/logs:
+ *   delete:
+ *     summary: Clear system logs
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Logs cleared
+ */
+export const clearSystemLogs = asyncHandler(async (_req: Request, res: Response) => {
+  await adminService.clearSystemLogs();
+  return sendSuccess(res, 'System logs cleared successfully');
 });
 
 /**

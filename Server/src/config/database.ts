@@ -1,6 +1,6 @@
 
 import mongoose from 'mongoose';
-import { disconnectDatabase, checkDatabaseHealth } from '@/models';
+import { disconnectDatabase, checkDatabaseHealth } from '@/models/index.js';
 
 /**
  * Database Configuration
@@ -98,7 +98,7 @@ export const getDatabaseHealth = async () => {
  */
 export const createIndexes = async (): Promise<void> => {
   try {
-    const { Contact, Review, Service, User } = await import('@/models');
+    const { Contact, Review, Service, User } = await import('@/models/index.js');
 
     const isDev = process.env['NODE_ENV'] === 'development';
 

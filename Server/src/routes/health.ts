@@ -5,7 +5,7 @@ import {
   databaseHealthCheck, 
   endpointsHealthCheck, 
   systemMetrics 
-} from '@/controllers/healthController';
+} from '@/controllers/health.controller.js';
 
 const router = Router();
 

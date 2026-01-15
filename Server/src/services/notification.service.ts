@@ -1,8 +1,9 @@
 
 
-import { sendNotificationEmail, emailTemplates } from './email.service';
-import { UserRepository } from '@/repositories/user.repository';
-import { Settings as modelSettings } from '@/models/Settings';
+import { sendNotificationEmail, emailTemplates } from './email.service.js';
+import { UserRepository } from '@/repositories/user.repository.js';
+import { Settings as modelSettings } from '@/models/Settings.js';
+import Notification from '@/models/Notification.js';
 
 export type NotificationType = 'new-leads' | 'job-applications' | 'reviews' | 'system-alerts';
 
@@ -80,6 +81,17 @@ export class NotificationService {
     experience: string;
   }): Promise<void> {
     try {
+      // Persist to DB
+      await Notification.create({
+        type: 'job-application',
+        title: 'New Job Application',
+        message: `${applicationData.fullName} applied for ${applicationData.position || 'Open Position'}`,
+        data: {
+          email: applicationData.email,
+          experience: applicationData.experience
+        }
+      });
+
       const recipients = await this.getNotificationRecipients('job-applications');
 
       if (recipients.length === 0) return;
@@ -110,6 +122,17 @@ export class NotificationService {
     message: string;
   }): Promise<void> {
     try {
+      // Persist to DB
+      await Notification.create({
+        type: 'new-lead',
+        title: 'New Inquiry',
+        message: `${leadData.name} is interested in ${leadData.service}`,
+        data: {
+          email: leadData.email,
+          service: leadData.service
+        }
+      });
+
       const recipients = await this.getNotificationRecipients('new-leads');
 
       if (recipients.length === 0) return;
@@ -139,6 +162,17 @@ export class NotificationService {
     category: string;
   }): Promise<void> {
     try {
+      // Persist to DB
+      await Notification.create({
+        type: 'review',
+        title: 'New Review Received',
+        message: `${reviewData.reviewerName} rated us ${reviewData.rating}/5 stars`,
+        data: {
+          company: reviewData.company,
+          category: reviewData.category
+        }
+      });
+
       const recipients = await this.getNotificationRecipients('reviews');
 
       if (recipients.length === 0) return;
@@ -166,6 +200,14 @@ export class NotificationService {
     severity: 'info' | 'warning' | 'error';
   }): Promise<void> {
     try {
+      // Persist to DB
+      await Notification.create({
+        type: 'system-alert',
+        title: alertData.title,
+        message: alertData.message,
+        data: { severity: alertData.severity }
+      });
+
       const recipients = await this.getNotificationRecipients('system-alerts');
 
       if (recipients.length === 0) return;

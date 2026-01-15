@@ -1,7 +1,7 @@
 
 import { Request, Response, NextFunction } from 'express';
-import { User } from '@/models';
-import { verifyToken, extractTokenFromHeader, JWTPayload } from '@/utils/jwt.utils';
+import { User } from '@/models/index.js';
+import { verifyToken, extractTokenFromHeader, JWTPayload } from '@/utils/jwt.utils.js';
 
 /**
  * Authentication Middleware

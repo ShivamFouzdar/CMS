@@ -4,6 +4,7 @@ import { AdminLayout } from '@/components/layout/AdminLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { StatCard } from '@/components/ui/StatCard';
 import { adminService, DashboardStats } from '@/services/adminService';
+import { SystemHealth, ActivityLog } from '@/types';
 import {
   Users,
   MessageSquare,
@@ -25,9 +26,9 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [healthData, setHealthData] = useState<any>(null);
+  const [healthData, setHealthData] = useState<SystemHealth | null>(null);
   const [loading, setLoading] = useState(true);
-  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [recentActivity, setRecentActivity] = useState<ActivityLog[]>([]);
   const [showHealthModal, setShowHealthModal] = useState(false);
 
   // Time-based greeting
@@ -178,7 +179,10 @@ export default function AdminDashboard() {
                 <Activity className="w-6 h-6 text-indigo-400" />
                 Recent Activity
               </h3>
-              <button className="text-sm text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1 transition-colors">
+              <button
+                onClick={() => navigate('/admin/settings?tab=logs')}
+                className="text-sm text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1 transition-colors"
+              >
                 View All <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -191,10 +195,10 @@ export default function AdminDashboard() {
                     </div>
                     <div className="flex-1">
                       <p className="text-slate-700 dark:text-slate-200 font-medium">
-                        <span className="text-indigo-600 dark:text-indigo-400 font-bold">{activity.user}</span> {activity.action} a {activity.type}
+                        <span className="text-indigo-600 dark:text-indigo-400 font-bold">{activity.user?.firstName || 'User'}</span> {activity.action} a {activity.type}
                       </p>
                       <p className="text-slate-500 dark:text-slate-500 text-sm mt-1">
-                        {new Date(activity.timestamp).toLocaleString()}
+                        {new Date(activity.createdAt).toLocaleString()}
                       </p>
                     </div>
                     <div className="text-slate-400 dark:text-slate-600 self-center">

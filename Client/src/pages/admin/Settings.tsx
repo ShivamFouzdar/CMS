@@ -7,13 +7,20 @@ import {
   AlertCircle,
   Server,
   FileText,
-  Mail
+  Mail,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  Filter
 } from 'lucide-react';
 import { TwoFactorSetup } from '@/components/auth/TwoFactorSetup';
 import { AdminLayout } from '@/components/layout/AdminLayout';
+import { useSearchParams } from 'react-router-dom';
+import { useEffect } from 'react';
 
 // Context
 import { SettingsProvider, useSettings } from '@/context/SettingsContext';
+import { useAuth } from '@/context/AuthContext';
 
 // Sub Components
 import { SystemSettingsTab } from '@/components/admin/settings/SystemSettingsTab';
@@ -22,12 +29,32 @@ import { SecuritySettingsTab } from '@/components/admin/settings/SecuritySetting
 import { NotificationsTab } from '@/components/admin/settings/NotificationsTab';
 
 function SettingsContent() {
+  const { isSuperAdmin } = useAuth();
   const {
     activeTab, setActiveTab,
     loading, success, error,
-    logs, fetchLogs,
-    show2FASetup, setShow2FASetup, setTwoFactorStatus, setSuccess
+    logs, fetchLogs, clearLogs,
+    show2FASetup, setShow2FASetup, setTwoFactorStatus, setSuccess,
+    logsPagination, logsFilters, setLogsPage, setLogsFilters
   } = useSettings();
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Sync tab with URL
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab && tab !== activeTab && ['system', 'smtp', 'security', 'notifications', 'logs'].includes(tab)) {
+      setActiveTab(tab as any);
+    }
+  }, [searchParams, activeTab, setActiveTab]);
+
+  // Update URL when tab changes
+  useEffect(() => {
+    const currentTab = searchParams.get('tab');
+    if (activeTab !== currentTab) {
+      setSearchParams({ tab: activeTab }, { replace: true });
+    }
+  }, [activeTab, searchParams, setSearchParams]);
 
   const tabs = [
     { id: 'system', label: 'Architecture', icon: Server },
@@ -95,7 +122,7 @@ function SettingsContent() {
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id as 'system' | 'smtp' | 'security' | 'notifications' | 'logs')}
               className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all relative whitespace-nowrap ${isActive ? 'text-white' : 'text-slate-500 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
             >
               {isActive && (
@@ -166,37 +193,88 @@ function SettingsContent() {
               exit={{ opacity: 0, y: -10 }}
               className="space-y-6"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white">System Logs</h3>
-                <button onClick={fetchLogs} className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                  <Loader2 className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-                </button>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <div className="relative">
+                    <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <select
+                      value={logsFilters.action}
+                      onChange={(e) => setLogsFilters({ ...logsFilters, action: e.target.value })}
+                      className="pl-9 pr-4 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none appearance-none cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+                    >
+                      <option value="">All Actions</option>
+                      <option value="LOGIN">Login</option>
+                      <option value="UPDATE">Update</option>
+                      <option value="CREATE">Create</option>
+                      <option value="DELETE">Delete</option>
+                    </select>
+                  </div>
+                  {isSuperAdmin && (
+                    <button
+                      onClick={clearLogs}
+                      className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition-colors"
+                      title="Clear Logs"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  )}
+                  <button onClick={() => fetchLogs()} className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl transition-colors">
+                    <Loader2 className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                  </button>
+                </div>
               </div>
               <div className="border border-gray-200 dark:border-slate-800 rounded-2xl overflow-hidden">
                 <table className="w-full text-sm text-left">
                   <thead className="bg-gray-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400">
                     <tr>
                       <th className="px-6 py-3 font-medium">Timestamp</th>
-                      <th className="px-6 py-3 font-medium">Level</th>
-                      <th className="px-6 py-3 font-medium">Message</th>
                       <th className="px-6 py-3 font-medium">User</th>
+                      <th className="px-6 py-3 font-medium">Action</th>
+                      <th className="px-6 py-3 font-medium">Details</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
                     {logs.map((log, index) => (
                       <tr key={index} className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors">
-                        <td className="px-6 py-3 font-mono text-xs">{new Date(log.timestamp).toLocaleString()}</td>
+                        <td className="px-6 py-3 font-mono text-xs whitespace-nowrap text-slate-500">
+                          {new Date(log.timestamp).toLocaleString()}
+                        </td>
                         <td className="px-6 py-3">
-                          <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold ${log.status >= 500 ? 'bg-red-100 text-red-600' :
-                            log.status >= 400 ? 'bg-orange-100 text-orange-600' :
-                              'bg-green-100 text-green-600'
+                          <div className="flex items-center gap-2">
+                            {log.user ? (
+                              <>
+                                <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold">
+                                  {/* Handle potential undefined firstName/lastName safely */}
+                                  {(log.user.firstName?.[0] || 'U')}{(log.user.lastName?.[0] || '')}
+                                </div>
+                                <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                  {log.user.firstName} {log.user.lastName}
+                                </span>
+                              </>
+                            ) : (
+                              <span className="text-xs text-slate-400 italic">System / Unknown</span>
+                            )}
+                          </div>
+                          {log.ip && <div className="text-[10px] text-slate-400 ml-8">{log.ip}</div>}
+                        </td>
+                        <td className="px-6 py-3">
+                          <span className={`px-2 py-1 rounded-md text-[10px] uppercase font-bold tracking-wide
+                            ${log.action === 'DELETE' ? 'bg-red-100 text-red-600' :
+                              log.action === 'UPDATE' ? 'bg-amber-100 text-amber-600' :
+                                log.action === 'LOGIN' ? 'bg-blue-100 text-blue-600' :
+                                  'bg-indigo-50 text-indigo-600'
                             }`}>
-                            {log.status}
+                            {log.action || 'INFO'}
                           </span>
                         </td>
-                        <td className="px-6 py-3 max-w-md truncate" title={log.request}>{log.request}</td>
-                        <td className="px-6 py-3 text-slate-500">
-                          {log.ip}
+                        <td className="px-6 py-3 text-slate-600 dark:text-slate-400 text-xs">
+                          <div className="font-semibold text-slate-900 dark:text-white mb-0.5">
+                            {log.resource} {log.resourceId ? <span className="text-slate-400">#{log.resourceId.substring(0, 8)}</span> : ''}
+                          </div>
+                          <div className="truncate max-w-xs opacity-75" title={typeof log.details === 'string' ? log.details : JSON.stringify(log.details)}>
+                            {log.details ? (typeof log.details === 'string' ? log.details : JSON.stringify(log.details)) : log.request}
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -210,6 +288,31 @@ function SettingsContent() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination Controls */}
+              {logsPagination.totalPages > 1 && (
+                <div className="flex items-center justify-between px-2">
+                  <p className="text-sm text-slate-500">
+                    Showing page <span className="font-bold">{logsPagination.page}</span> of <span className="font-bold">{logsPagination.totalPages}</span>
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setLogsPage(Math.max(1, logsPagination.page - 1))}
+                      disabled={logsPagination.page === 1}
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => setLogsPage(Math.min(logsPagination.totalPages, logsPagination.page + 1))}
+                      disabled={logsPagination.page === logsPagination.totalPages}
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+              )}
             </motion.div>
           )}
 
@@ -220,9 +323,14 @@ function SettingsContent() {
 }
 
 export default function Settings() {
+  const [searchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const validTabs = ['system', 'smtp', 'security', 'notifications', 'logs'];
+  const initialTab = (tabParam && validTabs.includes(tabParam)) ? tabParam : 'system';
+
   return (
     <AdminLayout>
-      <SettingsProvider>
+      <SettingsProvider initialTab={initialTab as any}>
         <SettingsContent />
       </SettingsProvider>
     </AdminLayout>

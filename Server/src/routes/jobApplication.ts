@@ -6,12 +6,14 @@ import {
   getJobApplicationById,
   getJobApplicationStats,
   downloadResume,
-  deleteJobApplication
-} from '@/controllers/jobApplicationController';
-import { authenticateToken } from '@/middleware/auth'; // Ensure this path is correct, might be '../middleware/auth' if relative? No, using aliases
+  deleteJobApplication,
+  bulkDeleteJobApplications,
+  exportApplications
+} from '@/controllers/jobApplication.controller.js';
+import { authenticateToken } from '@/middleware/auth.js'; // Ensure this path is correct, might be '../middleware/auth' if relative? No, using aliases
 import { z } from 'zod';
-import { validate } from '@/middleware/validate';
-import { uploadResume } from '@/middleware/upload';
+import { validate } from '@/middleware/validate.js';
+import { uploadResume } from '@/middleware/upload.js';
 
 const router = Router();
 
@@ -41,10 +43,12 @@ router.post('/', uploadResume.single('resume'), validate(jobApplicationSchema), 
 router.use(authenticateToken);
 
 // Job application management routes
+router.get('/export', exportApplications);
 router.get('/submissions', getJobApplications);
 router.get('/submissions/:id', getJobApplicationById);
 router.get('/submissions/:id/resume', downloadResume);
 router.delete('/submissions/:id', deleteJobApplication);
+router.post('/submissions/bulk-delete', bulkDeleteJobApplications);
 
 // Statistics routes
 router.get('/stats', getJobApplicationStats);

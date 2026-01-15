@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { asyncHandler, createError } from '@/utils/helpers';
-import { sendSuccess } from '@/utils/response.utils';
-import { ReviewService, ReviewFilters } from '@/services/review.service';
+import { asyncHandler, createError } from '@/utils/helpers.js';
+import { sendSuccess } from '@/utils/response.utils.js';
+import { ReviewService, ReviewFilters } from '@/services/review.service.js';
 
 /**
  * Reviews Controller
@@ -235,7 +235,7 @@ export const submitReview = asyncHandler(async (req: Request, res: Response) => 
 
   // Send notification to admins (non-blocking)
   try {
-    const { notifyNewReview } = await import('@/services/notification.service');
+    const { notifyNewReview } = await import('@/services/notification.service.js');
     notifyNewReview({
       reviewerName: name,
       company: role || 'N/A',
@@ -349,6 +349,38 @@ export const deleteReview = asyncHandler(async (req: Request, res: Response) => 
 
   await reviewService.deleteReview(id);
   return sendSuccess(res, 'Review deleted successfully');
+});
+
+/**
+ * @swagger
+ * /api/reviews/bulk-delete:
+ *   post:
+ *     summary: Bulk delete reviews (Admin only)
+ *     tags: [Reviews]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               ids:
+ *                 type: array
+ *                 items: { type: string }
+ *     responses:
+ *       200:
+ *         description: Reviews deleted
+ */
+export const bulkDeleteReviews = asyncHandler(async (req: Request, res: Response) => {
+  const { ids } = req.body;
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    throw createError('IDs array is required', 400);
+  }
+
+  const count = await reviewService.bulkDeleteReviews(ids);
+  return sendSuccess(res, `Deleted ${count} reviews successfully`, { count });
 });
 
 /**

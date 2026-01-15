@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, ArrowUp, ChevronLeft, ChevronRight, Inbox } from 'lucide-react';
+import { ArrowUp, ChevronLeft, ChevronRight, Inbox } from 'lucide-react';
 
 interface Column<T> {
     header: string;
@@ -23,7 +23,9 @@ interface DataTableProps<T> {
     actions?: React.ReactNode;
     title?: string;
     description?: string;
-    searchPlaceholder?: string;
+    selectable?: boolean;
+    onSelectionChange?: (selectedIds: string[]) => void;
+    searchBar?: React.ReactNode;
 }
 
 export function DataTable<T extends { id?: string | number }>({
@@ -35,26 +37,59 @@ export function DataTable<T extends { id?: string | number }>({
     actions,
     title,
     description,
-    searchPlaceholder = "Search..."
+    selectable = false,
+    onSelectionChange,
+    searchBar
 }: DataTableProps<T>) {
+    const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
+
+    const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.checked) {
+            const allIds = data.map(item => String(item.id));
+            setSelectedIds(allIds);
+            onSelectionChange?.(allIds);
+        } else {
+            setSelectedIds([]);
+            onSelectionChange?.([]);
+        }
+    };
+
+    const handleSelectOne = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
+        e.stopPropagation(); // Prevent row click
+        let newSelected: string[];
+        if (e.target.checked) {
+            newSelected = [...selectedIds, id];
+        } else {
+            newSelected = selectedIds.filter(itemId => itemId !== id);
+        }
+        setSelectedIds(newSelected);
+        onSelectionChange?.(newSelected);
+    };
+
+    const isAllSelected = data.length > 0 && selectedIds.length === data.length;
+    const isIndeterminate = selectedIds.length > 0 && selectedIds.length < data.length;
+
     return (
         <div className="space-y-6">
             {/* Table Header & Actions */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
+                <div className="flex-1">
                     {title && <h2 className="text-2xl font-bold font-display text-slate-900 dark:text-white transition-colors">{title}</h2>}
                     {description && <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 transition-colors">{description}</p>}
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <div className="relative group">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400 transition-colors" />
-                        <input
-                            type="text"
-                            placeholder={searchPlaceholder}
-                            className="pl-10 pr-4 py-2 bg-white dark:bg-slate-800/40 border border-gray-200 dark:border-white/5 rounded-xl text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 outline-none transition-all w-full md:w-64"
-                        />
-                    </div>
+                    {/* Show search bar if provided */}
+                    {searchBar && <div className="flex-1 min-w-[250px]">{searchBar}</div>}
+
+                    {/* Show Bulk Actions if items selected */}
+                    {selectable && selectedIds.length > 0 && (
+                        <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-300">
+                            <span className="text-sm font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-white/10 px-3 py-1.5 rounded-lg">
+                                {selectedIds.length} selected
+                            </span>
+                        </div>
+                    )}
                     {actions}
                 </div>
             </div>
@@ -65,6 +100,17 @@ export function DataTable<T extends { id?: string | number }>({
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-gray-50/50 dark:bg-white/[0.02] border-b border-gray-200 dark:border-white/5">
+                                {selectable && (
+                                    <th className="px-6 py-4 w-12">
+                                        <input
+                                            type="checkbox"
+                                            checked={isAllSelected}
+                                            ref={input => { if (input) input.indeterminate = isIndeterminate; }}
+                                            onChange={handleSelectAll}
+                                            className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                                        />
+                                    </th>
+                                )}
                                 {columns.map((column, idx) => (
                                     <th
                                         key={idx}
@@ -83,6 +129,7 @@ export function DataTable<T extends { id?: string | number }>({
                                 {loading ? (
                                     Array.from({ length: 5 }).map((_, idx) => (
                                         <tr key={`skeleton-${idx}`}>
+                                            {selectable && <td className="px-6 py-4"><div className="w-4 h-4 bg-gray-100 dark:bg-white/5 rounded animate-pulse" /></td>}
                                             {columns.map((_, colIdx) => (
                                                 <td key={colIdx} className="px-6 py-4">
                                                     <div className="h-4 bg-gray-100 dark:bg-white/5 rounded-lg animate-pulse w-full" />
@@ -98,8 +145,19 @@ export function DataTable<T extends { id?: string | number }>({
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: idx * 0.03 }}
                                             onClick={() => onRowClick?.(item)}
-                                            className={`group hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors ${onRowClick ? 'cursor-pointer' : ''}`}
+                                            className={`group hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors ${onRowClick ? 'cursor-pointer' : ''} ${selectedIds.includes(String(item.id)) ? 'bg-indigo-50/50 dark:bg-indigo-500/10' : ''}`}
                                         >
+                                            {selectable && (
+                                                <td className="px-6 py-5">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedIds.includes(String(item.id))}
+                                                        onChange={(e) => handleSelectOne(String(item.id), e)}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                                                    />
+                                                </td>
+                                            )}
                                             {columns.map((column, colIdx) => (
                                                 <td key={colIdx} className={`px-6 py-5 text-sm text-slate-700 dark:text-slate-300 ${column.className || ''}`}>
                                                     {typeof column.accessor === 'function'
@@ -111,7 +169,7 @@ export function DataTable<T extends { id?: string | number }>({
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={columns.length} className="px-6 py-20 text-center">
+                                        <td colSpan={columns.length + (selectable ? 1 : 0)} className="px-6 py-20 text-center">
                                             <div className="flex flex-col items-center gap-3 text-slate-500">
                                                 <Inbox className="w-10 h-10 opacity-20" />
                                                 <p className="font-medium">No results found</p>

@@ -2,7 +2,7 @@ import { createContext, useContext, ReactNode, useCallback, useMemo, useState } 
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { contactFormSchema, ContactFormValues, defaultContactFormValues } from '@/lib/validations/contact';
-import { apiService } from '@/services/api';
+import { contactService } from '@/services/contactService';
 import { trackFormSubmission, trackFormError } from '@/lib/analytics';
 
 type ContactFormContextType = {
@@ -11,13 +11,13 @@ type ContactFormContextType = {
   isSubmitting: boolean;
   isSuccess: boolean;
   error: string | null;
-  
+
   // Form submission handler
-  onSubmit: SubmitHandler<ContactFormValues>;
-  
+  onSubmit: (e?: React.BaseSyntheticEvent) => Promise<void>;
+
   // Reset form
   resetForm: () => void;
-  
+
   // Form state
   currentStep: number;
   totalSteps: number;
@@ -30,17 +30,17 @@ const ContactFormContext = createContext<ContactFormContextType | undefined>(und
 
 type ContactFormProviderProps = {
   children: ReactNode;
-  
+
   /**
    * Callback function called when the form is successfully submitted
    */
   onSuccess?: (data: ContactFormValues) => void;
-  
+
   /**
    * Callback function called when the form submission fails
    */
   onError?: (error: unknown) => void;
-  
+
   /**
    * Whether to reset the form after successful submission
    * @default true
@@ -62,7 +62,7 @@ export function ContactFormProvider({
   const [error, setError] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3; // Personal Info, Service Details, Review & Submit
-  
+
   // Initialize react-hook-form with Zod validation
   const formMethods = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),
@@ -70,9 +70,9 @@ export function ContactFormProvider({
     mode: 'onTouched',
     reValidateMode: 'onChange',
   });
-  
-  const { reset, handleSubmit, trigger, getValues } = formMethods;
-  
+
+  const { reset, handleSubmit, trigger } = formMethods;
+
   /**
    * Reset the form to its initial state
    */
@@ -82,7 +82,7 @@ export function ContactFormProvider({
     setIsSuccess(false);
     setError(null);
   }, [reset]);
-  
+
   /**
    * Navigate to a specific step
    */
@@ -91,14 +91,14 @@ export function ContactFormProvider({
       setCurrentStep(step);
     }
   }, [totalSteps]);
-  
+
   /**
    * Go to the next step
    */
   const nextStep = useCallback(async () => {
     // Validate current step before proceeding
     let isValid = false;
-    
+
     if (currentStep === 1) {
       // Validate personal info
       isValid = await trigger(['firstName', 'lastName', 'email']);
@@ -109,12 +109,12 @@ export function ContactFormProvider({
       // No validation needed for review step
       isValid = true;
     }
-    
+
     if (isValid && currentStep < totalSteps) {
       setCurrentStep(prev => prev + 1);
     }
   }, [currentStep, totalSteps, trigger]);
-  
+
   /**
    * Go to the previous step
    */
@@ -123,56 +123,54 @@ export function ContactFormProvider({
       setCurrentStep(prev => prev - 1);
     }
   }, [currentStep]);
-  
+
   /**
    * Handle form submission
    */
   const onSubmit: SubmitHandler<ContactFormValues> = useCallback(async (data) => {
     setIsSubmitting(true);
     setError(null);
-    
+
     try {
       // Track form submission in analytics
       trackFormSubmission('contact-form', 'Contact Form');
-      
+
       // Call the API service to submit the form
-      const response = await apiService.submitContactForm(data);
-      
+      await contactService.submitContact(data);
+
       // Call the success callback if provided
       if (onSuccess) {
         onSuccess(data);
       }
-      
+
       // Reset the form if needed
       if (resetOnSuccess) {
         resetForm();
       } else {
         setIsSuccess(true);
       }
-      
-      return response;
     } catch (error) {
       console.error('Error submitting contact form:', error);
-      
+
       // Track form error in analytics
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
       trackFormError('contact-form', 'Contact Form', errorMessage);
-      
+
       // Set the error state
       setError(errorMessage);
-      
+
       // Call the error callback if provided
       if (onError) {
         onError(error);
       }
-      
+
       // Re-throw the error for form handling
       throw error;
     } finally {
       setIsSubmitting(false);
     }
   }, [onError, onSuccess, resetForm, resetOnSuccess]);
-  
+
   // Memoize the context value to prevent unnecessary re-renders
   const contextValue = useMemo(() => ({
     formMethods,
@@ -200,7 +198,7 @@ export function ContactFormProvider({
     nextStep,
     prevStep,
   ]);
-  
+
   return (
     <ContactFormContext.Provider value={contextValue}>
       {children}
@@ -213,10 +211,10 @@ export function ContactFormProvider({
  */
 export function useContactFormContext() {
   const context = useContext(ContactFormContext);
-  
+
   if (context === undefined) {
     throw new Error('useContactFormContext must be used within a ContactFormProvider');
   }
-  
+
   return context;
 }

@@ -72,10 +72,14 @@ export const reviewsService = {
     return apiClient.delete(`/api/reviews/${id}`);
   },
 
+  async bulkDeleteReviews(ids: string[]): Promise<ApiResponse<{ count: number }>> {
+    return apiClient.post('/api/reviews/bulk-delete', { ids });
+  },
+
   /**
    * Get review statistics (Admin)
    */
-  async getStats(): Promise<ApiResponse<any>> {
+  async getStats(): Promise<ApiResponse<unknown>> {
     return apiClient.get('/api/reviews/stats');
   },
 

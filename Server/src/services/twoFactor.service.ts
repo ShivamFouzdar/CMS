@@ -2,7 +2,7 @@
 import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
 import bcrypt from 'bcryptjs';
-import { createError } from '@/utils/helpers';
+import { createError } from '@/utils/helpers.js';
 
 export interface TwoFactorSetup {
     secret: string;

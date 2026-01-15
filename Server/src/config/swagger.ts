@@ -1,5 +1,8 @@
 import swaggerJSDoc from 'swagger-jsdoc';
-import { version } from '../../package.json';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const packageJson = require('../../package.json');
+const { version } = packageJson;
 
 const options: swaggerJSDoc.Options = {
     definition: {

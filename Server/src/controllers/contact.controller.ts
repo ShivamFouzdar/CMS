@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
-import { asyncHandler, createError } from '@/utils/helpers';
-import { sendSuccess } from '@/utils/response.utils';
-import { ContactService } from '@/services/contact.service';
+import { asyncHandler, createError } from '@/utils/helpers.js';
+import { sendSuccess } from '@/utils/response.utils.js';
+import { ContactService } from '@/services/contact.service.js';
+import { auditService } from '@/services/audit.service.js';
 
 /**
  * Contact Controller
@@ -47,7 +48,7 @@ export const submitContactForm = asyncHandler(async (req: Request, res: Response
 
   // Send notification to admins (non-blocking)
   try {
-    const { notifyNewLead } = await import('@/services/notification.service');
+    const { notifyNewLead } = await import('@/services/notification.service.js');
     notifyNewLead({
       name,
       email,
@@ -94,8 +95,9 @@ export const submitContactForm = asyncHandler(async (req: Request, res: Response
 export const getContactSubmissions = asyncHandler(async (req: Request, res: Response) => {
   const page = parseInt((req.query['page'] as string) || '1') || 1;
   const limit = parseInt((req.query['limit'] as string) || '10') || 10;
+  const search = (req.query['search'] as string) || '';
 
-  const result = await contactService.getAllContactSubmissions(page, limit);
+  const result = await contactService.getAllContactSubmissions(page, limit, search);
 
   return sendSuccess(res, `Retrieved ${result.data.length} contact submissions`, result.data, 200);
 });
@@ -165,12 +167,13 @@ export const getContactSubmissionById = asyncHandler(async (req: Request, res: R
 export const updateContactSubmissionStatus = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const { status, notes } = req.body;
-
   if (!id) {
     throw createError('ID is required', 400);
   }
-
   const submission = await contactService.updateContactSubmissionStatus(id, status, notes);
+
+  await auditService.logAction(req, 'UPDATE_STATUS', 'Contact', id, { status, notes });
+
   return sendSuccess(res, 'Contact submission status updated successfully', submission);
 });
 
@@ -193,13 +196,49 @@ export const updateContactSubmissionStatus = asyncHandler(async (req: Request, r
  */
 export const deleteContactSubmission = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-
   if (!id) {
     throw createError('ID is required', 400);
   }
-
   await contactService.deleteContactSubmission(id);
+
+  await auditService.logAction(req, 'DELETE', 'Contact', id);
+
   return sendSuccess(res, 'Contact submission deleted successfully');
+});
+
+/**
+ * @swagger
+ * /api/contact/submissions/bulk-delete:
+ *   post:
+ *     summary: Bulk delete contact submissions (Admin only)
+ *     tags: [Contacts]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               ids:
+ *                 type: array
+ *                 items: { type: string }
+ *     responses:
+ *       200:
+ *         description: Submissions deleted
+ */
+export const bulkDeleteContacts = asyncHandler(async (req: Request, res: Response) => {
+  const { ids } = req.body;
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    throw createError('IDs array is required', 400);
+  }
+
+  const count = await contactService.bulkDeleteContacts(ids);
+
+  await auditService.logAction(req, 'BULK_DELETE', 'Contact', '0', { count, ids });
+
+  return sendSuccess(res, `Deleted ${count} contact submissions successfully`, { count });
 });
 
 /**
@@ -277,4 +316,53 @@ export const markContactAsContacted = asyncHandler(async (req: Request, res: Res
 
   const submission = await contactService.markContactAsContacted(id);
   return sendSuccess(res, 'Contact marked as contacted successfully', submission);
+});
+/**
+ * @swagger
+ * /api/contact/export:
+ *   get:
+ *     summary: Export all contacts to CSV (Admin only)
+ *     tags: [Contacts]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: CSV file download
+ *         content:
+ *           text/csv:
+ *             schema:
+ *               type: string
+ *               format: binary
+ */
+export const exportContacts = asyncHandler(async (_req: Request, res: Response) => {
+  const contacts = await contactService.getContactsByService('', 10000); // Hack to get all, or add dedicated getAll method
+
+  // Define CSV Headers
+  const fields = ['Name', 'Email', 'Phone', 'Company', 'Service', 'Message', 'Status', 'Submitted At'];
+
+  // Convert to CSV
+  const csvContent = [
+    fields.join(','),
+    ...contacts.map(contact => {
+      const row = [
+        contact.name,
+        contact.email,
+        contact.phone || '',
+        contact.company || '',
+        contact.service || 'General',
+        // Escape quotes in message and replace newlines
+        `"${contact.message.replace(/"/g, '""').replace(/\n/g, ' ')}"`,
+        contact.status,
+        new Date(contact.submittedAt).toISOString().split('T')[0]
+      ];
+      return row.join(',');
+    })
+  ].join('\n');
+
+  const filename = `contacts-export-${new Date().toISOString().split('T')[0]}.csv`;
+
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+  res.status(200).send(csvContent);
 });

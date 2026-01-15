@@ -1,11 +1,13 @@
-import { ContactRepository } from '@/repositories/contact.repository';
-import { ReviewRepository } from '@/repositories/review.repository';
-import { ServiceRepository } from '@/repositories/service.repository';
-import { UserRepository } from '@/repositories/user.repository';
-import { JobApplicationRepository } from '@/repositories/jobApplication.repository';
+import { ContactRepository } from '@/repositories/contact.repository.js';
+import { ReviewRepository } from '@/repositories/review.repository.js';
+import { ServiceRepository } from '@/repositories/service.repository.js';
+import { UserRepository } from '@/repositories/user.repository.js';
+import { JobApplicationRepository } from '@/repositories/jobApplication.repository.js';
 import * as os from 'os';
 import mongoose from 'mongoose';
-import { emailService } from '@/services/email.service';
+import { emailService } from '@/services/email.service.js';
+import { auditService } from '@/services/audit.service.js';
+import AuditLog from '@/models/AuditLog.js';
 
 interface SystemHealth {
     status: string;
@@ -285,56 +287,44 @@ export class AdminService {
     /**
      * Get system logs
      */
-    async getSystemLogs() {
-        const { promises: fs } = await import('fs');
-        const path = await import('path');
-        const logPath = path.join(__dirname, '../../logs/access.log');
+    /**
+     * Get system logs
+     */
+    async getSystemLogs(page: number = 1, limit: number = 20, filters: any = {}) {
+        const result = await auditService.getLogs(page, limit, filters);
 
+        const mappedLogs = result.logs.map(log => ({
+            ip: log.ip,
+            timestamp: log.createdAt,
+            request: `${log.action} ${log.resource} ${log.resourceId || ''}`,
+            status: 200,
+            size: '-',
+            userAgent: log.userAgent,
+            user: log.user,
+            action: log.action,
+            resource: log.resource,
+            details: log.details,
+            raw: JSON.stringify(log.details || {})
+        }));
+
+        return {
+            logs: mappedLogs,
+            total: result.total,
+            pages: result.pages,
+            currentPage: result.currentPage
+        };
+    }
+
+    /**
+     * Clear system logs
+     */
+    async clearSystemLogs() {
         try {
-            // Check if file exists
-            try {
-                await fs.access(logPath);
-            } catch {
-                return [];
-            }
-
-            // Optimization: Read only last 100KB instead of full file if possible
-            // For now, we'll keep the simple read but handle potential crashes gracefully
-            // In a real optimized scenario, we'd use fs.open and read from end
-
-            const stats = await fs.stat(logPath);
-            const fileSize = stats.size;
-            // Limit read size to 500KB to prevent memory issues
-            const readSize = Math.min(fileSize, 500 * 1024);
-            const buffer = Buffer.alloc(readSize);
-
-            const fileHandle = await fs.open(logPath, 'r');
-            await fileHandle.read(buffer, 0, readSize, fileSize - readSize);
-            await fileHandle.close();
-
-            const data = buffer.toString('utf8');
-            const lines = data.trim().split('\n').reverse().slice(0, 100);
-
-            return lines.map(line => {
-                // Basic parsing of Combined Log Format
-                const match = line.match(/^(\S+) \S+ \S+ \[(.*?)\] "(.*?)" (\d+) (\d+|-) "(.*?)" "(.*?)"/);
-
-                if (match) {
-                    return {
-                        ip: match[1],
-                        timestamp: match[2],
-                        request: match[3],
-                        status: parseInt(match[4] || '0', 10),
-                        size: match[5],
-                        userAgent: match[7],
-                        raw: line
-                    };
-                }
-                return { raw: line, timestamp: new Date().toISOString() };
-            });
+            await AuditLog.deleteMany({});
+            return true;
         } catch (error) {
-            console.error('Error reading logs:', error);
-            return [];
+            console.error('Error clearing logs:', error);
+            throw new Error('Failed to clear logs');
         }
     }
 }

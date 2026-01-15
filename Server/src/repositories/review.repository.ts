@@ -1,7 +1,7 @@
 
-import { BaseRepository } from './base.repository';
-import { IReview } from '@/models/Review';
-import Review from '@/models/Review';
+import { BaseRepository } from './base.repository.js';
+import { IReview } from '@/models/Review.js';
+import Review from '@/models/Review.js';
 
 export class ReviewRepository extends BaseRepository<IReview> {
     constructor() {

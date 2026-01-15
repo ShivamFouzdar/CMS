@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   UserCheck, Eye, Trash2, Users, MessageSquare,
-  Phone, Building, Mail, Clock, X, Info
+  Phone, Building, Mail, Clock, X, Info, Download
 } from 'lucide-react';
 import { contactService, ContactStats } from '@/services/contactService';
 import { ContactSubmission } from '@/types';
@@ -11,23 +11,40 @@ import { usePagination } from '@/hooks/usePagination';
 import { DataTable } from '@/components/common/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { StatCard } from '@/components/ui/StatCard';
+import { SearchBar } from '@/components/ui/SearchBar';
+import { toast } from 'react-hot-toast';
 
 export default function ContactSubmissions() {
   const [submissions, setSubmissions] = useState<ContactSubmission[]>([]);
   const [stats, setStats] = useState<ContactStats | null>(null);
   const [selectedSubmission, setSelectedSubmission] = useState<ContactSubmission | null>(null);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
+  const [search, setSearch] = useState('');
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const { page, totalPages, total, setPage, setTotalPages, setTotal } = usePagination({
     initialPage: 1,
     itemsPerPage: 10,
   });
 
+  // Debounce search
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 500);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // Reset page on search change
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, setPage]);
+
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const [submissionsRes, statsRes] = await Promise.all([
-        contactService.getAllSubmissions(page, 10),
+        contactService.getAllSubmissions(page, 10, debouncedSearch),
         contactService.getStats(),
       ]);
 
@@ -40,11 +57,45 @@ export default function ContactSubmissions() {
     } finally {
       setLoading(false);
     }
-  }, [page, setTotal, setTotalPages]);
+  }, [page, debouncedSearch, setTotal, setTotalPages]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const handleExport = async () => {
+    try {
+      setExporting(true);
+      const blob = await contactService.exportContacts();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `contacts-export-${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('Contacts exported successfully');
+    } catch (error) {
+      console.error('Export failed:', error);
+      toast.error('Failed to export contacts');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  // Filter submissions based on search term
+  const filteredSubmissions = useMemo(() => {
+    if (!search.trim()) return submissions;
+
+    const searchLower = search.toLowerCase();
+    return submissions.filter(sub =>
+      sub.fullName.toLowerCase().includes(searchLower) ||
+      sub.email.toLowerCase().includes(searchLower) ||
+      sub.company?.toLowerCase().includes(searchLower) ||
+      sub.message.toLowerCase().includes(searchLower)
+    );
+  }, [submissions, search]);
 
   const handleStatusUpdate = async (id: string, status: string) => {
     try {
@@ -54,8 +105,8 @@ export default function ContactSubmissions() {
         const updated = await contactService.getSubmissionById(id);
         setSelectedSubmission(updated.data);
       }
-    } catch (err) {
-      alert('Failed to update status');
+    } catch {
+      // Silently fail for stats update
     }
   };
 
@@ -65,8 +116,22 @@ export default function ContactSubmissions() {
       await contactService.deleteSubmission(id);
       fetchData();
       if (selectedSubmission?.id === id) setSelectedSubmission(null);
-    } catch (err) {
+    } catch {
       alert('Failed to delete submission');
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    if (!confirm(`Are you sure you want to delete ${selectedIds.length} submissions?`)) return;
+    try {
+      await contactService.bulkDeleteSubmissions(selectedIds);
+      toast.success(`Deleted ${selectedIds.length} submissions`);
+      setSelectedIds([]);
+      fetchData();
+    } catch (error) {
+      console.error('Bulk delete failed:', error);
+      toast.error('Failed to delete submissions');
     }
   };
 
@@ -146,6 +211,23 @@ export default function ContactSubmissions() {
             <h1 className="text-2xl sm:text-3xl font-bold font-display text-slate-900 dark:text-white transition-colors">Inquiry Management</h1>
             <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium transition-colors">Track and manage all website inquiries and potential clients.</p>
           </div>
+          <button
+            onClick={handleExport}
+            disabled={exporting}
+            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-gray-200 dark:border-white/10 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Download className="w-4 h-4" />
+            {exporting ? 'Exporting...' : 'Export CSV'}
+          </button>
+          {selectedIds.length > 0 && (
+            <button
+              onClick={handleBulkDelete}
+              className="flex items-center gap-2 px-4 py-2 bg-rose-500 text-white rounded-xl hover:bg-rose-600 transition-colors font-medium shadow-sm"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete Selected ({selectedIds.length})
+            </button>
+          )}
         </div>
 
         {/* Stats Grid */}
@@ -180,8 +262,8 @@ export default function ContactSubmissions() {
         <DataTable
           title="Inquiry Log"
           description="A detailed list of all contact form submissions."
-          columns={columns as any}
-          data={submissions}
+          columns={columns}
+          data={filteredSubmissions}
           loading={loading}
           pagination={{
             page,
@@ -190,6 +272,16 @@ export default function ContactSubmissions() {
             onPageChange: setPage
           }}
           onRowClick={(sub) => setSelectedSubmission(sub)}
+          selectable={true}
+          onSelectionChange={setSelectedIds}
+          searchBar={
+            <SearchBar
+              value={search}
+              onChange={setSearch}
+              placeholder="Search by name, email, or company..."
+              className="w-full md:w-[400px]"
+            />
+          }
         />
 
         {/* Details Modal */}
@@ -208,7 +300,14 @@ export default function ContactSubmissions() {
   );
 }
 
-function SubmissionModal({ submission, onClose, onStatusUpdate, onDelete }: any) {
+interface SubmissionModalProps {
+  submission: ContactSubmission;
+  onClose: () => void;
+  onStatusUpdate: (id: string, status: string) => void;
+  onDelete: (id: string) => void;
+}
+
+function SubmissionModal({ submission, onClose, onStatusUpdate, onDelete }: SubmissionModalProps) {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <motion.div

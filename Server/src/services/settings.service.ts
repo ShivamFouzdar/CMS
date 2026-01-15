@@ -1,7 +1,7 @@
 
-import { SettingsRepository } from '@/repositories/settings.repository';
-import { createError } from '@/utils/helpers';
-import { ISettings } from '@/models/Settings';
+import { SettingsRepository } from '@/repositories/settings.repository.js';
+import { createError } from '@/utils/helpers.js';
+import { ISettings } from '@/models/Settings.js';
 
 export interface SystemSettingsData {
     siteName?: string;

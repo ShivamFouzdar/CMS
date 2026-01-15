@@ -40,9 +40,9 @@ export const jobApplicationService = {
   /**
    * Get all job applications with pagination (Admin)
    */
-  async getAllApplications(page: number = 1, limit: number = 10): Promise<ApiResponse<JobApplication[]>> {
+  async getAllApplications(page: number = 1, limit: number = 10, search?: string): Promise<ApiResponse<JobApplication[]>> {
     return apiClient.get('/api/job-application/submissions', {
-      params: { page, limit }
+      params: { page, limit, search }
     });
   },
 
@@ -69,7 +69,7 @@ export const jobApplicationService = {
     });
 
     // Handle the blob download
-    const blob = new Blob([response as any]);
+    const blob = new Blob([response as unknown as BlobPart]);
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -85,6 +85,15 @@ export const jobApplicationService = {
    */
   async deleteApplication(id: string): Promise<ApiResponse<void>> {
     return apiClient.delete(`/api/job-application/submissions/${id}`);
+  },
+
+  async bulkDeleteApplications(ids: string[]): Promise<ApiResponse<{ count: number }>> {
+    return apiClient.post('/api/job-application/submissions/bulk-delete', { ids });
+  },
+
+  async exportApplications(): Promise<Blob> {
+    const response = await apiClient.get('/api/job-application/export', { responseType: 'blob' });
+    return response as unknown as Blob;
   }
 };
 

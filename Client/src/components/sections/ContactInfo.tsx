@@ -1,10 +1,32 @@
-import { memo, useState } from 'react';
+import { memo, useState, useEffect } from 'react';
 import { Mail, Phone, MapPin, Check, Copy, Clock } from 'lucide-react';
+import { publicService } from '@/services/publicService';
+import { PublicSettings } from '@/types';
 
 // Optimized sub-components with Memoization
 export const ContactInfoCard = memo(() => {
     const [emailCopied, setEmailCopied] = useState(false);
     const [phoneCopied, setPhoneCopied] = useState(false);
+    const [settings, setSettings] = useState<PublicSettings | null>(null);
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const response = await publicService.getPublicSettings();
+                if (response.success) {
+                    setSettings(response.data);
+                }
+            } catch (error) {
+                console.error('Failed to load public settings', error);
+            }
+        };
+        fetchSettings();
+    }, []);
+
+    const email = settings?.contactEmail || 'info@careermapsolutions.com';
+    const phone = settings?.contactPhone || '+91 90129 50370';
+    const address = settings?.contactAddress || 'Gurgaon, Haryana, India';
+    const cleanPhone = phone.replace(/\s+/g, '');
 
     return (
         <div className="bg-white rounded-3xl p-8 md:p-10 border border-gray-100 shadow-xl">
@@ -21,15 +43,15 @@ export const ContactInfoCard = memo(() => {
                     <div className="flex-1 min-w-0">
                         <h4 className="text-sm font-semibold text-gray-500 mb-1">Email</h4>
                         <div className="flex items-center justify-between gap-3 flex-wrap">
-                            <a href="mailto:info@careermapsolutions.com" className="text-gray-900 hover:text-purple-600 transition-colors font-medium break-all">
-                                info@careermapsolutions.com
+                            <a href={`mailto:${email}`} className="text-gray-900 hover:text-purple-600 transition-colors font-medium break-all">
+                                {email}
                             </a>
                             <div className="flex items-center gap-2">
                                 <button
                                     type="button"
                                     onClick={async () => {
                                         try {
-                                            await navigator.clipboard.writeText('info@careermapsolutions.com');
+                                            await navigator.clipboard.writeText(email);
                                             setEmailCopied(true);
                                             setTimeout(() => setEmailCopied(false), 1500);
                                         } catch { }
@@ -51,15 +73,15 @@ export const ContactInfoCard = memo(() => {
                     <div className="flex-1 min-w-0">
                         <h4 className="text-sm font-semibold text-gray-500 mb-1">Phone</h4>
                         <div className="flex items-center justify-between gap-3 flex-wrap">
-                            <a href="tel:+919012950370" className="text-gray-900 hover:text-green-600 transition-colors font-medium">
-                                +91 90129 50370
+                            <a href={`tel:${cleanPhone}`} className="text-gray-900 hover:text-green-600 transition-colors font-medium">
+                                {phone}
                             </a>
                             <div className="flex items-center gap-2">
                                 <button
                                     type="button"
                                     onClick={async () => {
                                         try {
-                                            await navigator.clipboard.writeText('+919012950370');
+                                            await navigator.clipboard.writeText(phone);
                                             setPhoneCopied(true);
                                             setTimeout(() => setPhoneCopied(false), 1500);
                                         } catch { }
@@ -80,7 +102,7 @@ export const ContactInfoCard = memo(() => {
                     </div>
                     <div className="flex-1">
                         <h4 className="text-sm font-semibold text-gray-500 mb-1">Location</h4>
-                        <p className="text-gray-900 font-medium">Gurgaon, Haryana, India</p>
+                        <p className="text-gray-900 font-medium">{address}</p>
                     </div>
                 </div>
             </div>

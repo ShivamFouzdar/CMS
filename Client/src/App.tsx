@@ -8,6 +8,7 @@ import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import { NotificationProvider } from '@/context/NotificationContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { ServiceProvider } from '@/context/ServiceContext';
+import { AuthProvider } from '@/context/AuthContext';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 
 // Lazy load public pages
@@ -28,6 +29,8 @@ const ITServices = lazy(() => import('./pages/services/ITServices'));
 const BrandPromotion = lazy(() => import('./pages/services/BrandPromotion'));
 const CustomerSupport = lazy(() => import('./pages/services/CustomerSupport'));
 const LoginPage = lazy(() => import('./pages/auth/Login'));
+const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/auth/ResetPassword'));
 const RegisterPage = lazy(() => import('./pages/auth/Register'));
 const Maintenance = lazy(() => import('./pages/Maintenance'));
 const Unauthorized = lazy(() => import('./pages/auth/Unauthorized'));
@@ -86,154 +89,160 @@ function App() {
       <div className="min-h-screen transition-colors duration-300">
         <ErrorBoundary>
           <Router>
-            <NotificationProvider>
-              <ServiceProvider>
-                <AnalyticsProvider>
-                  <ScrollToTop />
-                  <Routes>
-                    {/* Public routes with layout */}
-                    <Route
-                      path="/*"
-                      element={
-                        <Layout>
-                          <Routes>
-                            <Route path="/" element={<Home />} />
-                            <Route path="/about" element={<AboutPage />} />
-                            <Route path="/services" element={<ServicesPage />} />
-                            <Route path="/contact" element={<ContactPage />} />
-                            <Route path="/team" element={<TeamPage />} />
-                            <Route path="/reviews" element={<Reviews />} />
-                            <Route path="/case-studies" element={<CaseStudies />} />
-                            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                            <Route path="/terms-of-service" element={<TermsOfService />} />
-                            <Route path="/services/bpo" element={<BPOServices />} />
-                            <Route path="/services/kpo" element={<KPOServices />} />
-                            <Route path="/services/legal" element={<LegalServices />} />
-                            <Route path="/services/recruitment" element={<Recruitment />} />
-                            <Route path="/services/it" element={<ITServices />} />
-                            <Route path="/services/brand-promotion" element={<BrandPromotion />} />
-                            <Route path="/services/support" element={<CustomerSupport />} />
-                          </Routes>
-                        </Layout>
-                      }
-                    />
+            <AuthProvider>
+              <NotificationProvider>
+                <ServiceProvider>
+                  <AnalyticsProvider>
+                    <ScrollToTop />
+                    <Routes>
+                      {/* Public routes with layout */}
+                      <Route
+                        path="/*"
+                        element={
+                          <Layout>
+                            <Routes>
+                              <Route path="/" element={<Home />} />
+                              <Route path="/about" element={<AboutPage />} />
+                              <Route path="/services" element={<ServicesPage />} />
+                              <Route path="/contact" element={<ContactPage />} />
+                              <Route path="/team" element={<TeamPage />} />
+                              <Route path="/reviews" element={<Reviews />} />
+                              <Route path="/case-studies" element={<CaseStudies />} />
+                              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                              <Route path="/terms-of-service" element={<TermsOfService />} />
+                              <Route path="/services/bpo" element={<BPOServices />} />
+                              <Route path="/services/kpo" element={<KPOServices />} />
+                              <Route path="/services/legal" element={<LegalServices />} />
+                              <Route path="/services/recruitment" element={<Recruitment />} />
+                              <Route path="/services/it" element={<ITServices />} />
+                              <Route path="/services/brand-promotion" element={<BrandPromotion />} />
+                              <Route path="/services/support" element={<CustomerSupport />} />
+                            </Routes>
+                          </Layout>
+                        }
+                      />
 
-                    {/* Auth routes - no layout */}
-                    <Route path="/auth" element={<AuthLayout><LoginPage /></AuthLayout>} />
-                    <Route path="/auth/login" element={<AuthLayout><LoginPage /></AuthLayout>} />
-                    <Route path="/auth/register" element={<AuthLayout><RegisterPage /></AuthLayout>} />
-                    <Route path="/maintenance" element={<AuthLayout><Maintenance /></AuthLayout>} />
-                    <Route path="/unauthorized" element={<AuthLayout><Unauthorized /></AuthLayout>} />
+                      {/* Auth routes - no layout */}
+                      <Route path="/auth" element={<AuthLayout><LoginPage /></AuthLayout>} />
+                      <Route path="/auth/login" element={<AuthLayout><LoginPage /></AuthLayout>} />
+                      <Route path="/auth/forgot-password" element={<AuthLayout><ForgotPassword /></AuthLayout>} />
+                      <Route path="/auth/reset-password" element={<AuthLayout><ResetPassword /></AuthLayout>} />
+                      <Route path="/forgot-password" element={<AuthLayout><ForgotPassword /></AuthLayout>} />
+                      <Route path="/reset-password" element={<AuthLayout><ResetPassword /></AuthLayout>} />
+                      <Route path="/auth/register" element={<AuthLayout><RegisterPage /></AuthLayout>} />
+                      <Route path="/maintenance" element={<AuthLayout><Maintenance /></AuthLayout>} />
+                      <Route path="/unauthorized" element={<AuthLayout><Unauthorized /></AuthLayout>} />
 
-                    {/* Admin routes - protected with lazy loading */}
-                    <Route
-                      path="/admin"
-                      element={
-                        <ProtectedRoute allowedRoles={['super_admin', 'admin', 'moderator']}>
-                          <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
-                            <AdminDashboard />
-                          </Suspense>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/admin/dashboard"
-                      element={
-                        <ProtectedRoute allowedRoles={['super_admin', 'admin', 'moderator']}>
-                          <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
-                            <AdminDashboard />
-                          </Suspense>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/admin/job-applicants"
-                      element={
-                        <ProtectedRoute allowedRoles={['super_admin', 'admin', 'moderator']}>
-                          <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
-                            <JobApplicants />
-                          </Suspense>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/admin/reviews"
-                      element={
-                        <ProtectedRoute allowedRoles={['super_admin', 'admin', 'moderator']}>
-                          <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
-                            <AdminReviews />
-                          </Suspense>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/admin/leads"
-                      element={
-                        <ProtectedRoute allowedRoles={['super_admin', 'admin', 'moderator']}>
-                          <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
-                            <Leads />
-                          </Suspense>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/admin/settings"
-                      element={
-                        <ProtectedRoute allowedRoles={['super_admin', 'admin']}>
-                          <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
-                            <Settings />
-                          </Suspense>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/admin/services"
-                      element={
-                        <ProtectedRoute allowedRoles={['super_admin', 'admin']}>
-                          <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
-                            <AdminServices />
-                          </Suspense>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/admin/profile"
-                      element={
-                        <ProtectedRoute>
-                          <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
-                            <AdminProfile />
-                          </Suspense>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/admin/users"
-                      element={
-                        <ProtectedRoute allowedRoles={['super_admin', 'admin']}>
-                          <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
-                            <AdminUsers />
-                          </Suspense>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/admin/media"
-                      element={
-                        <ProtectedRoute allowedRoles={['super_admin', 'admin', 'moderator']}>
-                          <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
-                            <AdminMedia />
-                          </Suspense>
-                        </ProtectedRoute>
-                      }
-                    />
-                  </Routes>
-                </AnalyticsProvider>
-              </ServiceProvider>
-            </NotificationProvider>
+                      {/* Admin routes - protected with lazy loading */}
+                      <Route
+                        path="/admin"
+                        element={
+                          <ProtectedRoute allowedRoles={['super_admin', 'admin', 'moderator']}>
+                            <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
+                              <AdminDashboard />
+                            </Suspense>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/dashboard"
+                        element={
+                          <ProtectedRoute allowedRoles={['super_admin', 'admin', 'moderator']}>
+                            <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
+                              <AdminDashboard />
+                            </Suspense>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/job-applicants"
+                        element={
+                          <ProtectedRoute allowedRoles={['super_admin', 'admin', 'moderator']}>
+                            <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
+                              <JobApplicants />
+                            </Suspense>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/reviews"
+                        element={
+                          <ProtectedRoute allowedRoles={['super_admin', 'admin', 'moderator']}>
+                            <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
+                              <AdminReviews />
+                            </Suspense>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/leads"
+                        element={
+                          <ProtectedRoute allowedRoles={['super_admin', 'admin', 'moderator']}>
+                            <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
+                              <Leads />
+                            </Suspense>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/settings"
+                        element={
+                          <ProtectedRoute allowedRoles={['super_admin', 'admin']}>
+                            <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
+                              <Settings />
+                            </Suspense>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/services"
+                        element={
+                          <ProtectedRoute allowedRoles={['super_admin', 'admin']}>
+                            <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
+                              <AdminServices />
+                            </Suspense>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/profile"
+                        element={
+                          <ProtectedRoute>
+                            <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
+                              <AdminProfile />
+                            </Suspense>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/users"
+                        element={
+                          <ProtectedRoute allowedRoles={['super_admin', 'admin']}>
+                            <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
+                              <AdminUsers />
+                            </Suspense>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/media"
+                        element={
+                          <ProtectedRoute allowedRoles={['super_admin', 'admin', 'moderator']}>
+                            <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
+                              <AdminMedia />
+                            </Suspense>
+                          </ProtectedRoute>
+                        }
+                      />
+                    </Routes>
+                  </AnalyticsProvider>
+                </ServiceProvider>
+              </NotificationProvider>
+            </AuthProvider>
           </Router>
         </ErrorBoundary>
       </div>
-    </ThemeProvider>
+    </ThemeProvider >
   );
 }
 

@@ -3,8 +3,8 @@ import {
     getMedia,
     uploadMedia,
     deleteMedia
-} from '@/controllers/mediaController';
-import { authenticateToken, requireRole } from '@/middleware/auth';
+} from '@/controllers/media.controller.js';
+import { authenticateToken, requireRole } from '@/middleware/auth.js';
 // Existing upload middleware is specific to 'resume'. We should probably make a generic one or reuse it.
 // The existing `uploadResume` uses `cloudinaryFolderNames.resumes`. 
 // We should probably export a generic `uploadMedia` middleware in `middleware/upload.ts` or reuse it.
@@ -17,7 +17,7 @@ import { authenticateToken, requireRole } from '@/middleware/auth';
 // I will create the route and import `uploadGeneric` which I will create next.
 
 // Let's assume I will add `uploadGeneric` to `middleware/upload.ts`.
-import { uploadGeneric } from '@/middleware/upload';
+import { uploadGeneric } from '@/middleware/upload.js';
 
 const router = Router();
 

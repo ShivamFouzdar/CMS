@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Services } from '@/components/sections/Services';
 import { servicesService } from '@/services/servicesService';
+import { Service } from '@/types';
+import { SEO } from '@/components/seo/SEO';
 
 const ALLOWED_SERVICE_SLUGS = ['bpo', 'kpo', 'legal', 'recruitment', 'it', 'brand-promotion'];
 
@@ -13,7 +15,7 @@ export default function ServicesPage() {
       try {
         const response = await servicesService.getActiveServices();
         if (response.success) {
-          const count = response.data.filter((s: any) =>
+          const count = response.data.filter((s: Service) =>
             s.isActive && ALLOWED_SERVICE_SLUGS.includes(s.slug)
           ).length;
           setActiveCount(count);
@@ -27,6 +29,10 @@ export default function ServicesPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      <SEO
+        title="Our Services"
+        description="Explore our range of professional services including BPO, KPO, Legal, Recruitment, IT Solutions, and Brand Promotion."
+      />
       {/* Page Header */}
       <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-20 md:py-32 relative overflow-hidden">
         {/* Decorative elements */}

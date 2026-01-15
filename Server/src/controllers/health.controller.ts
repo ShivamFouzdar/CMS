@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { asyncHandler } from '@/utils/helpers';
-import { sendSuccess } from '@/utils/response.utils';
+import { asyncHandler } from '@/utils/helpers.js';
+import { sendSuccess } from '@/utils/response.utils.js';
 
 /**
  * Health Controller

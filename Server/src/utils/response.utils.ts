@@ -9,6 +9,7 @@ export interface ApiResponse<T = any> {
     data?: T | undefined;
     error?: any | undefined;
     timestamp: string;
+    meta?: any;
 }
 
 /**
@@ -22,12 +23,14 @@ export const sendSuccess = <T>(
     res: Response,
     message: string,
     data?: T,
-    statusCode: number = 200
+    statusCode: number = 200,
+    meta?: any
 ): Response => {
     const response: ApiResponse<T> = {
         success: true,
         message,
         data,
+        meta,
         timestamp: new Date().toISOString(),
     };
 

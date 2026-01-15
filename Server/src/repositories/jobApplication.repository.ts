@@ -1,7 +1,7 @@
 
-import { BaseRepository } from './base.repository';
-import { IApplicant } from '@/models/Applicant';
-import Applicant from '@/models/Applicant';
+import { BaseRepository } from './base.repository.js';
+import { IApplicant } from '@/models/Applicant.js';
+import Applicant from '@/models/Applicant.js';
 
 export class JobApplicationRepository extends BaseRepository<IApplicant> {
     constructor() {

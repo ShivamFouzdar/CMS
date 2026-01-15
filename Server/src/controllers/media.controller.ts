@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { asyncHandler, createError } from '@/utils/helpers';
-import Media from '@/models/Media';
-import { auditService } from '@/services/audit.service';
-import { configureCloudinary } from '@/config/cloudinary';
+import { asyncHandler, createError } from '@/utils/helpers.js';
+import Media from '@/models/Media.js';
+import { auditService } from '@/services/audit.service.js';
+import { configureCloudinary } from '@/config/cloudinary.js';
 
 const cloudinary = configureCloudinary();
 
@@ -33,9 +33,13 @@ export const getMedia = asyncHandler(async (req: Request, res: Response) => {
     const page = parseInt(req.query['page'] as string) || 1;
     const limit = parseInt(req.query['limit'] as string) || 20;
     const type = req.query['type'] as string;
+    const search = req.query['search'] as string;
 
     const query: any = {};
     if (type) query.type = type;
+    if (search) {
+        query.fileName = { $regex: search, $options: 'i' };
+    }
 
     const media = await Media.find(query)
         .sort({ createdAt: -1 })

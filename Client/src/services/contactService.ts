@@ -36,9 +36,9 @@ export const contactService = {
   /**
    * Get all contact submissions with pagination (Admin)
    */
-  async getAllSubmissions(page: number = 1, limit: number = 10): Promise<ApiResponse<ContactSubmission[]>> {
+  async getAllSubmissions(page: number = 1, limit: number = 10, search?: string): Promise<ApiResponse<ContactSubmission[]>> {
     return apiClient.get('/api/contact/submissions', {
-      params: { page, limit }
+      params: { page, limit, search }
     });
   },
 
@@ -70,11 +70,25 @@ export const contactService = {
     return apiClient.delete(`/api/contact/submissions/${id}`);
   },
 
+  async bulkDeleteSubmissions(ids: string[]): Promise<ApiResponse<{ count: number }>> {
+    return apiClient.post('/api/contact/submissions/bulk-delete', { ids });
+  },
+
   /**
    * Mark as contacted (Admin)
    */
   async markAsContacted(id: string): Promise<ApiResponse<ContactSubmission>> {
     return apiClient.patch(`/api/contact/submissions/${id}/contacted`);
+  },
+
+  /**
+   * Export contacts to CSV (Admin)
+   */
+  async exportContacts(): Promise<Blob> {
+    const response = await apiClient.get('/api/contact/export', {
+      responseType: 'blob'
+    });
+    return response as unknown as Blob;
   }
 };
 

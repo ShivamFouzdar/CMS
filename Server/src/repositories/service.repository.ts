@@ -1,11 +1,15 @@
 
-import { BaseRepository } from './base.repository';
-import { IService } from '@/models/Service';
-import Service from '@/models/Service';
+import { BaseRepository } from './base.repository.js';
+import { IService } from '@/models/Service.js';
+import Service from '@/models/Service.js';
 
 export class ServiceRepository extends BaseRepository<IService> {
     constructor() {
         super(Service);
+    }
+
+    async bulkWrite(ops: any[]): Promise<any> {
+        return this.model.bulkWrite(ops);
     }
 
     async findActive(category?: string, featured?: boolean, limit?: number): Promise<IService[]> {

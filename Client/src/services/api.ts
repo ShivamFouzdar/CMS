@@ -40,7 +40,7 @@ apiClient.interceptors.response.use(
     let errorMessage = 'An unexpected error occurred';
 
     if (error.response) {
-      const data = error.response.data as any;
+      const data = error.response.data as { message?: string;[key: string]: unknown };
       errorMessage = data?.message || error.message;
 
       if (error.response.status === 401) {
@@ -54,7 +54,7 @@ apiClient.interceptors.response.use(
         }
 
         // Pass the full data (including contact info) back to the caller
-        const maintenanceError = new Error(errorMessage) as any;
+        const maintenanceError = new Error(errorMessage) as Error & { data: unknown; status: number };
         maintenanceError.data = data;
         maintenanceError.status = 503;
         return Promise.reject(maintenanceError);

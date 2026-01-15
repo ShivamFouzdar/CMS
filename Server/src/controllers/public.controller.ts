@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { asyncHandler } from '@/utils/helpers';
-import { sendSuccess } from '@/utils/response.utils';
-import { Settings } from '@/models/Settings';
+import { asyncHandler } from '@/utils/helpers.js';
+import { sendSuccess } from '@/utils/response.utils.js';
+import { Settings } from '@/models/Settings.js';
 
 /**
  * Public Controller
@@ -35,6 +35,7 @@ export const getPublicSettings = asyncHandler(async (_req: Request, res: Respons
             siteName: 'CareerMap Solutions',
             siteDescription: '',
             contactEmail: '',
+            contactAddress: '',
             contactPhone: '',
             socialMedia: {
                 facebook: '',
@@ -51,6 +52,7 @@ export const getPublicSettings = asyncHandler(async (_req: Request, res: Respons
         siteName: settings.siteName,
         siteDescription: settings.siteDescription,
         contactEmail: settings.contactEmail,
+        contactAddress: settings.contactAddress,
         contactPhone: settings.contactPhone,
         socialMedia: settings.socialMedia,
         allowRegistrations: settings.allowRegistrations

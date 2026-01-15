@@ -1,5 +1,5 @@
 import apiClient from './api';
-import { ApiResponse, User } from '@/types';
+import { ApiResponse, User, LoginCredentials, RegisterData } from '@/types';
 
 /**
  * Auth Service
@@ -20,7 +20,7 @@ export const authService = {
     /**
      * Login user
      */
-    async login(credentials: any): Promise<ApiResponse<LoginResponse>> {
+    async login(credentials: LoginCredentials): Promise<ApiResponse<LoginResponse>> {
         const response = await apiClient.post<ApiResponse<LoginResponse>>('/api/auth/login', credentials) as unknown as ApiResponse<LoginResponse>;
 
         // If successful and not requiring 2FA, handle storage
@@ -34,8 +34,11 @@ export const authService = {
     /**
      * Verify 2FA during login
      */
-    async verify2FA(payload: { tempToken: string; code?: string; backupCode?: string }): Promise<ApiResponse<LoginResponse>> {
-        const response = await apiClient.post<ApiResponse<LoginResponse>>('/api/auth/2fa/login-verify', payload) as unknown as ApiResponse<LoginResponse>;
+    /**
+     * Verify 2FA during login
+     */
+    async verify2FALogin(payload: { tempToken: string; code?: string; backupCode?: string }): Promise<ApiResponse<LoginResponse>> {
+        const response = await apiClient.post<ApiResponse<LoginResponse>>('/api/auth/2fa/verify-login', payload) as unknown as ApiResponse<LoginResponse>;
 
         if (response.success && response.data) {
             this.setSession(response.data);
@@ -45,10 +48,38 @@ export const authService = {
     },
 
     /**
+     * Enable 2FA (Setup)
+     */
+    async enable2FA(): Promise<ApiResponse<{ qrCode: string; secret: string; backupCodes: string[] }>> {
+        return apiClient.post('/api/auth/2fa/enable');
+    },
+
+    /**
+     * Verify 2FA (Setup)
+     */
+    async verify2FASetup(code: string): Promise<ApiResponse<void>> {
+        return apiClient.post('/api/auth/2fa/verify', { code });
+    },
+
+    /**
      * Register a new user
      */
-    async register(userData: any): Promise<ApiResponse<any>> {
+    async register(userData: RegisterData): Promise<ApiResponse<LoginResponse>> {
         return apiClient.post('/api/auth/register', userData);
+    },
+
+    /**
+     * Request password reset
+     */
+    async forgotPassword(email: string): Promise<ApiResponse<string>> {
+        return apiClient.post('/api/auth/forgot-password', { email });
+    },
+
+    /**
+     * Reset password
+     */
+    async resetPassword(token: string, userId: string, newPassword: string): Promise<ApiResponse<string>> {
+        return apiClient.post('/api/auth/reset-password', { token, userId, newPassword });
     },
 
     /**

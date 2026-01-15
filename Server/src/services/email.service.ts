@@ -1,6 +1,6 @@
 
 import nodemailer from 'nodemailer';
-import { createError } from '@/utils/helpers';
+import { createError } from '@/utils/helpers.js';
 
 export interface EmailOptions {
     to: string | string[];
@@ -18,7 +18,7 @@ export class EmailService {
         let secure = false;
 
         try {
-            const { Settings } = await import('@/models/Settings');
+            const { Settings } = await import('@/models/Settings.js');
             const settings = await Settings.findOne().select('+smtp.password');
             if (settings && settings.smtp && settings.smtp.host) {
                 smtpHost = settings.smtp.host;
@@ -181,6 +181,23 @@ export const emailTemplates = {
       <h1>${data.title}</h1>
       <p>Severity: ${data.severity}</p>
       <p>Message: ${data.message}</p>
+      </body></html>
+    `,
+    }),
+    resetPassword: (data: {
+        firstName: string;
+        resetUrl: string;
+    }) => ({
+        subject: 'Password Reset Request',
+        html: `
+      <!DOCTYPE html>
+      <html><body>
+      <h1>Password Reset Request</h1>
+      <p>Hi ${data.firstName},</p>
+      <p>You requested a password reset. Please click the link below to reset your password:</p>
+      <p><a href="${data.resetUrl}">Reset Password</a></p>
+      <p>This link will expire in 1 hour.</p>
+      <p>If you didn't request this, please ignore this email.</p>
       </body></html>
     `,
     }),

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { getSystemSettings } from '@/services/settings.service';
+import { getSystemSettings } from '@/services/settings.service.js';
 
 /**
  * Maintenance Mode Middleware

@@ -1,17 +1,28 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Plus,
-    Search,
-    Edit2,
-    CheckCircle,
-    Briefcase,
-    Loader2,
-    Star,
-    Layers,
-    EyeOff,
-    X
+    Briefcase, Plus, Edit2, GripVertical,
+    Loader2, EyeOff, CheckCircle,
+    Star, Layers, X
 } from 'lucide-react';
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+    useSortable
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { SearchBar } from '@/components/ui/SearchBar';
 import { servicesService } from '@/services/servicesService';
 import { Service } from '@/types';
 import { useNotification } from '@/context/NotificationContext';
@@ -19,6 +30,88 @@ import { AdminLayout } from '@/components/layout/AdminLayout';
 import { StatCard } from '@/components/ui/StatCard';
 
 
+
+
+interface SortableRowProps {
+    service: Service;
+    handleToggleStatus: (id: string) => void;
+    openEditModal: (service: Service) => void;
+}
+
+function SortableRow({ service, handleToggleStatus, openEditModal }: SortableRowProps) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({ id: service.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+        zIndex: isDragging ? 1000 : 1,
+        position: 'relative' as const,
+    };
+
+    return (
+        <tr
+            ref={setNodeRef}
+            style={style}
+            className={`hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors group ${isDragging ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}`}
+        >
+            <td className="px-6 py-4">
+                <div className="flex items-center gap-4">
+                    <div {...attributes} {...listeners} className="cursor-grab hover:text-indigo-600 dark:hover:text-indigo-400 text-slate-400 transition-colors">
+                        <GripVertical className="w-5 h-5" />
+                    </div>
+                    <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform duration-300">
+                        {/* Dynamic Icon implementation could go here, for now using fixed Briefcase as per original or we can lookup icon */}
+                        <Briefcase className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <p className="font-bold text-slate-900 dark:text-white">{service.name}</p>
+                        <p className="text-xs text-slate-500 font-medium truncate max-w-[200px]">{service.slug}</p>
+                    </div>
+                </div>
+            </td>
+            <td className="px-6 py-4">
+                <button
+                    onClick={() => handleToggleStatus(service.id)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide border transition-all hover:scale-105 active:scale-95 ${service.isActive
+                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                        : 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-white/5 dark:text-slate-400 dark:border-white/10'
+                        }`}
+                >
+                    {service.isActive ? 'Active' : 'Inactive'}
+                </button>
+            </td>
+            <td className="px-6 py-4">
+                {service.isFeatured ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-lg text-xs font-bold border border-amber-500/20">
+                        <Star className="w-3 h-3 fill-current" /> Featured
+                    </span>
+                ) : (
+                    <span className="text-slate-400 text-xs font-medium">-</span>
+                )}
+            </td>
+            <td className="px-6 py-4 text-right">
+                <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                        onClick={() => openEditModal(service)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-lg text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-all"
+                        title="Settings"
+                    >
+                        <Edit2 className="w-3.5 h-3.5" />
+                        Manage
+                    </button>
+                </div>
+            </td>
+        </tr>
+    );
+}
 
 export default function AdminServices() {
     const [services, setServices] = useState<Service[]>([]);
@@ -39,23 +132,22 @@ export default function AdminServices() {
     const [saving, setSaving] = useState(false);
     const { showNotification } = useNotification();
 
-    useEffect(() => {
-        fetchServices();
-    }, []);
-
-    const fetchServices = async () => {
+    const fetchServices = useCallback(async () => {
         try {
             const response = await servicesService.getAllServices();
             if (response.success) {
                 setServices(response.data);
             }
-        } catch (error) {
-            console.error('Failed to fetch services:', error);
+        } catch {
             showNotification('error', 'Failed to load services');
         } finally {
             setLoading(false);
         }
-    };
+    }, [showNotification]);
+
+    useEffect(() => {
+        fetchServices();
+    }, [fetchServices]);
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -71,8 +163,9 @@ export default function AdminServices() {
             setIsModalOpen(false);
             fetchServices();
             resetForm();
-        } catch (error: any) {
-            console.error('Failed to save service:', error);
+        } catch (err) {
+            console.error('Failed to save service:', err);
+            const error = err as { response?: { data?: { error?: { message?: string } } } };
             const errorMessage = error.response?.data?.error?.message || 'Failed to save service';
             showNotification('error', errorMessage);
         } finally {
@@ -86,7 +179,7 @@ export default function AdminServices() {
             await servicesService.toggleStatus(id);
             showNotification('success', 'Service status updated');
             fetchServices(); // Refresh to get updated state
-        } catch (error) {
+        } catch {
             showNotification('error', 'Failed to update status');
         }
     };
@@ -135,6 +228,40 @@ export default function AdminServices() {
         };
     }, [services]);
 
+    const sensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
+    const handleDragEnd = async (event: DragEndEvent) => {
+        const { active, over } = event;
+
+        if (over && active.id !== over.id) {
+            setServices((items) => {
+                const oldIndex = items.findIndex((item) => item.id === active.id);
+                const newIndex = items.findIndex((item) => item.id === over.id);
+
+                const newOrder = arrayMove(items, oldIndex, newIndex);
+
+                // Save the new order asynchronously
+                const updates = newOrder.map((service, index) => ({
+                    id: service.id,
+                    order: index
+                }));
+
+                // Call API without awaiting to keep UI responsive, show notification on failure
+                servicesService.reorderServices(updates).catch(() => {
+                    showNotification('error', 'Failed to save new order');
+                    fetchServices(); // Revert on failure
+                });
+
+                return newOrder;
+            });
+        }
+    };
+
     return (
         <AdminLayout>
             <div className="p-4 sm:p-6 lg:p-10 space-y-6 sm:space-y-8 lg:space-y-10">
@@ -142,7 +269,7 @@ export default function AdminServices() {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="space-y-1">
                         <h1 className="text-2xl sm:text-3xl font-bold font-display text-slate-900 dark:text-white transition-colors">Services Visibility</h1>
-                        <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium transition-colors">Enable or disable core services displayed on the website.</p>
+                        <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium transition-colors">Drag and drop to reorder services.</p>
                     </div>
                 </div>
 
@@ -174,96 +301,67 @@ export default function AdminServices() {
                     />
                 </div>
 
-                {/* Search and Filters */}
-                <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <input
-                            type="text"
-                            placeholder="Search by name or description..."
+                <div className="space-y-6">
+                    {/* Service Catalog Header & Search */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h2 className="text-2xl font-bold font-display text-slate-900 dark:text-white transition-colors">Service Catalog</h2>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 transition-colors">Manage your service offerings and visibility.</p>
+                        </div>
+                        <SearchBar
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white placeholder-gray-400 transition-all"
+                            onChange={setSearchTerm}
+                            placeholder="Search by name or description..."
+                            className="w-full md:w-[400px]"
                         />
                     </div>
-                </div>
 
-                {/* Services List */}
-                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-white/5 overflow-hidden">
-                    <div className="px-6 py-4 border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02]">
-                        <h3 className="font-bold text-slate-900 dark:text-white">Service Catalog</h3>
+                    {/* Services List */}
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-white/5 overflow-hidden">
+                        {loading ? (
+                            <div className="p-12 flex justify-center">
+                                <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+                            </div>
+                        ) : filteredServices.length === 0 ? (
+                            <div className="p-12 text-center text-gray-500 dark:text-slate-400">
+                                No services found matching your criteria.
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <DndContext
+                                    sensors={sensors}
+                                    collisionDetection={closestCenter}
+                                    onDragEnd={handleDragEnd}
+                                >
+                                    <table className="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr className="bg-gray-50/50 dark:bg-slate-900/50 border-b border-gray-200 dark:border-white/5 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                                <th className="px-6 py-4">Service Details</th>
+                                                <th className="px-6 py-4">Status</th>
+                                                <th className="px-6 py-4">Featured</th>
+                                                <th className="px-6 py-4 text-right">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-100 dark:divide-white/5">
+                                            <SortableContext
+                                                items={filteredServices.map(s => s.id)}
+                                                strategy={verticalListSortingStrategy}
+                                            >
+                                                {filteredServices.map((service) => (
+                                                    <SortableRow
+                                                        key={service.id}
+                                                        service={service}
+                                                        handleToggleStatus={handleToggleStatus}
+                                                        openEditModal={openEditModal}
+                                                    />
+                                                ))}
+                                            </SortableContext>
+                                        </tbody>
+                                    </table>
+                                </DndContext>
+                            </div>
+                        )}
                     </div>
-                    {loading ? (
-                        <div className="p-12 flex justify-center">
-                            <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
-                        </div>
-                    ) : filteredServices.length === 0 ? (
-                        <div className="p-12 text-center text-gray-500 dark:text-slate-400">
-                            No services found matching your criteria.
-                        </div>
-                    ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
-                                <thead>
-                                    <tr className="bg-gray-50/50 dark:bg-slate-900/50 border-b border-gray-200 dark:border-white/5 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                        <th className="px-6 py-4">Service Details</th>
-                                        <th className="px-6 py-4">Status</th>
-                                        <th className="px-6 py-4">Featured</th>
-                                        <th className="px-6 py-4 text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-100 dark:divide-white/5">
-                                    {filteredServices.map((service) => (
-                                        <tr key={service.id} className="hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors group">
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform duration-300">
-                                                        <Briefcase className="w-5 h-5" />
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-bold text-slate-900 dark:text-white">{service.name}</p>
-                                                        <p className="text-xs text-slate-500 font-medium truncate max-w-[200px]">{service.slug}</p>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <button
-                                                    onClick={() => handleToggleStatus(service.id)}
-                                                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide border transition-all hover:scale-105 active:scale-95 ${service.isActive
-                                                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                                                        : 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-white/5 dark:text-slate-400 dark:border-white/10'
-                                                        }`}
-                                                >
-                                                    {service.isActive ? 'Active' : 'Inactive'}
-                                                </button>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                {service.isFeatured ? (
-                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-lg text-xs font-bold border border-amber-500/20">
-                                                        <Star className="w-3 h-3 fill-current" /> Featured
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-slate-400 text-xs font-medium">-</span>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4 text-right">
-                                                <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button
-                                                        onClick={() => openEditModal(service)}
-                                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-lg text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-all"
-                                                        title="Settings"
-                                                    >
-                                                        <Edit2 className="w-3.5 h-3.5" />
-                                                        Manage
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
                 </div>
 
                 {/* Add/Edit Modal */}

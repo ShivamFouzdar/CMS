@@ -6,6 +6,7 @@ import {
   getAnalytics,
   exportData,
   getSystemLogs,
+  clearSystemLogs,
   updateSystemSettings,
   getSystemSettings,
   backupDatabase,
@@ -13,8 +14,8 @@ import {
   getDatabaseStats,
   getServerMetrics,
   testSmtpConnection
-} from '@/controllers/adminController';
-import { authenticateToken, requireRole } from '@/middleware/auth';
+} from '@/controllers/admin.controller.js';
+import { authenticateToken, requireRole } from '@/middleware/auth.js';
 
 const router = Router();
 
@@ -36,14 +37,15 @@ router.get('/activity', getRecentActivity);
 router.get('/health', getSystemHealth);
 router.get('/metrics', getServerMetrics);
 router.get('/logs', getSystemLogs);
+router.delete('/logs', requireRole(['super_admin']), clearSystemLogs);
 router.get('/settings', getSystemSettings);
-router.put('/settings', updateSystemSettings);
-router.post('/settings/test-smtp', testSmtpConnection);
+router.put('/settings', requireRole(['super_admin']), updateSystemSettings);
+router.post('/settings/test-smtp', requireRole(['super_admin']), testSmtpConnection);
 
 // Database management routes
 router.get('/database/stats', getDatabaseStats);
 router.get('/database/backup', backupDatabase);
-router.post('/database/restore', restoreDatabase);
+router.post('/database/restore', requireRole(['super_admin']), restoreDatabase);
 
 // Data export routes
 router.get('/export/contacts', exportData('contacts'));

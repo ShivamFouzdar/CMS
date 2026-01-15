@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { asyncHandler, createError, sanitizeInput } from '@/utils/helpers';
-import { sendSuccess } from '@/utils/response.utils';
-import { OfferingService } from '@/services/offering.service';
+import { asyncHandler, createError, sanitizeInput } from '@/utils/helpers.js';
+import { sendSuccess } from '@/utils/response.utils.js';
+import { OfferingService } from '@/services/offering.service.js';
 
 /**
  * Services Controller
@@ -193,6 +193,53 @@ export const createService = asyncHandler(async (req: Request, res: Response) =>
   return sendSuccess(res, 'Service created successfully', newService, 201);
 });
 
+/**
+ * @swagger
+ * /api/services/reorder:
+ *   put:
+ *     summary: Reorder services (Admin only)
+ *     tags: [Services]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               items:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     id: { type: string }
+ *                     order: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Services reordered successfully
+ */
+export const reorderServices = asyncHandler(async (req: Request, res: Response) => {
+  const { items } = req.body;
+
+  if (!items || !Array.isArray(items)) {
+    throw createError('Items array is required', 400);
+  }
+
+  // Use bulkWrite for efficient updates
+  const bulkOps = items.map((item: { id: string; order: number }) => ({
+    updateOne: {
+      filter: { _id: item.id },
+      update: { $set: { order: item.order } }
+    }
+  }));
+
+  if (bulkOps.length > 0) {
+    await offeringService.bulkWrite(bulkOps);
+  }
+
+  return sendSuccess(res, 'Services reordered successfully');
+});
 /**
  * @swagger
  * /api/services/{id}:

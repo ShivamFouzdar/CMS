@@ -8,6 +8,7 @@ export interface IBaseRepository<T extends Document> {
     findAll(filter?: FilterQuery<T>, sort?: any, limit?: number): Promise<T[]>;
     update(id: string, data: UpdateQuery<T>): Promise<T | null>;
     delete(id: string): Promise<boolean>;
+    deleteMany(ids: string[]): Promise<number>;
     count(filter?: FilterQuery<T>): Promise<number>;
     aggregate(pipeline: any[]): Promise<any[]>;
 }
@@ -49,6 +50,11 @@ export abstract class BaseRepository<T extends Document> implements IBaseReposit
     async delete(id: string): Promise<boolean> {
         const result = await this.model.findByIdAndDelete(id);
         return !!result;
+    }
+
+    async deleteMany(ids: string[]): Promise<number> {
+        const result = await this.model.deleteMany({ _id: { $in: ids } });
+        return result.deletedCount;
     }
 
     async count(filter: FilterQuery<T> = {}): Promise<number> {

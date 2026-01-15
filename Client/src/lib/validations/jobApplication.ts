@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { formatFileSize } from '@/lib/form-utils';
+
 
 // Common validation messages
 export const validationMessages = {
@@ -7,7 +7,6 @@ export const validationMessages = {
   email: 'Please enter a valid email address',
   minLength: (min: number) => `Must be at least ${min} characters`,
   maxLength: (max: number) => `Must be at most ${max} characters`,
-  fileSize: (size: number) => `File size must be less than ${size}MB`,
 } as const;
 
 // Experience level options
@@ -42,24 +41,24 @@ export const jobApplicationSchema = z.object({
     .string()
     .min(2, 'Please enter your full name (at least 2 characters)')
     .max(100, 'Name cannot exceed 100 characters'),
-    
+
   email: z
     .string()
     .min(1, validationMessages.required)
     .email(validationMessages.email),
-    
+
   phone: z
     .string()
     .min(10, 'Please enter a valid phone number (at least 10 digits)')
     .max(20, 'Phone number cannot exceed 20 characters')
-    .regex(/^[\+]?[0-9\s\-\(\)]+$/, 'Please enter a valid phone number'),
-    
+    .regex(/^\+?[1-9]\d{1,14}$/, 'Phone number must be a valid international number (e.g., +1234567890)'),
+
   // Location
   location: z
     .string()
     .min(2, 'Please enter your city/location (at least 2 characters)')
     .max(100, 'Location cannot exceed 100 characters'),
-    
+
   // Experience
   experience: z
     .string()
@@ -67,10 +66,11 @@ export const jobApplicationSchema = z.object({
       (val) => experienceLevels.includes(val as any),
       'Please select your experience level'
     ),
-    
+
   // Resume upload
   resume: z
     .any()
+    .optional()
     .refine(
       (file) => file instanceof File && file !== null && file !== undefined,
       'Resume file is required'
@@ -91,7 +91,7 @@ export const jobApplicationSchema = z.object({
       },
       'Resume must be a PDF or Word document'
     ),
-    
+
   // Work Preferences
   workMode: z
     .string()
@@ -99,13 +99,13 @@ export const jobApplicationSchema = z.object({
       (val) => workModes.includes(val as any),
       'Please select your preferred work mode'
     ),
-    
+
   // Skills Description
   skillsDescription: z
     .string()
     .min(20, 'Please describe your skills in more detail (at least 20 characters)')
     .max(1000, 'Skills description cannot exceed 1000 characters'),
-    
+
   // How did you hear about us
   hearAboutUs: z
     .string()
@@ -113,7 +113,7 @@ export const jobApplicationSchema = z.object({
       (val) => hearAboutUsOptions.includes(val as any) || val === 'Other',
       'Please select how you heard about us'
     ),
-    
+
   // Consent
   consent: z.boolean({
     required_error: 'You must provide consent to proceed',
@@ -121,7 +121,8 @@ export const jobApplicationSchema = z.object({
 });
 
 // Type for the form values
-export type JobApplicationFormValues = z.infer<typeof jobApplicationSchema>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type JobApplicationFormValues = Omit<z.infer<typeof jobApplicationSchema>, 'resume'> & { resume?: any };
 
 // Default form values (resume will be added by the file input)
 export const defaultJobApplicationValues: Omit<JobApplicationFormValues, 'resume' | 'consent'> & { resume?: File; consent: boolean } = {

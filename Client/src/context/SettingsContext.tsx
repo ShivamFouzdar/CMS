@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { adminService } from '@/services/adminService';
 import { authService } from '@/services/authService';
 import apiClient from '@/services/api';
+import { LogEntry, DatabaseStats } from '@/types';
 
 // --- Interfaces ---
 
@@ -9,6 +10,7 @@ export interface SystemSettings {
     siteName: string;
     siteDescription: string;
     contactEmail: string;
+    contactAddress: string;
     contactPhone: string;
     maintenanceMode: boolean;
     allowRegistrations: boolean;
@@ -38,15 +40,7 @@ export interface SystemSettings {
     };
 }
 
-export interface LogEntry {
-    ip: string;
-    timestamp: string;
-    request: string;
-    status: number;
-    size: string;
-    userAgent: string;
-    raw?: string;
-}
+
 
 interface SecuritySettings {
     currentPassword: string;
@@ -66,7 +60,20 @@ interface SettingsContextType {
     systemSettings: SystemSettings;
     securitySettings: SecuritySettings;
     logs: LogEntry[];
-    dbStats: { collections: number; documents: number; size: string };
+    logsPagination: {
+        page: number;
+        totalPages: number;
+        total: number;
+        limit: number;
+    };
+    logsFilters: {
+        action: string;
+        resource: string;
+        userId: string;
+    };
+    setLogsPage: (page: number) => void;
+    setLogsFilters: (filters: any) => void;
+    dbStats: DatabaseStats;
     twoFactorStatus: boolean;
     testingSmtp: boolean;
     testResult: 'success' | 'failed' | null;
@@ -87,6 +94,7 @@ interface SettingsContextType {
     handleRestore: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
     handleTestSmtp: () => Promise<void>;
     refreshSettings: () => Promise<void>;
+    clearLogs: () => Promise<void>;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -99,8 +107,8 @@ export function useSettings() {
     return context;
 }
 
-export function SettingsProvider({ children }: { children: ReactNode }) {
-    const [activeTab, setActiveTab] = useState<'system' | 'smtp' | 'security' | 'notifications' | 'logs'>('system');
+export function SettingsProvider({ children, initialTab = 'system' }: { children: ReactNode; initialTab?: 'system' | 'smtp' | 'security' | 'notifications' | 'logs' }) {
+    const [activeTab, setActiveTab] = useState<'system' | 'smtp' | 'security' | 'notifications' | 'logs'>(initialTab);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [success, setSuccess] = useState<string | null>(null);
@@ -112,6 +120,17 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     const [testResult, setTestResult] = useState<'success' | 'failed' | null>(null);
 
     const [logs, setLogs] = useState<LogEntry[]>([]);
+    const [logsPagination, setLogsPagination] = useState({
+        page: 1,
+        totalPages: 1,
+        total: 0,
+        limit: 20
+    });
+    const [logsFilters, setLogsFilters] = useState({
+        action: '',
+        resource: '',
+        userId: ''
+    });
     const [dbStats, setDbStats] = useState({ collections: 0, documents: 0, size: '0 B' });
 
     const [securitySettings, setSecuritySettings] = useState<SecuritySettings>({
@@ -125,6 +144,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         siteName: 'CareerMap Solutions',
         siteDescription: 'Your trusted partner for business solutions',
         contactEmail: '',
+        contactAddress: '',
         contactPhone: '',
         maintenanceMode: false,
         allowRegistrations: true,
@@ -183,7 +203,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         } else if (activeTab === 'system') {
             fetchDbStats();
         }
-    }, [activeTab]);
+    }, [activeTab, logsPagination.page, logsFilters]);
 
     // --- Handlers ---
 
@@ -199,15 +219,30 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     const fetchLogs = async () => {
         setLoading(true);
         try {
-            const res = await adminService.getSystemLogs();
+            const res = await adminService.getSystemLogs(
+                logsPagination.page,
+                logsPagination.limit,
+                logsFilters
+            );
             if (res.success) {
                 setLogs(res.data);
+                if (res.meta?.pagination) {
+                    setLogsPagination(prev => ({
+                        ...prev,
+                        total: res.meta?.pagination?.total || 0,
+                        totalPages: res.meta?.pagination?.totalPages || 1
+                    }));
+                }
             }
         } catch (err) {
             console.error('Failed to fetch logs', err);
         } finally {
             setLoading(false);
         }
+    };
+
+    const setLogsPage = (page: number) => {
+        setLogsPagination(prev => ({ ...prev, page }));
     };
 
     const handleSave = async (type: string, data: any) => {
@@ -223,8 +258,9 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
             setSuccess(`${type.charAt(0).toUpperCase() + type.slice(1)} updated successfully!`);
             setTimeout(() => setSuccess(null), 3000);
-        } catch (err: any) {
-            setError(err.message || 'Failed to save settings');
+        } catch (err) {
+            const error = err as Error;
+            setError(error.message || 'Failed to save settings');
         } finally {
             setSaving(false);
         }
@@ -244,7 +280,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
             document.body.removeChild(a);
             setSuccess('Backup downloaded successfully');
             setTimeout(() => setSuccess(null), 3000);
-        } catch (err) {
+        } catch {
             setError('Failed to download backup');
         } finally {
             setLoading(false);
@@ -265,12 +301,12 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
                     setSuccess('Database restored successfully');
                     setTimeout(() => setSuccess(null), 3000);
                     fetchDbStats(); // Refresh stats
-                } catch (err) {
+                } catch {
                     setError('Invalid backup file');
                 }
             };
             reader.readAsText(file);
-        } catch (err) {
+        } catch {
             setError('Failed to restore database');
         } finally {
             setLoading(false);
@@ -291,9 +327,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
                 setError('SMTP Connection failed');
                 setTimeout(() => setError(null), 3000);
             }
-        } catch (err: any) {
+        } catch (err) {
+            const error = err as Error;
             setTestResult('failed');
-            setError(err.message || 'SMTP Connection failed');
+            setError(error.message || 'SMTP Connection failed');
             setTimeout(() => setError(null), 3000);
         } finally {
             setTestingSmtp(false);
@@ -301,17 +338,36 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         }
     };
 
+    const clearLogs = async () => {
+        if (!confirm('Are you sure you want to clear all system logs? This action cannot be undone.')) return;
+
+        setLoading(true);
+        try {
+            await adminService.clearSystemLogs();
+            setLogs([]);
+            setSuccess('System logs cleared successfully');
+            setTimeout(() => setSuccess(null), 3000);
+        } catch (err) {
+            setError('Failed to clear logs');
+            setTimeout(() => setError(null), 3000);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const value = {
         activeTab, setActiveTab,
         loading, saving, success, error,
         systemSettings, securitySettings, logs,
+        logsPagination, logsFilters,
+        setLogsPage, setLogsFilters,
         dbStats, twoFactorStatus, testingSmtp, testResult, show2FASetup,
 
         setSystemSettings, setSecuritySettings,
         setShow2FASetup, setTwoFactorStatus, setSuccess,
 
         fetchLogs, fetchDbStats, handleSave, handleBackup,
-        handleRestore, handleTestSmtp, refreshSettings
+        handleRestore, handleTestSmtp, refreshSettings, clearLogs
     };
 
     return (

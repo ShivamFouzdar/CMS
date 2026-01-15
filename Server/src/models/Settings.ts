@@ -39,6 +39,7 @@ export interface ISettings extends Document {
   siteName: string;
   siteDescription: string;
   contactEmail: string;
+  contactAddress: string;
   contactPhone: string;
   maintenanceMode: boolean;
   allowRegistrations: boolean;
@@ -96,6 +97,12 @@ const settingsSchema = new Schema<ISettings>(
       trim: true,
       lowercase: true,
       match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Please provide a valid email address'],
+    },
+    contactAddress: {
+      type: String,
+      default: process.env['CONTACT_ADDRESS'] || 'Gurgaon, Haryana, India',
+      trim: true,
+      maxlength: [200, 'Address cannot exceed 200 characters'],
     },
     contactPhone: {
       type: String,
@@ -251,6 +258,9 @@ settingsSchema.statics['getSettings'] = async function (): Promise<ISettings> {
 
     if ((!settings.contactPhone || settings.contactPhone === '+91 90129 50370') && process.env['CONTACT_PHONE']) { settings.contactPhone = process.env['CONTACT_PHONE']; changed = true; }
     if (!settings.contactPhone && !process.env['CONTACT_PHONE']) { settings.contactPhone = '+91 90129 50370'; changed = true; }
+
+    if ((!settings.contactAddress || settings.contactAddress === 'Gurgaon, Haryana, India') && process.env['CONTACT_ADDRESS']) { settings.contactAddress = process.env['CONTACT_ADDRESS']; changed = true; }
+    if (!settings.contactAddress && !process.env['CONTACT_ADDRESS']) { settings.contactAddress = 'Gurgaon, Haryana, India'; changed = true; }
 
     if (changed) {
       await settings.save();

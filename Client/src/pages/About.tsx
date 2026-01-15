@@ -1,10 +1,15 @@
 import { motion } from 'framer-motion';
 import { About as AboutSection } from '@/components/sections/About';
 import { Team } from '@/components/sections/Team';
+import { SEO } from '@/components/seo/SEO';
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white">
+      <SEO
+        title="About Us"
+        description="Learn about CareerMap Solutions, our mission, vision, and the expert team driving business success through innovative BPO and KPO strategies."
+      />
       {/* Hero Banner with Large Card */}
       <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-12 md:py-16 relative overflow-hidden">
         {/* Decorative elements */}
@@ -12,7 +17,7 @@ export default function AboutPage() {
           <div className="absolute -top-20 -right-20 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
           <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
         </div>
-        
+
         <div className="container mx-auto px-4 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mt-10 items-center">
             {/* Left Column - Large Card */}
@@ -23,16 +28,16 @@ export default function AboutPage() {
               transition={{ duration: 0.6 }}
             >
               <div className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg border border-white/20">
-                <div className="aspect-w-3 aspect-h-4 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg sm:rounded-xl overflow-hidden">
-                  <img 
-                    src="/about.png" 
-                    alt="About CareerMap Solutions" 
-                    className="w-full h-full object-cover"
+                <div className="bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg sm:rounded-xl overflow-hidden relative">
+                  <img
+                    src="/about.png"
+                    alt="About CareerMap Solutions"
+                    className="w-full h-auto object-contain"
                   />
                 </div>
-                
+
                 {/* Experience badge */}
-                <motion.div 
+                <motion.div
                   className="absolute -bottom-3 -right-3 sm:-bottom-6 sm:-right-6 bg-gradient-to-r from-purple-600 to-purple-800 text-white p-3 sm:p-4 rounded-lg sm:rounded-xl shadow-lg w-32 sm:w-40 border border-purple-400/20"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -52,7 +57,7 @@ export default function AboutPage() {
               transition={{ duration: 0.6, delay: 0.2 }}
             >
               <div>
-                <motion.span 
+                <motion.span
                   className="text-purple-600 font-semibold text-sm uppercase tracking-wider mb-2 block"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -60,7 +65,7 @@ export default function AboutPage() {
                 >
                   About Us
                 </motion.span>
-                <motion.h1 
+                <motion.h1
                   className="text-3xl md:text-5xl font-bold text-blue-900 mb-4"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -68,7 +73,7 @@ export default function AboutPage() {
                 >
                   About CareerMap Solutions
                 </motion.h1>
-                <motion.p 
+                <motion.p
                   className="text-lg md:text-xl text-blue-800/80 max-w-2xl"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -83,17 +88,15 @@ export default function AboutPage() {
       </div>
 
       {/* About Content - Mission, Vision, Values */}
-      <div className="py-8 md:py-12">
-        <div className="container mx-auto px-4">
-          <AboutSection showFullContent={true} showHeader={false} />
-        </div>
+      <div className="py-0">
+        <AboutSection showFullContent={true} /> {/* Removed extra container wrapping in AboutSection usage if possible or just use simpler structure */}
       </div>
 
       {/* Team Section */}
       <div className="bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 py-8 md:py-12">
         <div className="container mx-auto px-4">
           <div className="text-center mb-8">
-            <motion.h2 
+            <motion.h2
               className="text-3xl md:text-4xl font-bold text-blue-900 mb-3"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -102,7 +105,7 @@ export default function AboutPage() {
             >
               Our Leadership Team
             </motion.h2>
-            <motion.p 
+            <motion.p
               className="text-lg text-blue-800/80 max-w-2xl mx-auto"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}

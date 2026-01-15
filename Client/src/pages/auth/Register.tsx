@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
+import { AxiosError } from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { AuthCard, AuthInput, AuthPasswordInput, AuthButton, AuthLink } from '@/components/auth';
 import { Mail, Lock, User } from 'lucide-react';
-import axios from 'axios';
-import { API_ENDPOINTS } from '@/config/api';
+import { authService } from '@/services/authService';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -55,7 +55,7 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(API_ENDPOINTS.auth.register, {
+      const response = await authService.register({
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
@@ -63,15 +63,14 @@ export default function RegisterPage() {
         role: 'viewer', // Default role
       });
 
-      if (response.data.success && response.data.data.tokens) {
-        localStorage.setItem('accessToken', response.data.data.tokens.accessToken);
-        localStorage.setItem('refreshToken', response.data.data.tokens.refreshToken);
-        localStorage.setItem('user', JSON.stringify(response.data.data.user));
-        
+      if (response.success && response.data?.tokens) {
+        authService.setSession(response.data);
+
         // Redirect to admin dashboard
         navigate('/admin/dashboard');
       }
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as AxiosError<{ error?: { message?: string } }>;
       console.error('Register error:', error);
       const errorMessage = error.response?.data?.error?.message || 'Registration failed. Please try again.';
       setErrors({ general: errorMessage });

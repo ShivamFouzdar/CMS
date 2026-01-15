@@ -1,6 +1,6 @@
 import multer from 'multer';
 import path from 'path';
-import { configureCloudinary, cloudinaryFolderNames } from '@/config/cloudinary';
+import { configureCloudinary, cloudinaryFolderNames } from '@/config/cloudinary.js';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
 
 // Initialize Cloudinary with error handling

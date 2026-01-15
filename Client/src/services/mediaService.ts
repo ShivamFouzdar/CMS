@@ -28,10 +28,12 @@ export interface MediaResponse {
 }
 
 export const mediaService = {
-    getMedia: async (page: number = 1, limit: number = 20, type?: string) => {
-        const response = await apiClient.get<MediaResponse>('/media', {
-            params: { page, limit, type }
-        });
+    getMedia: async (page: number = 1, limit: number = 20, type?: string, search?: string): Promise<{ data: MediaItem[], pagination: any }> => {
+        const params: any = { page, limit };
+        if (type && type !== 'all') params.type = type;
+        if (search) params.search = search;
+
+        const response = await apiClient.get('/media', { params });
         return response.data;
     },
 

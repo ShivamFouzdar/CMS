@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  User, Mail, Phone, MapPin, Briefcase, FileText, 
+import {
+  User, Mail, Phone, MapPin, Briefcase, FileText,
   Upload, AlertCircle, CheckCircle, X, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/forms/Button';
@@ -10,8 +10,8 @@ import { Input } from '@/components/forms/FormField';
 import { Textarea } from '@/components/forms/FormField';
 import { Select } from '@/components/forms/FormField';
 import { fadeIn, staggerContainer } from '@/lib/utils';
-import { 
-  jobApplicationSchema, 
+import {
+  jobApplicationSchema,
   type JobApplicationFormValues,
   experienceLevels,
   workModes,
@@ -20,26 +20,25 @@ import {
 import { formatFileSize } from '@/lib/form-utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { cn } from '@/lib/utils';
-import { API_ENDPOINTS } from '@/config/api';
-import axios from 'axios';
+import { jobApplicationService } from '@/services/jobApplicationService';
 
 type JobApplicationFormProps = {
   /**
    * Callback when form is submitted successfully
    */
   onSuccess?: (data: JobApplicationFormValues) => void;
-  
+
   /**
    * Callback when form submission fails
    */
   onError?: (error: unknown) => void;
-  
+
   /**
    * Whether to show a success message after submission
    * @default true
    */
   showSuccessMessage?: boolean;
-  
+
   /**
    * Additional class name for the form container
    */
@@ -121,15 +120,11 @@ export function JobApplicationForm({
       formData.append('hearAboutUs', data.hearAboutUs);
       formData.append('resume', data.resume);
 
-      // Submit to backend API using API_ENDPOINTS
-      const response = await axios.post(API_ENDPOINTS.jobApplication.submit, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      // Submit to backend API using jobApplicationService
+      const response = await jobApplicationService.submitApplication(formData);
 
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Failed to submit application');
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to submit application');
       }
 
       if (onSuccess) {
@@ -146,30 +141,16 @@ export function JobApplicationForm({
       }, 5000);
     } catch (error) {
       console.error('Form submission error:', error);
-      
-      // Extract error message from axios error response
+
+      // Extract error message
       let errorMessage = 'An error occurred while submitting the application. Please try again.';
-      
-      if (axios.isAxiosError(error)) {
-        const backendMessage = error.response?.data?.message;
-        const missingFields = error.response?.data?.missingFields;
-        
-        if (backendMessage) {
-          errorMessage = backendMessage;
-          if (missingFields && Array.isArray(missingFields) && missingFields.length > 0) {
-            errorMessage += ` Missing: ${missingFields.join(', ')}`;
-          }
-        } else if (error.response?.status === 400) {
-          errorMessage = 'Invalid form data. Please check all required fields are filled correctly.';
-        } else if (error.response?.status === 413) {
-          errorMessage = 'File size is too large. Please upload a file smaller than 5MB.';
-        } else if (error.message) {
-          errorMessage = error.message;
-        }
-      } else if (error instanceof Error) {
+
+      if (error instanceof Error) {
         errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null && 'message' in error) {
+        errorMessage = (error as any).message;
       }
-      
+
       setSubmitError(errorMessage);
 
       if (onError) {
@@ -236,7 +217,7 @@ export function JobApplicationForm({
                 <User className="h-5 w-5 mr-2 text-blue-600" />
                 Personal Information
               </h3>
-              
+
               <div className="space-y-4">
                 <Input
                   label="Full Name"
@@ -246,7 +227,7 @@ export function JobApplicationForm({
                   leftIcon={<User className="h-4 w-4 text-gray-400" />}
                   {...register('fullName')}
                 />
-                
+
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <Input
                     label="Email Address"
@@ -257,7 +238,7 @@ export function JobApplicationForm({
                     leftIcon={<Mail className="h-4 w-4 text-gray-400" />}
                     {...register('email')}
                   />
-                  
+
                   <Input
                     label="Phone Number"
                     id="phone"
@@ -268,7 +249,7 @@ export function JobApplicationForm({
                     {...register('phone')}
                   />
                 </div>
-                
+
                 <Input
                   label="Current City/Location"
                   id="location"
@@ -286,7 +267,7 @@ export function JobApplicationForm({
                 <Briefcase className="h-5 w-5 mr-2 text-blue-600" />
                 Experience & Work Preferences
               </h3>
-              
+
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <Select
                   label="Total Years of Experience"
@@ -297,7 +278,7 @@ export function JobApplicationForm({
                   ]}
                   {...register('experience')}
                 />
-                
+
                 <Select
                   label="Preferred Work Mode"
                   id="workMode"
@@ -316,7 +297,7 @@ export function JobApplicationForm({
                 <FileText className="h-5 w-5 mr-2 text-blue-600" />
                 Resume
               </h3>
-              
+
               <Controller
                 name="resume"
                 control={control}
@@ -331,7 +312,7 @@ export function JobApplicationForm({
                         (PDF or Word document, max 5MB)
                       </span>
                     </label>
-                    
+
                     <div className="mt-1">
                       <label
                         htmlFor="resume"
@@ -361,7 +342,7 @@ export function JobApplicationForm({
                         />
                       </label>
                     </div>
-                    
+
                     {value && resumePreview && (
                       <div className="mt-3 flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
                         <div className="flex items-center">
@@ -385,7 +366,7 @@ export function JobApplicationForm({
                         </button>
                       </div>
                     )}
-                    
+
                     {errors.resume && (
                       <p className="mt-1 text-sm text-red-600">{errors.resume.message as string}</p>
                     )}
@@ -399,7 +380,7 @@ export function JobApplicationForm({
               <h3 className="text-lg font-semibold text-gray-900 mb-6">
                 Skills & Expertise
               </h3>
-              
+
               <Textarea
                 label="Briefly Describe Your Skills / Expertise"
                 id="skillsDescription"
@@ -416,7 +397,7 @@ export function JobApplicationForm({
               <h3 className="text-lg font-semibold text-gray-900 mb-6">
                 How did you hear about CareerMap Solutions?
               </h3>
-              
+
               <div className="space-y-3">
                 {hearAboutUsOptions.map((option) => (
                   <label

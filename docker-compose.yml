@@ -1,0 +1,60 @@
+version: '3.8'
+
+# Concept: Orchestration
+# Used to define and run multi-container applications.
+# It connects the Client, Server, and Database in a shared network.
+
+services:
+  # 1. API Server
+  server:
+    build:
+      context: ./Server
+      dockerfile: Dockerfile
+    container_name: cms-server
+    restart: always # Auto-restart on crash/reboot
+    env_file:
+      - ./Server/.env
+    environment:
+      # Overrides: Docker networking requires using service name 'mongodb' instead of 'localhost'
+      - MONGODB_URI=mongodb://mongodb:27017/cms
+      - PORT=5000
+      - NODE_ENV=production
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongodb
+    networks:
+      - app-network
+
+  # 2. React Client (Nginx)
+  client:
+    build:
+      context: ./Client
+      dockerfile: Dockerfile
+    container_name: cms-client
+    restart: always
+    ports:
+      - "3000:80" # Map Host 3000 -> Container 80. Host Nginx will proxy here.
+    depends_on:
+      - server
+    networks:
+      - app-network
+
+  # 3. Database
+  mongodb:
+    image: mongo:6-jammy
+    container_name: cms-mongo
+    restart: always
+    volumes:
+      - mongodb_data:/data/db # Persistence: Data survives container removal
+    networks:
+      - app-network
+
+# Shared Network for internal communication
+networks:
+  app-network:
+    driver: bridge
+
+# Named Volume for DB persistence
+volumes:
+  mongodb_data:

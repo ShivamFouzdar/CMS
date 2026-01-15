@@ -1,16 +1,17 @@
 import { Router } from 'express';
 
 // Import route modules
-import contactRoutes from './contact';
-import reviewRoutes from './reviews';
-import serviceRoutes from './services';
-import userRoutes from './users';
-import adminRoutes from './admin';
-import authRoutes from './auth';
-import jobApplicationRoutes from './jobApplication';
-import twoFactorRoutes from './twoFactor';
-import publicRoutes from './public';
-import mediaRoutes from './media';
+import contactRoutes from './contact.js';
+import reviewRoutes from './reviews.js';
+import serviceRoutes from './services.js';
+import userRoutes from './users.js';
+import adminRoutes from './admin.js';
+import authRoutes from './auth.js';
+import jobApplicationRoutes from './jobApplication.js';
+import twoFactorRoutes from './twoFactor.js';
+import publicRoutes from './public.js';
+import mediaRoutes from './media.js';
+import notificationRoutes from './notifications.js';
 
 const router = Router();
 
@@ -48,5 +49,6 @@ router.use('/job-application', jobApplicationRoutes);
 router.use('/2fa', twoFactorRoutes);
 router.use('/public', publicRoutes);
 router.use('/media', mediaRoutes);
+router.use('/notifications', notificationRoutes);
 
 export default router;

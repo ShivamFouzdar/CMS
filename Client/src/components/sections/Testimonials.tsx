@@ -32,9 +32,8 @@ export function Testimonials() {
     const fetchFeaturedReviews = async () => {
       try {
         setLoading(true);
-        console.log('Fetching featured reviews...');
+        setLoading(true);
         const response = await reviewsService.getFeaturedReviews(7);
-        console.log('Featured reviews received:', response);
         setTestimonials(response.data || []);
       } catch (error) {
         console.error('Error fetching featured reviews:', error);
@@ -210,32 +209,7 @@ export function Testimonials() {
           transition={{ duration: 0.5 }}
         >
           <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-purple-500/10 rounded-xl sm:rounded-2xl -m-3 sm:-m-6 blur-2xl -z-10"></div>
-          {/* <div className="bg-gray-800/50 backdrop-blur-sm p-6 sm:p-8 rounded-xl sm:rounded-2xl border border-purple-900/30">
-            <motion.h3 
-              className="text-xl sm:text-2xl font-semibold text-white mb-3 sm:mb-4"
-              variants={fadeIn('up', 0.2)}
-            >
-              Ready to experience the difference?
-            </motion.h3>
-            <motion.p 
-              className="text-gray-300 mb-4 sm:mb-6 max-w-2xl mx-auto text-sm sm:text-base"
-              variants={fadeIn('up', 0.3)}
-            >
-              Join hundreds of satisfied clients who have transformed their businesses with our solutions.
-            </motion.p>
-            <motion.div
-              variants={fadeIn('up', 0.4)}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <Button 
-                size="lg"
-                className="bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-medium rounded-lg transition-all duration-300 transform hover:scale-105"
-              >
-                Get Started Today
-              </Button>
-            </motion.div>
-          </div> */}
+
         </motion.div>
       </div>
 

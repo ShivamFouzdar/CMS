@@ -8,12 +8,14 @@ import {
   deleteContactSubmission,
   getContactStats,
   getContactsByService,
-  markContactAsContacted
-} from '@/controllers/contactController';
-import { authenticateToken, requireRole } from '@/middleware/auth';
+  markContactAsContacted,
+  exportContacts,
+  bulkDeleteContacts
+} from '@/controllers/contact.controller.js';
+import { authenticateToken, requireRole } from '@/middleware/auth.js';
 import { z } from 'zod';
-import { authLimiter } from '@/middleware/rateLimiter';
-import { validate } from '@/middleware/validate';
+import { authLimiter } from '@/middleware/rateLimiter.js';
+import { validate } from '@/middleware/validate.js';
 
 const router = Router();
 
@@ -46,11 +48,13 @@ router.post('/', authLimiter, validate(contactSchema), submitContactForm);
 router.use(authenticateToken);
 
 // Contact management routes
+router.get('/export', requireRole(['admin']), exportContacts);
 router.get('/submissions', requireRole(['admin', 'moderator']), getContactSubmissions);
 router.get('/submissions/:id', requireRole(['admin', 'moderator']), getContactSubmissionById);
 router.patch('/submissions/:id/status', requireRole(['admin', 'moderator']), validate(updateStatusSchema), updateContactSubmissionStatus);
 router.patch('/submissions/:id/contacted', requireRole(['admin', 'moderator']), markContactAsContacted);
 router.delete('/submissions/:id', requireRole(['admin']), deleteContactSubmission);
+router.post('/submissions/bulk-delete', requireRole(['admin']), bulkDeleteContacts);
 
 // Statistics and analytics routes
 router.get('/stats', requireRole(['admin', 'moderator']), getContactStats);

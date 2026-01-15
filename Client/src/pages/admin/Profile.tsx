@@ -39,9 +39,10 @@ export default function Profile() {
                 setStatus('success');
                 setTimeout(() => setStatus('idle'), 3000);
             }
-        } catch (err: any) {
+        } catch (err) {
+            const error = err as { response?: { data?: { message?: string } } };
             setStatus('error');
-            setErrorMessage(err.response?.data?.message || 'Failed to update profile');
+            setErrorMessage(error.response?.data?.message || 'Failed to update profile');
             setTimeout(() => setStatus('idle'), 5000);
         }
     };

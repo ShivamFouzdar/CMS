@@ -1,8 +1,10 @@
 
-import { ContactFormData } from '@/types';
-import { createError, sanitizeInput } from '@/utils/helpers';
-import { ContactRepository } from '@/repositories/contact.repository';
-import { IContact } from '@/models';
+import { ContactFormData } from '@/types/index.js';
+import { createError, sanitizeInput } from '@/utils/helpers.js';
+import { ContactRepository } from '@/repositories/contact.repository.js';
+import { IContact } from '@/models/index.js';
+import { emailService, emailTemplates } from './email.service.js';
+import { Settings } from '@/models/Settings.js';
 
 /**
  * Contact Service
@@ -41,6 +43,32 @@ export class ContactService {
 
     console.log('✅ Contact form submission saved to database:', contact._id);
 
+    // Send Admin Notification
+    try {
+      const settings = await Settings.findOne();
+      if (settings?.emailNotifications && settings?.notificationAlerts.inquiries) {
+        const adminEmail = settings.contactEmail || process.env['CONTACT_EMAIL'];
+        if (adminEmail) {
+          const emailData = emailTemplates.newLead({
+            name: sanitizedData.name,
+            email: sanitizedData.email,
+            ...(sanitizedData.phone ? { phone: sanitizedData.phone } : {}),
+            service: sanitizedData.service,
+            message: sanitizedData.message
+          });
+
+          await emailService.sendEmail({
+            to: adminEmail,
+            subject: emailData.subject,
+            html: emailData.html
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to send contact notification email:', error);
+      // Fail silently to not block the submission response
+    }
+
     return {
       id: (contact._id as any).toString(),
       submittedAt: (contact as any).submittedAt.toISOString(),
@@ -50,12 +78,23 @@ export class ContactService {
   /**
    * Get all contact submissions with pagination
    */
-  async getAllContactSubmissions(page: number = 1, limit: number = 10): Promise<{ data: any[]; total: number; page: number; totalPages: number }> {
+  async getAllContactSubmissions(page: number = 1, limit: number = 10, search?: string): Promise<{ data: any[]; total: number; page: number; totalPages: number }> {
     const skip = (page - 1) * limit;
 
+    const filter: any = {};
+    if (search) {
+      const searchRegex = new RegExp(search, 'i');
+      filter.$or = [
+        { name: searchRegex },
+        { email: searchRegex },
+        { company: searchRegex },
+        { service: searchRegex }
+      ];
+    }
+
     const [contacts, total] = await Promise.all([
-      this.repository.findWithPagination({}, { submittedAt: -1 }, skip, limit),
-      this.repository.count({})
+      this.repository.findWithPagination(filter, { submittedAt: -1 }, skip, limit),
+      this.repository.count(filter)
     ]);
 
     const data = contacts.map(contact => this.mapToDTO(contact));
@@ -93,6 +132,11 @@ export class ContactService {
     const contact = await this.repository.findById(id);
     if (!contact) throw createError('Contact submission not found', 404);
     await this.repository.delete(id);
+  }
+
+  async bulkDeleteContacts(ids: string[]): Promise<number> {
+    if (!ids || ids.length === 0) return 0;
+    return await this.repository.deleteMany(ids);
   }
 
   async getContactStatistics(): Promise<any> {

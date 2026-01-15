@@ -90,8 +90,8 @@ const container: Variants = {
 
 const item: Variants = {
   hidden: { opacity: 0, y: 20 },
-  show: { 
-    opacity: 1, 
+  show: {
+    opacity: 1,
     y: 0,
     transition: {
       duration: 0.5,
@@ -103,7 +103,7 @@ const item: Variants = {
 export function Team() {
   return (
     <div className="relative">
-      <motion.div 
+      <motion.div
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 sm:gap-10 max-w-7xl mx-auto"
         variants={container}
         initial="hidden"
@@ -114,10 +114,10 @@ export function Team() {
           <motion.div key={member.id} variants={item} className="h-full">
             <Card className="h-full overflow-hidden transition-all duration-300 hover:shadow-lg bg-white border border-gray-100 hover:border-blue-200 hover:shadow-blue-100/50 flex flex-col">
               <div className="w-full h-72 sm:h-80 lg:h-96 relative overflow-hidden bg-gray-100 group">
-                <img 
-                  src={member.image} 
+                <img
+                  src={member.image}
                   alt={member.name}
-                  className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-110"
+                  className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-110"
                   loading="lazy"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
@@ -137,19 +137,19 @@ export function Team() {
                   <p className="text-blue-600 text-sm sm:text-base font-medium">{member.role}</p>
                 </div>
                 <div className="flex space-x-2 sm:space-x-3 pt-3 mt-auto">
-                  <a 
-                    href={member.social.linkedin} 
+                  <a
+                    href={member.social.linkedin}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-gray-400 hover:text-blue-600 transition-colors duration-300 p-1.5 rounded hover:bg-blue-50"
                     aria-label={`Connect with ${member.name} on LinkedIn`}
                   >
                     <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
                     </svg>
                   </a>
-                  <a 
-                    href={member.social.email} 
+                  <a
+                    href={member.social.email}
                     className="text-gray-400 hover:text-blue-600 transition-colors duration-300 p-1.5 rounded hover:bg-blue-50"
                     aria-label={`Email ${member.name}`}
                   >
