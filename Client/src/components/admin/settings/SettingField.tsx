@@ -9,6 +9,8 @@ export interface SettingFieldProps {
     placeholder?: string;
     className?: string;
     disabled?: boolean;
+    id?: string;
+    name?: string;
 }
 
 export const SettingField = ({
@@ -18,20 +20,29 @@ export const SettingField = ({
     type = "text",
     placeholder = "",
     className = "",
-    disabled = false
+    disabled = false,
+    id,
+    name
 }: SettingFieldProps) => {
     const [showPassword, setShowPassword] = useState(false);
     const isPassword = type === "password";
+    // Generate a Fallback ID if none provided
+    const fieldId = id || `setting-${label.toLowerCase().replace(/\s+/g, '-')}`;
 
     return (
         <div className={`flex flex-col ${className}`}>
             {label && (
-                <label className="text-[10px] font-bold text-slate-500 dark:text-slate-500 uppercase tracking-widest ml-1 min-h-[20px] flex items-end mb-2">
+                <label
+                    htmlFor={fieldId}
+                    className="text-[10px] font-bold text-slate-500 dark:text-slate-500 uppercase tracking-widest ml-1 min-h-[20px] flex items-end mb-2"
+                >
                     {label}
                 </label>
             )}
             <div className="relative">
                 <input
+                    id={fieldId}
+                    name={name || fieldId}
                     type={isPassword ? (showPassword ? "text" : "password") : type}
                     value={value}
                     onChange={onChange}

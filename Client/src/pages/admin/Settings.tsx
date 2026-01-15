@@ -46,15 +46,13 @@ function SettingsContent() {
     if (tab && tab !== activeTab && ['system', 'smtp', 'security', 'notifications', 'logs'].includes(tab)) {
       setActiveTab(tab as any);
     }
-  }, [searchParams, activeTab, setActiveTab]);
+  }, [searchParams]);
 
-  // Update URL when tab changes
-  useEffect(() => {
-    const currentTab = searchParams.get('tab');
-    if (activeTab !== currentTab) {
-      setSearchParams({ tab: activeTab }, { replace: true });
-    }
-  }, [activeTab, searchParams, setSearchParams]);
+  // Handle Tab Change
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId as any);
+    setSearchParams({ tab: tabId }, { replace: true });
+  };
 
   const tabs = [
     { id: 'system', label: 'Architecture', icon: Server },
@@ -64,16 +62,16 @@ function SettingsContent() {
     { id: 'logs', label: 'System Logs', icon: FileText },
   ];
 
-  if (loading && activeTab !== 'logs') {
-    return (
-      <div className="p-4 sm:p-6 lg:p-10 flex items-center justify-center min-h-[50vh]">
-        <Loader2 className="w-10 h-10 text-indigo-500 animate-spin" />
-      </div>
-    );
-  }
+  // NOTE: REMOVED BLOCKING LOADER HERE to prevent flickering.
+  // The SettingsContext handles loading internally if needed, or we show localized loaders.
 
   return (
     <div className="p-4 sm:p-6 lg:p-10 space-y-6 sm:space-y-8 lg:space-y-10">
+      {loading && activeTab !== 'logs' && (
+        <div className="fixed top-0 left-0 w-full h-1 bg-indigo-500/20 z-50">
+          <div className="h-full bg-indigo-500 animate-progress origin-left"></div>
+        </div>
+      )}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-bold font-display text-slate-900 dark:text-white transition-colors">Advanced Settings</h1>
@@ -122,7 +120,7 @@ function SettingsContent() {
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as 'system' | 'smtp' | 'security' | 'notifications' | 'logs')}
+              onClick={() => handleTabChange(tab.id)}
               className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all relative whitespace-nowrap ${isActive ? 'text-white' : 'text-slate-500 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
             >
               {isActive && (

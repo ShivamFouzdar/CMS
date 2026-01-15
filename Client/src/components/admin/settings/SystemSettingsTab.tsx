@@ -14,28 +14,38 @@ export const SystemSettingsTab: React.FC = () => {
         <div className="space-y-8">
             <div className="grid grid-cols-2 gap-8">
                 <SettingField
+                    id="setting-site-name"
+                    name="siteName"
                     label="Platform Name"
                     value={systemSettings.siteName}
                     onChange={(e) => setSystemSettings({ ...systemSettings, siteName: e.target.value })}
                 />
                 <SettingField
+                    id="setting-contact-email"
+                    name="contactEmail"
                     label="Global Contact"
                     value={systemSettings.contactEmail}
                     onChange={(e) => setSystemSettings({ ...systemSettings, contactEmail: e.target.value })}
                 />
                 <SettingField
+                    id="setting-contact-phone"
+                    name="contactPhone"
                     label="Contact Phone"
                     value={systemSettings.contactPhone}
                     onChange={(e) => setSystemSettings({ ...systemSettings, contactPhone: e.target.value })}
                 />
                 <SettingField
+                    id="setting-contact-address"
+                    name="contactAddress"
                     label="Contact Address"
                     value={systemSettings.contactAddress}
                     onChange={(e) => setSystemSettings({ ...systemSettings, contactAddress: e.target.value })}
                 />
                 <div className="col-span-2 space-y-2">
-                    <label className="text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-widest ml-1">Core Description</label>
+                    <label htmlFor="setting-site-description" className="text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-widest ml-1">Core Description</label>
                     <textarea
+                        id="setting-site-description"
+                        name="siteDescription"
                         rows={3}
                         value={systemSettings.siteDescription}
                         onChange={(e) => setSystemSettings({ ...systemSettings, siteDescription: e.target.value })}
@@ -172,12 +182,16 @@ export const SystemSettingsTab: React.FC = () => {
                         <h5 className="font-bold text-slate-900 dark:text-white transition-colors">File Management</h5>
                         <div className="grid grid-cols-2 gap-4">
                             <SettingField
+                                id="setting-max-file-size"
+                                name="maxFileSize"
                                 label="Max Size (MB)"
                                 type="number"
                                 value={systemSettings.maxFileSize}
                                 onChange={(e) => setSystemSettings({ ...systemSettings, maxFileSize: parseInt(e.target.value) })}
                             />
                             <SettingField
+                                id="setting-allowed-extensions"
+                                name="allowedFileTypes"
                                 label="Allowed Extensions"
                                 value={systemSettings.allowedFileTypes.join(', ')}
                                 onChange={(e) => setSystemSettings({
