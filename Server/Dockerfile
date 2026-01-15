@@ -28,6 +28,9 @@ ENV NODE_ENV=production
 # Copy package files
 COPY package*.json ./
 
+# Explicitly copy .env if it exists (for production)
+COPY .env .env
+
 # Install ONLY production dependencies
 RUN npm ci --only=production
 
