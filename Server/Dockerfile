@@ -50,4 +50,4 @@ USER nodejs
 EXPOSE 5000
 
 # Start command (using node directly on compiled entry point)
-CMD ["node", "dist/app.js"]
+CMD ["node", "dist/server.js"]
