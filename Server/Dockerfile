@@ -37,6 +37,10 @@ COPY --from=builder /app/dist ./dist
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nodejs -u 1001
+
+# Create logs directory and assign permissions (Fixes EACCES error)
+RUN mkdir -p logs && chown -R nodejs:nodejs logs
+
 USER nodejs
 
 # Expose API port
