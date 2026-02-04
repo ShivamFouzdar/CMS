@@ -45,6 +45,7 @@ const AdminServices = lazy(() => import('./pages/admin/Services'));
 const AdminProfile = lazy(() => import('./pages/admin/Profile'));
 const AdminUsers = lazy(() => import('@/pages/admin/Users'));
 const AdminMedia = lazy(() => import('./pages/admin/Media'));
+const AdminTeam = lazy(() => import('./pages/admin/TeamSettings'));
 
 // Scroll to top on route change
 function ScrollToTop() {
@@ -230,6 +231,16 @@ function App() {
                           <ProtectedRoute allowedRoles={['super_admin', 'admin', 'moderator']}>
                             <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
                               <AdminMedia />
+                            </Suspense>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/team"
+                        element={
+                          <ProtectedRoute allowedRoles={['super_admin', 'admin']}>
+                            <Suspense fallback={<LoadingSpinner size="lg" fullScreen />}>
+                              <AdminTeam />
                             </Suspense>
                           </ProtectedRoute>
                         }

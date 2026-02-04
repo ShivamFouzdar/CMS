@@ -1,81 +1,8 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
 import { Card } from '@/components/ui/card';
-
-const teamMembers = [
-  {
-    id: 1,
-    name: 'Shivam Fouzdar',
-    role: 'CEO & Founder',
-    image: '/Shivam.jpeg',
-    bio: 'Shivam has over 7+ years of experience in business strategy and leadership, helping companies scale and achieve their goals.',
-    social: {
-      twitter: '#',
-      linkedin: '#',
-      email: 'mailto:shivam@careermapsolutions.com'
-    }
-  },
-  // {
-  //   id: 2,
-  //   name: 'Asheesh Rathore',
-  //   role: 'CTO',
-  //   image: '/images/team/asheesh-rathore.jpg',
-  //   bio: 'Asheesh leads our technology initiatives with 3+ years of experience in software development and technical leadership.',
-  //   social: {
-  //     twitter: '#',
-  //     linkedin: '#',
-  //     email: 'mailto:asheesh@careermapsolutions.com'
-  //   }
-  // },
-  // {
-  //   id: 3,
-  //   name: 'Kaushal Chaudhary',
-  //   role: 'Creative Director',
-  //   image: '/images/team/kaushal-chaudhary.jpg',
-  //   bio: 'Kaushal specializes in product strategy, User Interface and user experience, ensuring our solutions meet real business needs.',
-  //   social: {
-  //     twitter: '#',
-  //     linkedin: '#',
-  //     email: 'mailto:kaushal@careermapsolutions.com'
-  //   }
-  // },
-  {
-    id: 3,
-    name: 'Ankush Yadav',
-    role: 'Finance Manager',
-    image: '/ankush.png',
-    bio: 'Ankush specializes in finance strategy, accounting and ensuring our solutions meet real business needs.',
-    social: {
-      twitter: '#',
-      linkedin: '#',
-      email: 'mailto:Ankush@careermapsolutions.com'
-    }
-  },
-  {
-    id: 4,
-    name: 'Shushant Singh',
-    role: 'Head of Customer Success',
-    image: '/sushant.png',
-    bio: 'Shushant ensures our clients achieve their desired outcomes through exceptional service and support.',
-    social: {
-      twitter: '#',
-      linkedin: '#',
-      email: 'mailto:shushant@careermapsolutions.com'
-    }
-  },
-  {
-    id: 5,
-    name: 'Nandita Shukla',
-    role: 'CFO ',
-    image: '/nandita.png',
-    bio: 'Chief Financial Officer responsible for financial strategy, governance, and driving sustainable growth for the organization..',
-    social: {
-      twitter: '#',
-      linkedin: '#',
-      email: 'mailto:Nandita@careermapsolutions.com'
-    }
-  }
-];
+import { teamService, TeamMember } from '@/services/teamService';
 
 const container: Variants = {
   hidden: { opacity: 0 },
@@ -101,6 +28,46 @@ const item: Variants = {
 };
 
 export function Team() {
+  const [members, setMembers] = useState<TeamMember[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        const response = await teamService.getAllMembers();
+        // Check if response is array (direct return) or object with data
+        // Based on service implementation: return response.data which is { success: boolean, data: TeamMember[] } 
+        // Wait, check service again.
+        // service: return response.data;
+        // logic: const response = await api.get...
+        // so calling getAllMembers returns the body of the response, which is { success: boolean, data: [] }
+        if (response && Array.isArray(response.data)) {
+          setMembers(response.data);
+        } else if (Array.isArray(response)) {
+          // Fallback just in case api client unwraps it differently
+          setMembers(response);
+        }
+      } catch (error) {
+        console.error('Failed to fetch team members', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMembers();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-20">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  if (members.length === 0) {
+    return null; // Don't show section if empty
+  }
+
   return (
     <div className="relative">
       <motion.div
@@ -110,8 +77,8 @@ export function Team() {
         whileInView="show"
         viewport={{ once: true, margin: "-100px" }}
       >
-        {teamMembers.map((member) => (
-          <motion.div key={member.id} variants={item} className="h-full">
+        {members.map((member) => (
+          <motion.div key={member._id} variants={item} className="h-full">
             <Card className="h-full overflow-hidden transition-all duration-300 hover:shadow-lg bg-white border border-gray-100 hover:border-blue-200 hover:shadow-blue-100/50 flex flex-col">
               <div className="w-full h-72 sm:h-80 lg:h-96 relative overflow-hidden bg-gray-100 group">
                 <img
@@ -137,26 +104,43 @@ export function Team() {
                   <p className="text-blue-600 text-sm sm:text-base font-medium">{member.role}</p>
                 </div>
                 <div className="flex space-x-2 sm:space-x-3 pt-3 mt-auto">
-                  <a
-                    href={member.social.linkedin}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-gray-400 hover:text-blue-600 transition-colors duration-300 p-1.5 rounded hover:bg-blue-50"
-                    aria-label={`Connect with ${member.name} on LinkedIn`}
-                  >
-                    <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
-                    </svg>
-                  </a>
-                  <a
-                    href={member.social.email}
-                    className="text-gray-400 hover:text-blue-600 transition-colors duration-300 p-1.5 rounded hover:bg-blue-50"
-                    aria-label={`Email ${member.name}`}
-                  >
-                    <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                  </a>
+                  {member.social.linkedin && (
+                    <a
+                      href={member.social.linkedin}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-400 hover:text-blue-600 transition-colors duration-300 p-1.5 rounded hover:bg-blue-50"
+                      aria-label={`Connect with ${member.name} on LinkedIn`}
+                    >
+                      <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+                      </svg>
+                    </a>
+                  )}
+                  {member.social.twitter && (
+                    <a
+                      href={member.social.twitter}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-400 hover:text-blue-600 transition-colors duration-300 p-1.5 rounded hover:bg-blue-50"
+                      aria-label={`Follow ${member.name} on Twitter`}
+                    >
+                      <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.84 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
+                      </svg>
+                    </a>
+                  )}
+                  {member.social.email && (
+                    <a
+                      href={member.social.email}
+                      className="text-gray-400 hover:text-blue-600 transition-colors duration-300 p-1.5 rounded hover:bg-blue-50"
+                      aria-label={`Email ${member.name}`}
+                    >
+                      <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                    </a>
+                  )}
                 </div>
               </div>
             </Card>

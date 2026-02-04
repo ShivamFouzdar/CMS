@@ -20,7 +20,8 @@ const navItems: NavItem[] = [
   { name: 'Applications', path: '/admin/job-applicants', icon: Briefcase },
   { name: 'Inquiries', path: '/admin/leads', icon: UserCheck },
   { name: 'Reviews', path: '/admin/reviews', icon: MessageSquare },
-  { name: 'Users', path: '/admin/users', icon: Users, role: ['super_admin'] },
+  { name: 'Team', path: '/admin/team', icon: Users },
+  { name: 'Users', path: '/admin/users', icon: UserCheck, role: ['super_admin'] },
   { name: 'Settings', path: '/admin/settings', icon: Settings },
 ];
 

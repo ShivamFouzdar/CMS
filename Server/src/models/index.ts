@@ -9,6 +9,7 @@ export { Service, type IService, type IServiceProcess, type IServicePricing } fr
 export { User, type IUser } from './User.js';
 export { Applicant, type IApplicant } from './Applicant.js';
 export { Settings, type ISettings } from './Settings.js';
+export { TeamMember, type ITeamMember } from './TeamMember.js';
 
 // Re-export all models as default exports for convenience
 export { default as ContactModel } from './Contact.js';
@@ -17,6 +18,7 @@ export { default as ServiceModel } from './Service.js';
 export { default as UserModel } from './User.js';
 export { default as ApplicantModel } from './Applicant.js';
 export { default as SettingsModel } from './Settings.js';
+export { default as TeamMemberModel } from './TeamMember.js';
 // Settings doesn't have a default export
 
 // Model registry for dynamic access
@@ -26,7 +28,8 @@ export const models = {
   Service: () => import('./Service.js'),
   User: () => import('./User.js'),
   Applicant: () => import('./Applicant.js'),
-  Settings: () => import('./Settings.js')
+  Settings: () => import('./Settings.js'),
+  TeamMember: () => import('./TeamMember.js')
 };
 
 // Database connection helper

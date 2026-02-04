@@ -14,7 +14,8 @@ export { default as adminRoutes } from './admin.js';
 export { default as authRoutes } from './auth.js';
 export { default as twoFactorRoutes } from './twoFactor.js';
 export { default as publicRoutes } from './public.js';
-export { default as notificationRoutes } from './notifications.js'; // New public routes export
+export { default as notificationRoutes } from './notifications.js';
+export { default as teamRoutes } from './team.js';
 
 // Route configuration
 export const routeConfig = {
@@ -49,6 +50,10 @@ export const routeConfig = {
   auth: {
     path: '/api/auth',
     description: 'Authentication and token management routes'
+  },
+  team: {
+    path: '/api/team',
+    description: 'Team members management routes'
   }
 };
 
