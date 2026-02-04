@@ -12,6 +12,7 @@ import twoFactorRoutes from './twoFactor.js';
 import publicRoutes from './public.js';
 import mediaRoutes from './media.js';
 import notificationRoutes from './notifications.js';
+import teamRoutes from './team.js';
 
 const router = Router();
 
@@ -33,6 +34,7 @@ router.get('/', (_req, res) => {
       twoFactor: '/api/2fa',
       public: '/api/public',
       media: '/api/media',
+      team: '/api/team',
     },
     timestamp: new Date().toISOString(),
   });
@@ -50,5 +52,6 @@ router.use('/2fa', twoFactorRoutes);
 router.use('/public', publicRoutes);
 router.use('/media', mediaRoutes);
 router.use('/notifications', notificationRoutes);
+router.use('/team', teamRoutes);
 
 export default router;
