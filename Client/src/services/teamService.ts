@@ -44,5 +44,10 @@ export const teamService = {
     reorderMembers: async (items: { id: string; order: number }[]) => {
         const response = await api.put<{ success: boolean }>('/api/team/reorder', { items });
         return response;
+    },
+
+    seedMembers: async () => {
+        const response = await api.post<{ success: boolean; data: TeamMember[] }>('/api/team/seed', {});
+        return response;
     }
 };

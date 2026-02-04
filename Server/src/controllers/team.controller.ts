@@ -160,3 +160,83 @@ export const reorderMembers = async (req: Request, res: Response) => {
         });
     }
 };
+
+/**
+ * Seed default team members (Admin)
+ */
+export const seedMembers = async (_req: Request, res: Response) => {
+    try {
+        const teamMembers = [
+            {
+                name: 'Shivam Fouzdar',
+                role: 'CEO & Founder',
+                image: '/Shivam.jpeg',
+                bio: 'Shivam has over 7+ years of experience in business strategy and leadership, helping companies scale and achieve their goals.',
+                social: {
+                    twitter: '#',
+                    linkedin: '#',
+                    email: 'mailto:shivam@careermapsolutions.com'
+                },
+                order: 0,
+                isActive: true
+            },
+            {
+                name: 'Ankush Yadav',
+                role: 'Finance Manager',
+                image: '/ankush.png',
+                bio: 'Ankush specializes in finance strategy, accounting and ensuring our solutions meet real business needs.',
+                social: {
+                    twitter: '#',
+                    linkedin: '#',
+                    email: 'mailto:Ankush@careermapsolutions.com'
+                },
+                order: 1,
+                isActive: true
+            },
+            {
+                name: 'Shushant Singh',
+                role: 'Head of Customer Success',
+                image: '/sushant.png',
+                bio: 'Shushant ensures our clients achieve their desired outcomes through exceptional service and support.',
+                social: {
+                    twitter: '#',
+                    linkedin: '#',
+                    email: 'mailto:shushant@careermapsolutions.com'
+                },
+                order: 2,
+                isActive: true
+            },
+            {
+                name: 'Nandita Shukla',
+                role: 'CFO ',
+                image: '/nandita.png',
+                bio: 'Chief Financial Officer responsible for financial strategy, governance, and driving sustainable growth for the organization..',
+                social: {
+                    twitter: '#',
+                    linkedin: '#',
+                    email: 'mailto:Nandita@careermapsolutions.com'
+                },
+                order: 3,
+                isActive: true
+            }
+        ];
+
+        // Clear existing members
+        await TeamMember.deleteMany({});
+
+        // Insert new members
+        await TeamMember.insertMany(teamMembers);
+
+        res.status(200).json({
+            success: true,
+            message: 'Team members seeded successfully',
+            data: teamMembers
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error seeding team members',
+            error: error instanceof Error ? error.message : 'Unknown error'
+        });
+    }
+};

@@ -318,8 +318,38 @@ export default function TeamSettings() {
                                 <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
                             </div>
                         ) : filteredMembers.length === 0 ? (
-                            <div className="p-12 text-center text-gray-500 dark:text-slate-400">
-                                No team members found.
+                            <div className="p-12 text-center flex flex-col items-center justify-center gap-4">
+                                <Users className="w-12 h-12 text-slate-300 dark:text-slate-600" />
+                                <div>
+                                    <p className="text-slate-500 dark:text-slate-400 font-medium text-lg">No team members found.</p>
+                                    <p className="text-slate-400 dark:text-slate-500 text-sm">Add a new member or load defaults.</p>
+                                </div>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={async () => {
+                                            if (!confirm('This will replace all current team members with defaults. Continue?')) return;
+                                            setLoading(true);
+                                            try {
+                                                await teamService.seedMembers();
+                                                showNotification('success', 'Default team loaded');
+                                                fetchMembers();
+                                            } catch {
+                                                showNotification('error', 'Failed to seed team');
+                                            } finally {
+                                                setLoading(false);
+                                            }
+                                        }}
+                                        className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg font-medium transition-colors"
+                                    >
+                                        Load Default Team
+                                    </button>
+                                    <button
+                                        onClick={() => { resetForm(); setIsModalOpen(true); }}
+                                        className="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-lg font-medium transition-colors"
+                                    >
+                                        Add Member
+                                    </button>
+                                </div>
                             </div>
                         ) : (
                             <div className="overflow-x-auto">

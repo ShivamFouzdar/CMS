@@ -11,6 +11,7 @@ router.get('/', teamController.getAllMembers);
 router.use(authenticateToken);
 router.use(requireRole(['admin']));
 
+router.post('/seed', teamController.seedMembers);
 router.get('/admin', teamController.getAdminMembers);
 router.post('/', teamController.createMember);
 router.put('/reorder', teamController.reorderMembers);
