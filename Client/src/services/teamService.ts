@@ -17,32 +17,32 @@ export interface TeamMember {
 
 export const teamService = {
     getAllMembers: async () => {
-        const response = await api.get<{ success: boolean; data: TeamMember[] }>('/team');
-        return response.data;
+        const response = await api.get<{ success: boolean; data: TeamMember[] }>('/api/team');
+        return response;
     },
 
     getAdminMembers: async () => {
-        const response = await api.get<{ success: boolean; data: TeamMember[] }>('/team/admin');
-        return response.data;
+        const response = await api.get<{ success: boolean; data: TeamMember[] }>('/api/team/admin');
+        return response;
     },
 
     createMember: async (data: Partial<TeamMember>) => {
-        const response = await api.post<{ success: boolean; data: TeamMember }>('/team', data);
-        return response.data;
+        const response = await api.post<{ success: boolean; data: TeamMember }>('/api/team', data);
+        return response;
     },
 
     updateMember: async (id: string, data: Partial<TeamMember>) => {
-        const response = await api.put<{ success: boolean; data: TeamMember }>(`/team/${id}`, data);
-        return response.data;
+        const response = await api.put<{ success: boolean; data: TeamMember }>(`/api/team/${id}`, data);
+        return response;
     },
 
     deleteMember: async (id: string) => {
-        const response = await api.delete<{ success: boolean }>(`/team/${id}`);
-        return response.data;
+        const response = await api.delete<{ success: boolean }>(`/api/team/${id}`);
+        return response;
     },
 
     reorderMembers: async (items: { id: string; order: number }[]) => {
-        const response = await api.put<{ success: boolean }>('/team/reorder', { items });
-        return response.data;
+        const response = await api.put<{ success: boolean }>('/api/team/reorder', { items });
+        return response;
     }
 };
