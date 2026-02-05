@@ -11,6 +11,7 @@
     "dev:watch": "nodemon --watch src --ext ts,json --exec tsx src/server.ts",
     "clean": "rimraf dist",
     "prebuild": "npm run clean",
+    "seed:prod": "tsx src/seeds/seed-production.ts",
     "test": "vitest"
   },
   "keywords": [

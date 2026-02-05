@@ -1,25 +1,11 @@
 import { motion } from 'framer-motion';
-import { Star, Quote, ArrowRight, Eye, MoreHorizontal } from 'lucide-react';
+import { ArrowRight, Eye } from 'lucide-react';
 import { fadeIn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { reviewsService, Review } from '@/services/reviewsService';
 import { useState, useEffect } from 'react';
 import { ReviewModal } from '@/components/ui/ReviewModal';
-
-// Remove the hardcoded testimonials array - now using service
-
-const StarRating = ({ rating }: { rating: number }) => {
-  return (
-    <div className="flex">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <Star
-          key={star}
-          className={`w-5 h-5 ${star <= rating ? 'text-purple-400 fill-current' : 'text-gray-600'}`}
-        />
-      ))}
-    </div>
-  );
-};
+import { ReviewCard } from '@/components/ui/ReviewCard';
 
 export function Testimonials() {
   const navigate = useNavigate();
@@ -98,65 +84,13 @@ export function Testimonials() {
             <div className="flex gap-3 sm:gap-4 md:gap-6 pb-4" style={{ width: 'max-content' }}>
               {/* Regular Testimonial Cards */}
               {testimonials.map((testimonial) => (
-                <motion.div
-                  key={testimonial.id}
-                  className="bg-white p-4 rounded-lg border border-gray-100 hover:border-purple-200 transition-all duration-300 hover:shadow-md w-[280px] sm:w-60 h-auto min-h-[240px] sm:min-h-[240px] flex flex-col cursor-pointer group touch-manipulation flex-shrink-0"
-                  initial="hidden"
-                  whileInView="show"
-                  viewport={{ once: true }}
-                  variants={fadeIn('up', 0)}
-                  whileHover={{ y: -5, scale: 1.02, transition: { duration: 0.2 } }}
-                  onClick={() => handleReadMore(testimonial)}
-                >
-                  {/* Quote Icon */}
-                  <div className="mb-3 relative">
-                    <Quote className="w-5 h-5 text-purple-100 absolute -top-1 -left-1" />
-                    <Quote className="w-4 h-4 text-purple-400 relative z-10" />
-                  </div>
-
-                  {/* Review Content */}
-                  <p className="text-gray-500 text-sm mb-3 flex-grow leading-relaxed line-clamp-3 overflow-hidden break-words">
-                    "{testimonial.content}"
-                  </p>
-
-                  {/* Read More Button */}
-                  {testimonial.content.length > 100 && (
-                    <div className="flex items-center justify-center mb-3">
-                      <div className="flex items-center text-purple-600 text-sm font-medium group-hover:text-purple-700 transition-colors">
-                        <MoreHorizontal className="w-4 h-4 mr-1" />
-                        Read More
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Rating */}
-                  <div className="mb-3">
-                    <StarRating rating={testimonial.rating} />
-                  </div>
-
-                  {/* User Info */}
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 rounded-full bg-gray-100 p-0.5 mr-3 flex-shrink-0">
-                      <div className="bg-white w-full h-full rounded-full overflow-hidden">
-                        <img
-                          src={testimonial.image}
-                          alt={testimonial.name}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                          decoding="async"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.name)}&background=7e22ce&color=fff`;
-                          }}
-                        />
-                      </div>
-                    </div>
-                    <div className="flex-grow min-w-0">
-                      <h4 className="font-semibold text-gray-800 text-sm truncate">{testimonial.name}</h4>
-                      <p className="text-sm text-purple-600 truncate">{testimonial.role}</p>
-                    </div>
-                  </div>
-                </motion.div>
+                <ReviewCard
+                  key={testimonial.id || testimonial._id}
+                  review={testimonial}
+                  onClick={handleReadMore}
+                  className="w-[300px] h-full flex-shrink-0 cursor-pointer"
+                  showCategory={true}
+                />
               ))}
 
               {/* View All Reviews Card */}

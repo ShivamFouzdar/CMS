@@ -1,28 +1,20 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Quote, ArrowLeft, Plus } from 'lucide-react';
+import { ArrowLeft, Plus, Quote } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Link } from 'react-router-dom';
 import { reviewsService, Review } from '@/services/reviewsService';
 import { useState, useEffect } from 'react';
 import { ReviewForm } from '@/components/forms/ReviewForm';
+import { ReviewCard } from '@/components/ui/ReviewCard';
 
-const StarRating = ({ rating }: { rating: number }) => {
-  return (
-    <div className="flex">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <Star
-          key={star}
-          className={`w-4 h-4 ${star <= rating ? 'text-purple-400 fill-current' : 'text-gray-300'}`}
-        />
-      ))}
-    </div>
-  );
-};
+import { ReviewModal } from '@/components/ui/ReviewModal';
 
 export function Reviews() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [selectedReview, setSelectedReview] = useState<Review | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -119,52 +111,16 @@ export function Reviews() {
           </motion.div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {reviews.map((review, index) => (
-              <motion.div
-                key={review.id}
-                className="bg-white p-6 rounded-xl border border-gray-100 hover:border-purple-200 transition-all duration-300 hover:shadow-lg group"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                whileHover={{ y: -5 }}
-              >
-                <div className="mb-4 relative">
-                  <Quote className="w-8 h-8 text-purple-100 absolute -top-2 -left-2" />
-                  <Quote className="w-6 h-6 text-purple-400 relative z-10" />
-                </div>
-
-                <p className="text-gray-600 text-sm mb-4 leading-relaxed break-words">"{review.content}"</p>
-
-                <div className="flex items-center justify-between mb-4">
-                  <StarRating rating={review.rating} />
-                  <span className="text-xs text-gray-400">
-                    {new Date(review.date || review.createdAt || new Date().toISOString()).toLocaleDateString()}
-                  </span>
-                </div>
-
-                <div className="flex items-center">
-                  <div className="w-12 h-12 rounded-full bg-gray-100 p-1 mr-4 flex-shrink-0">
-                    <div className="bg-white w-full h-full rounded-full overflow-hidden">
-                      <img
-                        src={review.image}
-                        alt={review.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(review.name)}&background=7e22ce&color=fff`;
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div className="flex-grow">
-                    <h4 className="font-semibold text-gray-900 text-sm">{review.name}</h4>
-                    <p className="text-xs text-purple-600">{review.role}</p>
-                    <span className="inline-block mt-1 px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">
-                      {review.category}
-                    </span>
-                  </div>
-                </div>
-              </motion.div>
+            {reviews.map((review) => (
+              <ReviewCard
+                key={review.id || review._id}
+                review={review}
+                className="h-full"
+                onClick={() => {
+                  setSelectedReview(review);
+                  setIsModalOpen(true);
+                }}
+              />
             ))}
           </div>
         )}
@@ -210,6 +166,14 @@ export function Reviews() {
           </motion.div>
         )}
       </AnimatePresence>
+      <ReviewModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedReview(null);
+        }}
+        review={selectedReview}
+      />
     </div>
   );
 }

@@ -62,10 +62,11 @@ export function ServiceCard({
 
   return (
     <motion.div
-      className={`group relative ${className}`}
+      className={`group relative ${className} h-full`}
       initial="hidden"
       whileInView="show"
       viewport={{ once: true, margin: '-50px' }}
+      whileHover={{ y: -8 }}
       variants={{
         hidden: { opacity: 0, y: 20 },
         show: {
@@ -75,42 +76,44 @@ export function ServiceCard({
         }
       }}
     >
-      {/* Card with modern design */}
-      <div className="relative h-full bg-white rounded-3xl p-8 border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden">
+      <div className="relative h-full bg-white/90 backdrop-blur-sm rounded-[2rem] p-8 border border-white/20 shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden ring-1 ring-gray-900/5">
         {/* Gradient Background on Hover */}
         <div
           className={`absolute inset-0 bg-gradient-to-br ${bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
         />
 
-        {/* Icon with Gradient Background */}
-        <div
-          className={`relative mb-6 w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}
-        >
-          {renderIcon()}
-          <div className="absolute inset-0 rounded-2xl bg-white/20 blur-xl group-hover:blur-2xl transition-all duration-500" />
-        </div>
-
         {/* Content */}
-        <div className="relative z-10">
-          <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-blue-600 transition-all duration-300">
-            {title}
-          </h3>
+        <div className="relative z-10 flex flex-col h-full">
+          {/* Header with Icon and Title Side-by-Side */}
+          <div className="flex items-start gap-5 mb-6">
+            {/* Icon with Gradient Background */}
+            <div
+              className={`relative flex-shrink-0 w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-0 transition-all duration-500 ring-4 ring-white/50`}
+            >
+              {renderIcon()}
+              <div className="absolute inset-0 rounded-2xl bg-white/20 blur-xl group-hover:blur-2xl transition-all duration-500" />
+            </div>
 
-          <p className="text-gray-600 mb-6 leading-relaxed line-clamp-3">
+            <h3 className="text-2xl font-bold text-gray-900 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-gray-900 group-hover:to-gray-700 transition-all duration-300 leading-tight pt-1">
+              {title}
+            </h3>
+          </div>
+
+          <p className="text-gray-600 mb-8 leading-relaxed line-clamp-3 text-[0.95rem]">
             {description}
           </p>
 
-          {/* Features List */}
+          {/* Features List - Pushed to bottom if space allows, but in this layout it flows naturally */}
           {features && features.length > 0 && (
-            <ul className="space-y-3 mb-8">
+            <ul className="space-y-3 mb-8 flex-grow">
               {features.slice(0, showFeatures).map((feature, i) => (
                 <li key={i} className="flex items-center gap-3">
                   <div
-                    className={`flex-shrink-0 w-6 h-6 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center shadow-md`}
+                    className={`flex-shrink-0 w-5 h-5 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm opacity-80 group-hover:opacity-100 transition-opacity`}
                   >
-                    <Check className="w-3.5 h-3.5 text-white" />
+                    <Check className="w-3 h-3 text-white stroke-[3]" />
                   </div>
-                  <span className="text-sm text-gray-700 font-medium">{feature}</span>
+                  <span className="text-sm text-gray-700 font-medium group-hover:text-gray-900 transition-colors">{feature}</span>
                 </li>
               ))}
             </ul>
@@ -118,25 +121,30 @@ export function ServiceCard({
 
           {/* CTA Button */}
           {href && (
-            <a
-              href={href}
-              className="inline-flex items-center gap-2 group/btn"
-            >
-              <span
-                className={`text-sm font-semibold bg-gradient-to-r ${gradient} bg-clip-text text-transparent group-hover/btn:gap-3 transition-all duration-300`}
+            <div className="mt-auto pt-4 border-t border-gray-100 group-hover:border-gray-200/50 transition-colors">
+              <a
+                href={href}
+                className="inline-flex items-center gap-2 group/btn"
               >
-                Learn More
-              </span>
-              <ArrowRight
-                className={`w-5 h-5 bg-gradient-to-r ${gradient} bg-clip-text text-transparent group-hover/btn:translate-x-1 transition-transform duration-300`}
-              />
-            </a>
+                <span
+                  className={`text-sm font-bold bg-gradient-to-r ${gradient} bg-clip-text text-transparent group-hover/btn:gap-3 transition-all duration-300`}
+                >
+                  Learn More
+                </span>
+                <ArrowRight
+                  className={`w-4 h-4 text-${gradient.split('-')[1]}-500 transform group-hover/btn:translate-x-1 transition-all duration-300`}
+                />
+              </a>
+            </div>
           )}
         </div>
 
         {/* Decorative Corner Element */}
         <div
-          className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${gradient} opacity-5 rounded-bl-full group-hover:opacity-10 transition-opacity duration-500`}
+          className={`absolute -top-10 -right-10 w-40 h-40 bg-gradient-to-br ${gradient} opacity-[0.03] rounded-full blur-3xl group-hover:opacity-[0.08] transition-opacity duration-500 pointer-events-none`}
+        />
+        <div
+          className={`absolute -bottom-10 -left-10 w-40 h-40 bg-gradient-to-tr ${gradient} opacity-[0.03] rounded-full blur-3xl group-hover:opacity-[0.08] transition-opacity duration-500 pointer-events-none`}
         />
       </div>
     </motion.div>

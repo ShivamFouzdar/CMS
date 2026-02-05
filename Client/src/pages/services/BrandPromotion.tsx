@@ -3,12 +3,12 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { CallToAction } from '@/components/sections/CallToAction';
 import { ServiceCard } from '@/components/ui/ServiceCard';
+import { ProcessTimeline } from '@/components/ui/ProcessStep';
 import { fadeIn } from '@/lib/utils';
-import { 
-  CheckCircle, 
-  ArrowRight,   
+import {
+  CheckCircle,
+  ArrowRight,
   TrendingUp,
-  ChevronRight,
   Plus,
   Minus,
   Target,
@@ -35,6 +35,7 @@ import {
   BookOpen,
   Truck
 } from 'lucide-react';
+import { CustomerReviews } from '@/components/sections/CustomerReviews';
 
 export default function BrandPromotion() {
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
@@ -51,7 +52,7 @@ export default function BrandPromotion() {
           <div className="absolute -top-20 -right-20 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
           <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
         </div>
-        
+
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-6xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -64,21 +65,21 @@ export default function BrandPromotion() {
                   <Megaphone className="w-4 h-4 mr-2" />
                   Brand Promotion & Marketing
                 </div>
-                
+
                 <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                  Build a Strong 
+                  Build a Strong
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-indigo-600">
                     {" "}Professional Identity
                   </span>
                 </h1>
-                
+
                 <p className="text-xl text-gray-700 mb-4 leading-relaxed italic">
                   <em>Attract the Right Opportunities. Grow With Confidence.</em>
                 </p>
 
                 <p className="text-lg text-gray-700 mb-8 leading-relaxed">
-                  In today's competitive market, your brand is NOT just your identity — it is your biggest asset. 
-                  At <strong>CareerMap Solutions</strong>, we help individuals, professionals, entrepreneurs, and organizations 
+                  In today's competitive market, your brand is NOT just your identity — it is your biggest asset.
+                  At <strong>CareerMap Solutions</strong>, we help individuals, professionals, entrepreneurs, and organizations
                   build a powerful brand presence that creates trust, drives visibility, and attracts opportunities that matter.
                 </p>
 
@@ -116,9 +117,9 @@ export default function BrandPromotion() {
               >
                 <div className="bg-white rounded-2xl shadow-2xl overflow-hidden transition-all duration-500 group-hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] group-hover:scale-[1.02]">
                   <div className="relative overflow-hidden">
-                    <img 
-                      src="/brand.png" 
-                      alt="Brand Promotion Services" 
+                    <img
+                      src="/brand.png"
+                      alt="Brand Promotion Services"
                       className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-purple-600/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -430,63 +431,43 @@ export default function BrandPromotion() {
               </p>
             </motion.div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8">
-              {[
+            <ProcessTimeline
+              steps={[
                 {
                   step: "01",
                   title: "Brand Discovery",
                   description: "Deep analysis of your goals, target audience, and unique strengths.",
-                  icon: <Search className="w-6 h-6" />
+                  icon: <Search className="w-5 h-5" />
                 },
                 {
                   step: "02",
                   title: "Positioning & Strategy",
                   description: "Crafting your brand story, messaging, and value approach.",
-                  icon: <Target className="w-6 h-6" />
+                  icon: <Target className="w-5 h-5" />
                 },
                 {
                   step: "03",
                   title: "Creative Development",
                   description: "Designing visuals, content, and brand-building tools.",
-                  icon: <PenTool className="w-6 h-6" />
+                  icon: <PenTool className="w-5 h-5" />
                 },
                 {
                   step: "04",
                   title: "Marketing Execution",
                   description: "Social media, digital ads, email campaigns, SEO & outreach.",
-                  icon: <Rocket className="w-6 h-6" />
+                  icon: <Rocket className="w-5 h-5" />
                 },
                 {
                   step: "05",
                   title: "Performance Monitoring",
                   description: "Data-based optimization for growth and long-term impact.",
-                  icon: <BarChart3 className="w-6 h-6" />
+                  icon: <BarChart3 className="w-5 h-5" />
                 }
-              ].map((step, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  className="relative"
-                >
-                  <div className="bg-white rounded-xl shadow-lg p-8 text-center group hover:shadow-xl transition-all duration-300">
-                    <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-6 text-white font-bold text-xl group-hover:scale-110 transition-transform duration-300">
-                      {step.step}
-                    </div>
-                    <div className="w-12 h-12 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-lg flex items-center justify-center mx-auto mb-4 text-purple-600">
-                      {step.icon}
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">{step.title}</h3>
-                    <p className="text-gray-600">{step.description}</p>
-                  </div>
-                  {index < 4 && (
-                    <ChevronRight className="hidden lg:block absolute top-1/2 -right-4 w-8 h-8 text-gray-300 transform -translate-y-1/2" />
-                  )}
-                </motion.div>
-              ))}
-            </div>
+              ]}
+              gradient="from-purple-500 to-indigo-500"
+              iconBg="from-purple-50 to-indigo-50"
+              iconColor="text-purple-600"
+            />
           </div>
         </div>
       </section>
@@ -522,7 +503,7 @@ export default function BrandPromotion() {
             >
               Industries We Serve
             </motion.h2>
-            
+
             <motion.p
               variants={fadeIn('up', 0.3)}
               className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed"
@@ -608,7 +589,7 @@ export default function BrandPromotion() {
                 <div className="relative h-full bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden cursor-pointer">
                   {/* Gradient Background on Hover */}
                   <div className={`absolute inset-0 bg-gradient-to-br ${industry.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
-                  
+
                   {/* Icon with Gradient Background */}
                   <div className={`relative mb-4 sm:mb-6 w-14 h-14 sm:w-16 sm:h-16 mx-auto rounded-2xl bg-gradient-to-br ${industry.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
                     {industry.icon}
@@ -662,6 +643,10 @@ export default function BrandPromotion() {
           </div>
         </div>
       </section>
+
+
+      {/* Customer Reviews */}
+      <CustomerReviews category="Brand Promotion" />
 
       {/* FAQ Section */}
       <section className="py-16 md:py-24 bg-white">
@@ -740,7 +725,7 @@ export default function BrandPromotion() {
                       )}
                     </div>
                   </button>
-                  
+
                   <AnimatePresence>
                     {openFAQ === index && (
                       <motion.div

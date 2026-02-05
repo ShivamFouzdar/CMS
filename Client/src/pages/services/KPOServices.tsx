@@ -3,14 +3,12 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { CallToAction } from '@/components/sections/CallToAction';
 import { ServiceCard } from '@/components/ui/ServiceCard';
-import { 
-  Star, 
-  ArrowRight, 
-  Clock, 
-  Shield, 
+import { ProcessTimeline } from '@/components/ui/ProcessStep';
+import {
+  ArrowRight,
+  Clock,
+  Shield,
   TrendingUp,
-  ChevronRight,
-  Quote,
   Brain,
   BarChart3,
   Database,
@@ -27,7 +25,9 @@ import {
   Cpu,
   Network,
   Cloud,
-  Lock} from 'lucide-react';
+  Lock
+} from 'lucide-react';
+import { CustomerReviews } from '@/components/sections/CustomerReviews';
 
 export default function KPOServices() {
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
@@ -44,7 +44,7 @@ export default function KPOServices() {
           <div className="absolute -top-20 -right-20 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
           <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
         </div>
-        
+
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-6xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -57,17 +57,17 @@ export default function KPOServices() {
                   <Brain className="w-4 h-4 mr-2" />
                   Knowledge Process Outsourcing
                 </div>
-                
+
                 <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                  Transform Data into 
+                  Transform Data into
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
                     {" "}Strategic Intelligence
                   </span>
                 </h1>
-                
+
                 <p className="text-xl text-gray-700 mb-8 leading-relaxed">
-                  Leverage our expert knowledge process outsourcing services to gain competitive 
-                  advantages through data-driven insights, research excellence, and intellectual 
+                  Leverage our expert knowledge process outsourcing services to gain competitive
+                  advantages through data-driven insights, research excellence, and intellectual
                   property solutions that drive business growth.
                 </p>
 
@@ -105,9 +105,9 @@ export default function KPOServices() {
               >
                 <div className="bg-white rounded-2xl shadow-2xl overflow-hidden transition-all duration-500 group-hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] group-hover:scale-[1.02]">
                   <div className="relative overflow-hidden">
-                    <img 
-                      src="/KPO.png" 
-                      alt="KPO Services" 
+                    <img
+                      src="/KPO.png"
+                      alt="KPO Services"
                       className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-blue-600/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -135,7 +135,7 @@ export default function KPOServices() {
                 Comprehensive KPO Solutions
               </h2>
               <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                Our knowledge process outsourcing services cover the full spectrum of intellectual 
+                Our knowledge process outsourcing services cover the full spectrum of intellectual
                 work, from research and analysis to content creation and data intelligence.
               </p>
             </motion.div>
@@ -223,7 +223,7 @@ export default function KPOServices() {
                 Why Choose Our KPO Services?
               </h2>
               <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                We combine deep domain expertise with cutting-edge technology to deliver 
+                We combine deep domain expertise with cutting-edge technology to deliver
                 knowledge solutions that drive real business value.
               </p>
             </motion.div>
@@ -295,57 +295,37 @@ export default function KPOServices() {
               </p>
             </motion.div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {[
+            <ProcessTimeline
+              steps={[
                 {
                   step: "01",
                   title: "Requirement Analysis",
                   description: "We analyze your research needs and define the scope and objectives.",
-                  icon: <Target className="w-6 h-6" />
+                  icon: <Target className="w-5 h-5" />
                 },
                 {
                   step: "02",
                   title: "Research Design",
                   description: "Develop comprehensive research methodology and data collection strategy.",
-                  icon: <Settings className="w-6 h-6" />
+                  icon: <Settings className="w-5 h-5" />
                 },
                 {
                   step: "03",
                   title: "Data Collection & Analysis",
                   description: "Gather data from multiple sources and perform in-depth analysis.",
-                  icon: <Database className="w-6 h-6" />
+                  icon: <Database className="w-5 h-5" />
                 },
                 {
                   step: "04",
                   title: "Insights & Reporting",
                   description: "Deliver actionable insights with comprehensive reports and recommendations.",
-                  icon: <FileText className="w-6 h-6" />
+                  icon: <FileText className="w-5 h-5" />
                 }
-              ].map((step, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  className="relative"
-                >
-                  <div className="bg-white rounded-xl shadow-lg p-8 text-center group hover:shadow-xl transition-all duration-300">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-6 text-white font-bold text-xl group-hover:scale-110 transition-transform duration-300">
-                      {step.step}
-                    </div>
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg flex items-center justify-center mx-auto mb-4 text-blue-600">
-                      {step.icon}
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">{step.title}</h3>
-                    <p className="text-gray-600">{step.description}</p>
-                  </div>
-                  {index < 3 && (
-                    <ChevronRight className="hidden lg:block absolute top-1/2 -right-4 w-8 h-8 text-gray-300 transform -translate-y-1/2" />
-                  )}
-                </motion.div>
-              ))}
-            </div>
+              ]}
+              gradient="from-blue-500 to-indigo-500"
+              iconBg="from-blue-50 to-indigo-50"
+              iconColor="text-blue-600"
+            />
           </div>
         </div>
       </section>
@@ -437,88 +417,10 @@ export default function KPOServices() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-16 md:py-24">
-        <div className="container mx-auto px-4">
-          <div className="max-w-6xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-              className="text-center mb-16"
-            >
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                What Our Clients Say
-              </h2>
-              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                Real feedback from businesses that have leveraged our KPO expertise
-              </p>
-            </motion.div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[
-                {
-                  name: "Dr. Sarah Johnson",
-                  company: "Research Institute",
-                  role: "Research Director",
-                  rating: 5,
-                  comment: "Exceptional research quality and insights that helped us make critical business decisions. The team's expertise is unmatched.",
-                  avatar: "SJ"
-                },
-                {
-                  name: "Michael Chen",
-                  company: "Investment Firm",
-                  role: "Portfolio Manager",
-                  rating: 5,
-                  comment: "Outstanding financial research and analysis services. Their reports are comprehensive and actionable, providing real value to our investment decisions.",
-                  avatar: "MC"
-                },
-                {
-                  name: "Emily Rodriguez",
-                  company: "Tech Startup",
-                  role: "CEO",
-                  rating: 5,
-                  comment: "The market research provided by their team was instrumental in our product launch strategy. Highly professional and thorough work.",
-                  avatar: "ER"
-                }
-              ].map((testimonial, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  className="bg-white rounded-xl shadow-lg p-8"
-                >
-                  <div className="flex items-center mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                    ))}
-                  </div>
-                  
-                  <Quote className="w-8 h-8 text-blue-500 mb-4" />
-                  
-                  <p className="text-gray-700 mb-6 italic">
-                    "{testimonial.comment}"
-                  </p>
-                  
-                  <div className="flex items-center">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold mr-4">
-                      {testimonial.avatar}
-                    </div>
-                    <div>
-                      <div className="font-semibold text-gray-900">{testimonial.name}</div>
-                      <div className="text-sm text-gray-600">{testimonial.role}</div>
-                      <div className="text-sm text-blue-600">{testimonial.company}</div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Customer Reviews */}
+      <CustomerReviews category="KPO Services" />
+
 
       {/* FAQ Section */}
       <section className="py-16 md:py-24 bg-white">
@@ -597,7 +499,7 @@ export default function KPOServices() {
                       )}
                     </div>
                   </button>
-                  
+
                   <AnimatePresence>
                     {openFAQ === index && (
                       <motion.div

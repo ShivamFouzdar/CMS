@@ -3,15 +3,13 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { CallToAction } from '@/components/sections/CallToAction';
 import { ServiceCard } from '@/components/ui/ServiceCard';
-import { 
-  Star, 
-  ArrowRight, 
-  Clock, 
-  Shield, 
-  Users, 
+import { ProcessTimeline } from '@/components/ui/ProcessStep';
+import {
+  ArrowRight,
+  Clock,
+  Shield,
+  Users,
   TrendingUp,
-  ChevronRight,
-  Quote,
   Headphones,
   Mail,
   MessageSquare,
@@ -23,6 +21,7 @@ import {
   Plus,
   Minus
 } from 'lucide-react';
+import { CustomerReviews } from '@/components/sections/CustomerReviews';
 
 export default function BPOServices() {
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
@@ -39,7 +38,7 @@ export default function BPOServices() {
           <div className="absolute -top-20 -right-20 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
           <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
         </div>
-        
+
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-6xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -52,17 +51,17 @@ export default function BPOServices() {
                   <Briefcase className="w-4 h-4 mr-2" />
                   Business Process Outsourcing
                 </div>
-                
+
                 <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                  Transform Your Business with 
+                  Transform Your Business with
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">
                     {" "}Expert BPO Services
                   </span>
                 </h1>
-                
+
                 <p className="text-xl text-gray-700 mb-8 leading-relaxed">
-                  Streamline your operations, reduce costs, and scale efficiently with our comprehensive 
-                  Business Process Outsourcing solutions. From customer service to data management, 
+                  Streamline your operations, reduce costs, and scale efficiently with our comprehensive
+                  Business Process Outsourcing solutions. From customer service to data management,
                   we handle it all so you can focus on growth.
                 </p>
 
@@ -100,9 +99,9 @@ export default function BPOServices() {
               >
                 <div className="bg-white rounded-2xl shadow-2xl overflow-hidden transition-all duration-500 group-hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] group-hover:scale-[1.02]">
                   <div className="relative overflow-hidden">
-                    <img 
-                      src="/BPO.png" 
-                      alt="BPO Services - Customer Service Team" 
+                    <img
+                      src="/BPO.png"
+                      alt="BPO Services - Customer Service Team"
                       className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-purple-600/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -130,8 +129,8 @@ export default function BPOServices() {
                 Comprehensive BPO Solutions
               </h2>
               <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                Our BPO services cover every aspect of your business operations, 
-                from customer support to back-office processing, ensuring seamless 
+                Our BPO services cover every aspect of your business operations,
+                from customer support to back-office processing, ensuring seamless
                 integration and maximum efficiency.
               </p>
             </motion.div>
@@ -219,7 +218,7 @@ export default function BPOServices() {
                 Why Choose Our BPO Services?
               </h2>
               <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                We combine cutting-edge technology with human expertise to deliver 
+                We combine cutting-edge technology with human expertise to deliver
                 exceptional BPO solutions that drive real business results.
               </p>
             </motion.div>
@@ -291,144 +290,46 @@ export default function BPOServices() {
               </p>
             </motion.div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {[
+            <ProcessTimeline
+              steps={[
                 {
                   step: "01",
                   title: "Discovery & Analysis",
                   description: "We analyze your current processes and identify optimization opportunities.",
-                  icon: <Target className="w-6 h-6" />
+                  icon: <Target className="w-5 h-5" />
                 },
                 {
                   step: "02",
                   title: "Custom Solution Design",
                   description: "Tailored BPO solutions designed specifically for your business needs.",
-                  icon: <Settings className="w-6 h-6" />
+                  icon: <Settings className="w-5 h-5" />
                 },
                 {
                   step: "03",
                   title: "Implementation & Training",
                   description: "Seamless implementation with comprehensive training for your team.",
-                  icon: <Users className="w-6 h-6" />
+                  icon: <Users className="w-5 h-5" />
                 },
                 {
                   step: "04",
                   title: "Ongoing Optimization",
                   description: "Continuous monitoring and optimization for maximum efficiency.",
-                  icon: <TrendingUp className="w-6 h-6" />
+                  icon: <TrendingUp className="w-5 h-5" />
                 }
-              ].map((step, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  className="relative"
-                >
-                  <div className="bg-white rounded-xl shadow-lg p-8 text-center group hover:shadow-xl transition-all duration-300">
-                    <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-6 text-white font-bold text-xl group-hover:scale-110 transition-transform duration-300">
-                      {step.step}
-                    </div>
-                    <div className="w-12 h-12 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg flex items-center justify-center mx-auto mb-4 text-purple-600">
-                      {step.icon}
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">{step.title}</h3>
-                    <p className="text-gray-600">{step.description}</p>
-                  </div>
-                  {index < 3 && (
-                    <ChevronRight className="hidden lg:block absolute top-1/2 -right-4 w-8 h-8 text-gray-300 transform -translate-y-1/2" />
-                  )}
-                </motion.div>
-              ))}
-            </div>
+              ]}
+              gradient="from-purple-500 to-blue-500"
+              iconBg="from-purple-50 to-blue-50"
+              iconColor="text-purple-600"
+            />
           </div>
         </div>
       </section>
 
 
-      {/* Testimonials */}
-      <section className="py-16 md:py-24">
-        <div className="container mx-auto px-4">
-          <div className="max-w-6xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-              className="text-center mb-16"
-            >
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                What Our Clients Say
-              </h2>
-              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                Real feedback from businesses that have transformed their operations with our BPO services
-              </p>
-            </motion.div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[
-                {
-                  name: "Sarah Johnson",
-                  company: "TechStart Inc.",
-                  role: "CEO",
-                  rating: 5,
-                  comment: "Outstanding BPO services that helped us reduce costs by 45% while improving customer satisfaction. The team is professional and responsive.",
-                  avatar: "SJ"
-                },
-                {
-                  name: "Michael Chen",
-                  company: "Global Solutions Ltd.",
-                  role: "Operations Director",
-                  rating: 5,
-                  comment: "The data processing services are exceptional. We've seen a 60% improvement in accuracy and 40% reduction in processing time.",
-                  avatar: "MC"
-                },
-                {
-                  name: "Emily Rodriguez",
-                  company: "E-commerce Plus",
-                  role: "Customer Success Manager",
-                  rating: 5,
-                  comment: "24/7 customer support that never fails. Our customers love the quick response times and professional service quality.",
-                  avatar: "ER"
-                }
-              ].map((testimonial, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  className="bg-white rounded-xl shadow-lg p-8"
-                >
-                  <div className="flex items-center mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                    ))}
-                  </div>
-                  
-                  <Quote className="w-8 h-8 text-purple-500 mb-4" />
-                  
-                  <p className="text-gray-700 mb-6 italic">
-                    "{testimonial.comment}"
-                  </p>
-                  
-                  <div className="flex items-center">
-                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold mr-4">
-                      {testimonial.avatar}
-                    </div>
-                    <div>
-                      <div className="font-semibold text-gray-900">{testimonial.name}</div>
-                      <div className="text-sm text-gray-600">{testimonial.role}</div>
-                      <div className="text-sm text-purple-600">{testimonial.company}</div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Customer Reviews */}
+      <CustomerReviews category="BPO Services" />
+
 
       {/* FAQ Section */}
       <section className="py-16 md:py-24 bg-white">
@@ -499,7 +400,7 @@ export default function BPOServices() {
                       )}
                     </div>
                   </button>
-                  
+
                   <AnimatePresence>
                     {openFAQ === index && (
                       <motion.div

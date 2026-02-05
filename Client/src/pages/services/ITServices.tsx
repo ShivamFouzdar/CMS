@@ -3,13 +3,11 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { CallToAction } from '@/components/sections/CallToAction';
 import { ServiceCard } from '@/components/ui/ServiceCard';
+import { ProcessTimeline } from '@/components/ui/ProcessStep';
 import {
 
-  Star,
   ArrowRight,
   Shield,
-  ChevronRight,
-  Quote,
   Code,
   Database,
   Settings,
@@ -21,6 +19,7 @@ import {
   PenTool,
   ExternalLink
 } from 'lucide-react';
+import { CustomerReviews } from '@/components/sections/CustomerReviews';
 
 export default function ITServices() {
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
@@ -403,143 +402,45 @@ export default function ITServices() {
               </p>
             </motion.div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {[
+            <ProcessTimeline
+              steps={[
                 {
                   step: "01",
                   title: "Discovery & Planning",
                   description: "We analyze your requirements and create a detailed project roadmap.",
-                  icon: <Search className="w-6 h-6" />
+                  icon: <Search className="w-5 h-5" />
                 },
                 {
                   step: "02",
                   title: "Design & Prototyping",
                   description: "Create wireframes, mockups, and interactive prototypes.",
-                  icon: <PenTool className="w-6 h-6" />
+                  icon: <PenTool className="w-5 h-5" />
                 },
                 {
                   step: "03",
                   title: "Development & Testing",
                   description: "Build your solution with regular testing and quality assurance.",
-                  icon: <Code className="w-6 h-6" />
+                  icon: <Code className="w-5 h-5" />
                 },
                 {
                   step: "04",
                   title: "Deployment & Support",
                   description: "Launch your project and provide ongoing maintenance and support.",
-                  icon: <Cloud className="w-6 h-6" />
+                  icon: <Cloud className="w-5 h-5" />
                 }
-              ].map((step, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  className="relative"
-                >
-                  <div className="bg-gray-50 rounded-xl p-8 text-center group hover:shadow-lg transition-all duration-300">
-                    <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-6 text-white font-bold text-xl group-hover:scale-110 transition-transform duration-300">
-                      {step.step}
-                    </div>
-                    <div className="w-12 h-12 bg-gradient-to-br from-cyan-50 to-blue-50 rounded-lg flex items-center justify-center mx-auto mb-4 text-cyan-600">
-                      {step.icon}
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">{step.title}</h3>
-                    <p className="text-gray-600">{step.description}</p>
-                  </div>
-                  {index < 3 && (
-                    <ChevronRight className="hidden lg:block absolute top-1/2 -right-4 w-8 h-8 text-gray-300 transform -translate-y-1/2" />
-                  )}
-                </motion.div>
-              ))}
-            </div>
+              ]}
+              gradient="from-cyan-500 to-blue-500"
+              iconBg="from-cyan-50 to-blue-50"
+              iconColor="text-cyan-600"
+            />
           </div>
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-16 md:py-24">
-        <div className="container mx-auto px-4">
-          <div className="max-w-6xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-              className="text-center mb-16"
-            >
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                What Our Clients Say
-              </h2>
-              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                Real feedback from businesses that have transformed their digital presence
-              </p>
-            </motion.div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[
-                {
-                  name: "Alex Thompson",
-                  company: "TechStart Inc.",
-                  role: "CTO",
-                  rating: 5,
-                  comment: "Exceptional web development services. They delivered our e-commerce platform ahead of schedule with outstanding quality and performance.",
-                  avatar: "AT"
-                },
-                {
-                  name: "Sarah Martinez",
-                  company: "HealthTech Solutions",
-                  role: "CEO",
-                  rating: 5,
-                  comment: "The team's expertise in React and Node.js is impressive. Our healthcare portal has been running flawlessly for over a year now.",
-                  avatar: "SM"
-                },
-                {
-                  name: "David Chen",
-                  company: "EduTech Platform",
-                  role: "Founder",
-                  rating: 5,
-                  comment: "Professional, reliable, and innovative. They built our learning management system exactly as envisioned, with excellent user experience.",
-                  avatar: "DC"
-                }
-              ].map((testimonial, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  className="bg-white rounded-xl shadow-lg p-8"
-                >
-                  <div className="flex items-center mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                    ))}
-                  </div>
+      {/* Customer Reviews */}
+      <CustomerReviews category="IT Services" />
 
-                  <Quote className="w-8 h-8 text-cyan-500 mb-4" />
-
-                  <p className="text-gray-700 mb-6 italic">
-                    "{testimonial.comment}"
-                  </p>
-
-                  <div className="flex items-center">
-                    <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold mr-4">
-                      {testimonial.avatar}
-                    </div>
-                    <div>
-                      <div className="font-semibold text-gray-900">{testimonial.name}</div>
-                      <div className="text-sm text-gray-600">{testimonial.role}</div>
-                      <div className="text-sm text-cyan-600">{testimonial.company}</div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* FAQ Section */}
       <section className="py-16 md:py-24 bg-white">

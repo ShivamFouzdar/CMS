@@ -171,6 +171,7 @@ const reviewSchema = new Schema<IReview>({
       'Legal Services',
       'KPO Services',
       'Customer Support',
+      'Brand Promotion',
       'General'
     ]
   },
