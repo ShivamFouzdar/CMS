@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { createError } from './helpers.js';
 import { generateUUID } from './uuid.utils.js';
+import { env } from '@/config/env.js';
 
 /**
  * Authentication Utilities
@@ -12,7 +13,7 @@ import { generateUUID } from './uuid.utils.js';
  */
 export const hashPassword = async (password: string): Promise<string> => {
   try {
-    const saltRounds = parseInt(process.env['BCRYPT_SALT_ROUNDS'] || '12');
+    const saltRounds = env.BCRYPT_SALT_ROUNDS;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     return hashedPassword;
   } catch (error) {
@@ -38,7 +39,7 @@ export const generateSecureRandom = (length: number = 32): string => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
   const cryptoObj = (global as any).crypto;
-  
+
   if (cryptoObj && cryptoObj.getRandomValues) {
     // Use Web Crypto API if available
     const randomValues = new Uint8Array(length);
@@ -55,7 +56,7 @@ export const generateSecureRandom = (length: number = 32): string => {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
   }
-  
+
   return result;
 };
 
@@ -145,7 +146,7 @@ export const maskEmail = (email: string): string => {
   const [local, domain] = email.split('@');
   if (!local || !domain) return email;
 
-  const maskedLocal = local.length > 2 
+  const maskedLocal = local.length > 2
     ? local[0] + '*'.repeat(local.length - 2) + local[local.length - 1]
     : '*'.repeat(local.length);
 
@@ -169,7 +170,7 @@ export const isTokenExpired = (expirationTime: number): boolean => {
  */
 export const generateRandomBytes = (length: number): Buffer => {
   const cryptoObj = (global as any).crypto;
-  
+
   if (cryptoObj && cryptoObj.getRandomValues) {
     const randomValues = new Uint8Array(length);
     cryptoObj.getRandomValues(randomValues);

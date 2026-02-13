@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { createError } from './helpers.js';
+import { env } from '@/config/env.js';
 
 /**
  * JWT Utilities
@@ -19,38 +20,18 @@ export interface JWTPayload {
  * JWT Configuration
  */
 export class JWTConfig {
-  private static secret: string;
-  private static expiresIn: string;
-  private static refreshExpiresIn: string;
-
-  static initialize() {
-    this.secret = process.env['JWT_SECRET'] || 'your-secret-key-change-in-production';
-    this.expiresIn = process.env['JWT_EXPIRES_IN'] || '7d';
-    this.refreshExpiresIn = process.env['JWT_REFRESH_EXPIRES_IN'] || '30d';
-
-    if (process.env['NODE_ENV'] === 'production' && this.secret === 'your-secret-key-change-in-production') {
-      throw new Error('FATAL: JWT_SECRET is not defined in production environment!');
-    }
-  }
-
   static getSecret(): string {
-    if (!this.secret) this.initialize();
-    return this.secret;
+    return env.JWT_SECRET;
   }
 
   static getExpiresIn(): string {
-    if (!this.expiresIn) this.initialize();
-    return this.expiresIn;
+    return env.JWT_EXPIRES_IN;
   }
 
   static getRefreshExpiresIn(): string {
-    if (!this.refreshExpiresIn) this.initialize();
-    return this.refreshExpiresIn;
+    return env.JWT_REFRESH_EXPIRES_IN;
   }
 }
-
-// Initialize on load
-JWTConfig.initialize();
 
 /**
  * Generate JWT access token

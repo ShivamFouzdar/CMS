@@ -2,14 +2,15 @@
 import { createError, sanitizeInput } from '@/utils/helpers.js';
 import { generateTokenPair, verifyToken, JWTPayload } from '@/utils/jwt.utils.js';
 import { generateSessionId, generateUUID } from '@/utils/uuid.utils.js';
-import { comparePassword, validatePasswordStrength } from '@/utils/auth.utils.js';
+import { comparePassword, validatePasswordStrength, hashPassword } from '@/utils/auth.utils.js';
 import { UserRepository } from '@/repositories/user.repository.js';
+import { SettingsRepository } from '@/repositories/settings.repository.js';
 import { IUser } from '@/models/User.js';
-import Settings from '@/models/Settings.js';
 import { emailService, emailTemplates } from '@/services/email.service.js';
 import bcrypt from 'bcryptjs';
 import speakeasy from 'speakeasy';
 import qrcode from 'qrcode';
+import { env } from '@/config/env.js';
 
 export interface AuthTokens {
     accessToken: string;
@@ -49,14 +50,16 @@ export interface RegisterData {
 
 export class AuthService {
     private userRepository: UserRepository;
+    private settingsRepository: SettingsRepository;
 
     constructor() {
         this.userRepository = new UserRepository();
+        this.settingsRepository = new SettingsRepository();
     }
 
     async registerUser(data: RegisterData): Promise<{ user: AuthUser; tokens: AuthTokens }> {
         // Check if registrations are allowed
-        const settings = await Settings.findOne();
+        const settings = await this.settingsRepository.getSettings();
         if (settings && !settings.allowRegistrations) {
             throw createError('Registration is currently disabled by administrator', 403);
         }
@@ -126,8 +129,8 @@ export class AuthService {
         // Verify password
         const isPasswordValid = await comparePassword(credentials.password, user.password);
 
-        const MAX_LOGIN_ATTEMPTS = parseInt(process.env['MAX_LOGIN_ATTEMPTS'] || '5', 10);
-        const LOCKOUT_HOURS = parseInt(process.env['LOCKOUT_DURATION_HOURS'] || '2', 10);
+        const MAX_LOGIN_ATTEMPTS = env.MAX_LOGIN_ATTEMPTS;
+        const LOCKOUT_HOURS = env.LOCKOUT_DURATION_HOURS;
 
         if (!isPasswordValid) {
             // Increment login attempts
@@ -250,12 +253,14 @@ export class AuthService {
             throw createError(passwordStrength.message, 400);
         }
 
-        // Update password (will be hashed by pre-save hook)
-        user.password = newPassword;
-        await user.save();
+        // Update password (explicit hashing)
+        const hashedPassword = await hashPassword(newPassword);
 
-        // Reset login attempts
-        await user.resetLoginAttempts();
+        await this.userRepository.update(userId, {
+            password: hashedPassword,
+            loginAttempts: 0,
+            lockUntil: undefined
+        });
     }
 
     async requestPasswordReset(email: string): Promise<string> {
@@ -278,7 +283,7 @@ export class AuthService {
 
         // Send email with raw token (not hashed)
         // Ensure CLIENT_URL is available
-        const clientUrl = process.env['CLIENT_URL'] || 'http://localhost:5173';
+        const clientUrl = env.CLIENT_URL.split(',')[0] || 'http://localhost:5173';
         const resetUrl = `${clientUrl}/reset-password?token=${resetTokenRaw}&userId=${user._id}`;
 
         await emailService.sendEmail(
@@ -322,16 +327,16 @@ export class AuthService {
             throw createError(passwordStrength.message, 400);
         }
 
-        // Update password (hashed by pre-save hook)
-        user.password = newPassword;
-        user.resetPasswordToken = undefined as any;
-        user.resetPasswordExpires = undefined as any;
+        // Update password (explicit hashing)
+        const hashedPassword = await hashPassword(newPassword);
 
-        await user.save();
-
-        // Log activity manually or rely on controller
-        // Ideally reset login attempts too
-        await user.resetLoginAttempts();
+        await this.userRepository.update(userId, {
+            password: hashedPassword,
+            resetPasswordToken: undefined,
+            resetPasswordExpires: undefined,
+            loginAttempts: 0,
+            lockUntil: undefined
+        });
     }
 
     async verifyEmail(token: string): Promise<void> {
@@ -347,8 +352,7 @@ export class AuthService {
 
         if (user.isEmailVerified) return;
 
-        user.isEmailVerified = true;
-        await user.save();
+        await this.userRepository.update((user._id as any).toString(), { isEmailVerified: true });
     }
 
     async enable2FA(userId: string): Promise<{ secret: string; qrCode: string; backupCodes: string[] }> {
@@ -372,14 +376,14 @@ export class AuthService {
         // Let's store them as is for this implementation, but ideally they should be hashed.
 
         // Save secret to user (temporarily or permanently but disabled)
-        user.twoFactor = {
+        const updatedTwoFactor = {
             ...user.twoFactor,
             secret: secret.base32,
             backupCodes,
             enabled: false // Not enabled until verified
         };
 
-        await user.save();
+        await this.userRepository.update(userId, { twoFactor: updatedTwoFactor });
 
         // Generate QR Code
         const qrCodeUrl = await qrcode.toDataURL(secret.otpauth_url!);
@@ -407,9 +411,12 @@ export class AuthService {
             throw createError('Invalid verification code', 400);
         }
 
-        user.twoFactor.enabled = true;
-        user.twoFactor.verifiedAt = new Date();
-        await user.save();
+        const updatedTwoFactor = {
+            ...user.twoFactor,
+            enabled: true,
+            verifiedAt: new Date()
+        };
+        await this.userRepository.update(userId, { twoFactor: updatedTwoFactor });
     }
 
     async verify2FALogin(tempToken: string, code?: string, backupCode?: string): Promise<LoginResult> {
@@ -434,6 +441,8 @@ export class AuthService {
 
         let verified = false;
 
+        let backupCodes = user.twoFactor?.backupCodes;
+
         if (code) {
             verified = speakeasy.totp.verify({
                 secret: user.twoFactor.secret,
@@ -443,11 +452,10 @@ export class AuthService {
             });
         } else if (backupCode) {
             // Check backup codes
-            if (user.twoFactor.backupCodes && user.twoFactor.backupCodes.includes(backupCode)) {
+            if (backupCodes && backupCodes.includes(backupCode)) {
                 verified = true;
                 // Remove used backup code
-                user.twoFactor.backupCodes = user.twoFactor.backupCodes.filter(c => c !== backupCode);
-                await user.save();
+                backupCodes = backupCodes.filter(c => c !== backupCode);
             }
         }
 
@@ -464,9 +472,14 @@ export class AuthService {
             sessionId,
         });
 
-        // Update last used
-        user.twoFactor.lastUsed = new Date();
-        await user.save();
+        // Update last used and backup codes
+        const updatedTwoFactor = {
+            ...user.twoFactor,
+            lastUsed: new Date(),
+            backupCodes
+        };
+
+        await this.userRepository.update((user._id as any).toString(), { twoFactor: updatedTwoFactor });
 
         return {
             user: this.mapToAuthUser(user, true),

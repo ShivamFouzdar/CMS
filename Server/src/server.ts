@@ -1,5 +1,7 @@
 import 'dotenv/config';
 import app from './app.js';
+import logger from '@/utils/logger.js';
+import { env } from '@/config/env.js';
 // Note: dotenv is already configured in app.ts, but standard practice is to configure it at the very top of the entry point too implicitly.
 // However, since we import 'app' which configures it, we are safe. 
 // Ideally, we move dotenv.config() here or to a separate config loader.
@@ -8,7 +10,7 @@ import { initializeDatabase, createIndexes } from '@/config/database.js';
 
 import { seedDatabase } from '@/seeds/index.js'; // We will create this next
 
-const PORT = process.env['PORT'] || 5000;
+const PORT = env.PORT;
 
 // Initialize database and start server
 // Trigger restart
@@ -20,13 +22,13 @@ const startServer = async () => {
             await createIndexes();
 
             // Seed database with initial data (only in development)
-            if (process.env['NODE_ENV'] === 'development') {
+            if (env.NODE_ENV === 'development') {
                 // We will move the seeding logic to a dedicated file in the next step
                 await seedDatabase();
             }
-            console.log('✅ Database initialized successfully');
+            logger.info('Database initialized successfully');
         } catch (dbError) {
-            console.warn('⚠️  Database initialization failed, continuing without database:', dbError);
+            logger.warn(`Database initialization failed, continuing without database: ${dbError}`);
         }
 
         // Initialize email service
@@ -35,13 +37,13 @@ const startServer = async () => {
 
         // Start server
         app.listen(PORT, () => {
-            console.log(`🚀 Server running on port ${PORT}`);
-            console.log(`📍 Health check: http://localhost:${PORT}/health`);
-            console.log(`📍 API: http://localhost:${PORT}/api`);
+            logger.info(`Server running on port ${PORT}`);
+            logger.info(`Health check: http://localhost:${PORT}/health`);
+            logger.info(`API: http://localhost:${PORT}/api`);
         });
 
     } catch (error) {
-        console.error('❌ Failed to start server:', error);
+        logger.error(`Failed to start server: ${error}`);
         process.exit(1);
     }
 };

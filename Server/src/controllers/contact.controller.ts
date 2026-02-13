@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
-import { asyncHandler, createError } from '@/utils/helpers.js';
+import logger from '@/utils/logger.js';
+import { asyncHandler } from '@/utils/helpers.js';
 import { sendSuccess } from '@/utils/response.utils.js';
 import { ContactService } from '@/services/contact.service.js';
 import { auditService } from '@/services/audit.service.js';
@@ -55,9 +56,9 @@ export const submitContactForm = asyncHandler(async (req: Request, res: Response
       phone,
       service: service || 'General Enquiry',
       message,
-    }).catch(err => console.error('Notification error:', err));
+    }).catch(err => logger.error(`Notification error: ${err}`));
   } catch (notifError) {
-    console.error('Failed to send notification:', notifError);
+    logger.error(`Failed to send notification: ${notifError}`);
   }
 
   return sendSuccess(res, 'Your message has been sent successfully! We will get back to you soon.', result, 201);
@@ -129,12 +130,7 @@ export const getContactSubmissions = asyncHandler(async (req: Request, res: Resp
  */
 export const getContactSubmissionById = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-
-  if (!id) {
-    throw createError('ID is required', 400);
-  }
-
-  const submission = await contactService.getContactSubmissionById(id);
+  const submission = await contactService.getContactSubmissionById(id!);
   return sendSuccess(res, 'Contact submission retrieved successfully', submission);
 });
 
@@ -167,12 +163,10 @@ export const getContactSubmissionById = asyncHandler(async (req: Request, res: R
 export const updateContactSubmissionStatus = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const { status, notes } = req.body;
-  if (!id) {
-    throw createError('ID is required', 400);
-  }
-  const submission = await contactService.updateContactSubmissionStatus(id, status, notes);
 
-  await auditService.logAction(req, 'UPDATE_STATUS', 'Contact', id, { status, notes });
+  const submission = await contactService.updateContactSubmissionStatus(id!, status, notes);
+
+  await auditService.logAction(req, 'UPDATE_STATUS', 'Contact', id!, { status, notes });
 
   return sendSuccess(res, 'Contact submission status updated successfully', submission);
 });
@@ -196,12 +190,9 @@ export const updateContactSubmissionStatus = asyncHandler(async (req: Request, r
  */
 export const deleteContactSubmission = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  if (!id) {
-    throw createError('ID is required', 400);
-  }
-  await contactService.deleteContactSubmission(id);
+  await contactService.deleteContactSubmission(id!);
 
-  await auditService.logAction(req, 'DELETE', 'Contact', id);
+  await auditService.logAction(req, 'DELETE', 'Contact', id!);
 
   return sendSuccess(res, 'Contact submission deleted successfully');
 });
@@ -230,10 +221,6 @@ export const deleteContactSubmission = asyncHandler(async (req: Request, res: Re
  */
 export const bulkDeleteContacts = asyncHandler(async (req: Request, res: Response) => {
   const { ids } = req.body;
-  if (!ids || !Array.isArray(ids) || ids.length === 0) {
-    throw createError('IDs array is required', 400);
-  }
-
   const count = await contactService.bulkDeleteContacts(ids);
 
   await auditService.logAction(req, 'BULK_DELETE', 'Contact', '0', { count, ids });
@@ -282,11 +269,7 @@ export const getContactsByService = asyncHandler(async (req: Request, res: Respo
   const { service } = req.params;
   const { limit } = req.query;
 
-  if (!service) {
-    throw createError('Service parameter is required', 400);
-  }
-
-  const contacts = await contactService.getContactsByService(service, parseInt(limit as string) || 10);
+  const contacts = await contactService.getContactsByService(service!, parseInt(limit as string) || 10);
   return sendSuccess(res, `Retrieved ${contacts.length} contacts for ${service}`, contacts);
 });
 
@@ -307,14 +290,10 @@ export const getContactsByService = asyncHandler(async (req: Request, res: Respo
  *       200:
  *         description: Contact marked as contacted
  */
+// Mark Contact as Contacted
 export const markContactAsContacted = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-
-  if (!id) {
-    throw createError('ID is required', 400);
-  }
-
-  const submission = await contactService.markContactAsContacted(id);
+  const submission = await contactService.markContactAsContacted(id!);
   return sendSuccess(res, 'Contact marked as contacted successfully', submission);
 });
 /**

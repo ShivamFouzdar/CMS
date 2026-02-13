@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import logger from '@/utils/logger.js';
 import { asyncHandler, createError } from '@/utils/helpers.js';
 import { sendSuccess } from '@/utils/response.utils.js';
 import { ReviewService, ReviewFilters } from '@/services/review.service.js';
@@ -241,9 +242,9 @@ export const submitReview = asyncHandler(async (req: Request, res: Response) => 
       company: role || 'N/A',
       rating: rating || 5,
       category: category || 'General',
-    }).catch(err => console.error('Notification error:', err));
+    }).catch(err => logger.error(`Notification error: ${err}`));
   } catch (notifError) {
-    console.error('Failed to send notification:', notifError);
+    logger.error(`Failed to send notification: ${notifError}`);
   }
 
   return sendSuccess(res, 'Thank you for your review! It will be published after moderation.', {

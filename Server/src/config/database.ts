@@ -1,6 +1,8 @@
 
 import mongoose from 'mongoose';
 import { disconnectDatabase, checkDatabaseHealth } from '@/models/index.js';
+import logger from '@/utils/logger.js';
+import { env } from '@/config/env.js';
 
 /**
  * Database Configuration
@@ -13,11 +15,7 @@ interface DatabaseConfig {
 }
 
 const getDatabaseConfig = (): DatabaseConfig => {
-  const uri = process.env['MONGODB_URI'];
-
-  if (!uri) {
-    throw new Error('MONGODB_URI is not defined in environment variables');
-  }
+  const uri = env.MONGODB_URI;
 
   const options: mongoose.ConnectOptions = {
     // Connection options
@@ -36,8 +34,10 @@ const getDatabaseConfig = (): DatabaseConfig => {
     options.tls = true;
   }
 
-  if (process.env['NODE_ENV'] === 'development') {
-    mongoose.set('debug', true);
+  if (env.NODE_ENV === 'development') {
+    mongoose.set('debug', (collectionName: string, method: string, query: any, doc: any) => {
+      logger.debug(`Mongoose: ${collectionName}.${method}`, { query, doc });
+    });
   }
 
   return { uri, options };
@@ -58,15 +58,15 @@ export const initializeDatabase = async (): Promise<void> => {
 
     // Set up connection event listeners
     mongoose.connection.on('connected', () => {
-      console.log('database connected successfully');
+      logger.info('Database connected successfully');
     });
 
     mongoose.connection.on('error', (err) => {
-      console.error('MongoDB connection error:', err);
+      logger.error(`MongoDB connection error: ${err}`);
     });
 
     mongoose.connection.on('disconnected', () => {
-      console.warn('MongoDB disconnected');
+      logger.warn('MongoDB disconnected');
     });
 
     // Handle application termination
@@ -81,7 +81,7 @@ export const initializeDatabase = async (): Promise<void> => {
     });
 
   } catch (error) {
-    console.error('Failed to connect to database:', error);
+    logger.error(`Failed to connect to database: ${error}`);
     throw error;
   }
 };
@@ -100,24 +100,24 @@ export const createIndexes = async (): Promise<void> => {
   try {
     const { Contact, Review, Service, User } = await import('@/models/index.js');
 
-    const isDev = process.env['NODE_ENV'] === 'development';
+    const isDev = env.NODE_ENV === 'development';
 
     // Create indexes for modules
     await Contact.createIndexes();
-    if (isDev) console.log('✅ Contact indexes created');
+    if (isDev) logger.info('Contact indexes created');
 
     await Review.createIndexes();
-    if (isDev) console.log('✅ Review indexes created');
+    if (isDev) logger.info('Review indexes created');
 
     await Service.createIndexes();
-    if (isDev) console.log('✅ Service indexes created');
+    if (isDev) logger.info('Service indexes created');
 
     await User.createIndexes();
-    if (isDev) console.log('✅ User indexes created');
+    if (isDev) logger.info('User indexes created');
 
-    console.log('📊 Database indexes verified successfully');
+    logger.info('Database indexes verified successfully');
   } catch (error) {
-    console.error('Index creation failed:', error);
+    logger.error(`Index creation failed: ${error}`);
     throw error;
   }
 };

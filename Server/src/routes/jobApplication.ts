@@ -10,10 +10,14 @@ import {
   bulkDeleteJobApplications,
   exportApplications
 } from '@/controllers/jobApplication.controller.js';
-import { authenticateToken } from '@/middleware/auth.js'; // Ensure this path is correct, might be '../middleware/auth' if relative? No, using aliases
-import { z } from 'zod';
+import { authenticateToken } from '@/middleware/auth.js';
 import { validate } from '@/middleware/validate.js';
 import { uploadResume } from '@/middleware/upload.js';
+import {
+  createJobApplicationSchema,
+  jobApplicationIdSchema,
+  bulkDeleteJobApplicationSchema
+} from '@/schemas/jobApplication.schema.js';
 
 const router = Router();
 
@@ -22,22 +26,9 @@ const router = Router();
  * Handles job application submissions and management
  */
 
-const jobApplicationSchema = z.object({
-  body: z.object({
-    fullName: z.string().min(2, 'Full name is required (min 2 chars)'),
-    email: z.string().email('Valid email is required'),
-    phone: z.string().min(1, 'Phone number is required'),
-    location: z.string().min(1, 'Location is required'),
-    experience: z.string().min(1, 'Experience level is required'),
-    workMode: z.string().min(1, 'Work mode is required'),
-    skillsDescription: z.string().min(20, 'Skills description is required (min 20 chars)'),
-    hearAboutUs: z.string().min(1, 'How you heard about us is required')
-  })
-});
-
 // Public route for submitting applications
 // uploadResume must come first to parse multipart/form-data
-router.post('/', uploadResume.single('resume'), validate(jobApplicationSchema), submitJobApplication);
+router.post('/', uploadResume.single('resume'), validate(createJobApplicationSchema), submitJobApplication);
 
 // Protected routes (require authentication)
 router.use(authenticateToken);
@@ -45,10 +36,26 @@ router.use(authenticateToken);
 // Job application management routes
 router.get('/export', exportApplications);
 router.get('/submissions', getJobApplications);
-router.get('/submissions/:id', getJobApplicationById);
-router.get('/submissions/:id/resume', downloadResume);
-router.delete('/submissions/:id', deleteJobApplication);
-router.post('/submissions/bulk-delete', bulkDeleteJobApplications);
+
+router.get('/submissions/:id',
+  validate(jobApplicationIdSchema),
+  getJobApplicationById
+);
+
+router.get('/submissions/:id/resume',
+  validate(jobApplicationIdSchema),
+  downloadResume
+);
+
+router.delete('/submissions/:id',
+  validate(jobApplicationIdSchema),
+  deleteJobApplication
+);
+
+router.post('/submissions/bulk-delete',
+  validate(bulkDeleteJobApplicationSchema),
+  bulkDeleteJobApplications
+);
 
 // Statistics routes
 router.get('/stats', getJobApplicationStats);

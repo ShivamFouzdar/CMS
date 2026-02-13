@@ -1,5 +1,6 @@
 
 import { SettingsRepository } from '@/repositories/settings.repository.js';
+import logger from '@/utils/logger.js';
 import { createError } from '@/utils/helpers.js';
 import { ISettings } from '@/models/Settings.js';
 
@@ -33,7 +34,7 @@ export class SettingsService {
             const settings = await this.repository.getSettings();
             return settings;
         } catch (error) {
-            console.error('Error fetching system settings:', error);
+            logger.error(`Error fetching system settings: ${error}`);
             throw createError('Failed to fetch system settings', 500);
         }
     }
@@ -64,7 +65,7 @@ export class SettingsService {
             if (error instanceof Error && (error as any).statusCode) {
                 throw error;
             }
-            console.error('Error updating system settings:', error);
+            logger.error(`Error updating system settings: ${error}`);
             throw createError('Failed to update system settings', 500);
         }
     }

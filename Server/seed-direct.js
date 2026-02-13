@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { Service } from './dist/models/Service.js'; // Import compiled model
+import logger from './dist/utils/logger.js';
 
 // Load env
 dotenv.config();
@@ -80,9 +81,9 @@ async function seed() {
             throw new Error('MONGODB_URI is missing from environment');
         }
 
-        console.log('Connecting to MongoDB...');
+        logger.info('Connecting to MongoDB...');
         await mongoose.connect(process.env.MONGODB_URI);
-        console.log('Connected!');
+        logger.info('Connected!');
 
         // Clear existing? Maybe active check first?
         // Let's just upsert
@@ -92,13 +93,12 @@ async function seed() {
                 service,
                 { upsert: true, new: true }
             );
-            console.log(`✅ Seeded: ${service.name}`);
+            logger.info(`Seeded: ${service.name}`);
         }
-
-        console.log('🎉 Seeding Complete!');
+        logger.info('Seeding Complete!');
         process.exit(0);
     } catch (error) {
-        console.error('❌ Error seeding:', error);
+        logger.error(`Error seeding: ${error}`);
         process.exit(1);
     }
 }

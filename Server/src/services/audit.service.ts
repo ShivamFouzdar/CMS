@@ -1,7 +1,14 @@
-import AuditLog, { IAuditLog } from '@/models/AuditLog.js';
+import { IAuditLog } from '@/models/AuditLog.js';
+import { AuditRepository } from '@/repositories/audit.repository.js';
+import logger from '@/utils/logger.js';
 import { Request } from 'express';
 
 export class AuditService {
+    private repository: AuditRepository;
+
+    constructor() {
+        this.repository = new AuditRepository();
+    }
     /**
      * Log an action to the database
      * @param req Express request object (to extract user, IP, UserRequest)
@@ -28,14 +35,13 @@ export class AuditService {
             // We'll skip logging if no user is found for now, or use a system user ID if needed.
 
             if (!user) {
-                // console.warn('AuditLog: No user found for action', action);
                 return null;
             }
 
             const ip = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || '';
             const userAgent = req.headers['user-agent'] || '';
 
-            const log = await AuditLog.create({
+            const log = await this.repository.create({
                 user,
                 action,
                 resource,
@@ -43,11 +49,11 @@ export class AuditService {
                 details,
                 ip,
                 userAgent
-            });
+            } as any);
 
             return log;
         } catch (error) {
-            console.error('Failed to create audit log:', error);
+            logger.error(`Failed to create audit log: ${error}`);
             // We don't want audit logging failure to block the main request
             return null;
         }
@@ -71,13 +77,10 @@ export class AuditService {
             };
         }
 
-        const logs = await AuditLog.find(query)
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit)
-            .populate('user', 'firstName lastName email role');
-
-        const total = await AuditLog.countDocuments(query);
+        const [logs, total] = await Promise.all([
+            this.repository.findWithUser(query, skip, limit),
+            this.repository.count(query)
+        ]);
 
         return {
             logs,
@@ -85,6 +88,13 @@ export class AuditService {
             pages: Math.ceil(total / limit),
             currentPage: page
         };
+    }
+
+    /**
+     * Clear all logs
+     */
+    async clearLogs(): Promise<void> {
+        await this.repository.clearAll();
     }
 }
 

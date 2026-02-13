@@ -13,9 +13,14 @@ import {
   bulkDeleteContacts
 } from '@/controllers/contact.controller.js';
 import { authenticateToken, requireRole } from '@/middleware/auth.js';
-import { z } from 'zod';
 import { authLimiter } from '@/middleware/rateLimiter.js';
 import { validate } from '@/middleware/validate.js';
+import {
+  createContactSchema,
+  updateContactStatusSchema,
+  contactIdSchema,
+  bulkDeleteContactSchema
+} from '@/schemas/contact.schema.js';
 
 const router = Router();
 
@@ -24,25 +29,8 @@ const router = Router();
  * Handles contact form submissions and management
  */
 
-const contactSchema = z.object({
-  body: z.object({
-    name: z.string().min(2, 'Name is required'),
-    email: z.string().email('Valid email is required'),
-    message: z.string().min(10, 'Message is required (min 10 chars)'),
-    phone: z.string().optional(),
-    company: z.string().optional(),
-    service: z.string().optional()
-  })
-});
-
-const updateStatusSchema = z.object({
-  body: z.object({
-    status: z.string().min(1, 'Status is required')
-  })
-});
-
 // Public routes
-router.post('/', authLimiter, validate(contactSchema), submitContactForm);
+router.post('/', authLimiter, validate(createContactSchema), submitContactForm);
 
 // Protected routes (require authentication)
 router.use(authenticateToken);
@@ -50,11 +38,36 @@ router.use(authenticateToken);
 // Contact management routes
 router.get('/export', requireRole(['admin']), exportContacts);
 router.get('/submissions', requireRole(['admin', 'moderator']), getContactSubmissions);
-router.get('/submissions/:id', requireRole(['admin', 'moderator']), getContactSubmissionById);
-router.patch('/submissions/:id/status', requireRole(['admin', 'moderator']), validate(updateStatusSchema), updateContactSubmissionStatus);
-router.patch('/submissions/:id/contacted', requireRole(['admin', 'moderator']), markContactAsContacted);
-router.delete('/submissions/:id', requireRole(['admin']), deleteContactSubmission);
-router.post('/submissions/bulk-delete', requireRole(['admin']), bulkDeleteContacts);
+
+router.get('/submissions/:id',
+  requireRole(['admin', 'moderator']),
+  validate(contactIdSchema),
+  getContactSubmissionById
+);
+
+router.patch('/submissions/:id/status',
+  requireRole(['admin', 'moderator']),
+  validate(updateContactStatusSchema),
+  updateContactSubmissionStatus
+);
+
+router.patch('/submissions/:id/contacted',
+  requireRole(['admin', 'moderator']),
+  validate(contactIdSchema),
+  markContactAsContacted
+);
+
+router.delete('/submissions/:id',
+  requireRole(['admin']),
+  validate(contactIdSchema),
+  deleteContactSubmission
+);
+
+router.post('/submissions/bulk-delete',
+  requireRole(['admin']),
+  validate(bulkDeleteContactSchema),
+  bulkDeleteContacts
+);
 
 // Statistics and analytics routes
 router.get('/stats', requireRole(['admin', 'moderator']), getContactStats);

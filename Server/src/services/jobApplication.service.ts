@@ -1,11 +1,13 @@
 import { createError } from '@/utils/helpers.js';
+import logger from '@/utils/logger.js';
 import path from 'path';
 import fs from 'fs/promises';
 import { IApplicant } from '@/models/Applicant.js';
 import { JobApplicationRepository } from '@/repositories/jobApplication.repository.js';
+import { SettingsRepository } from '@/repositories/settings.repository.js';
 import { configureCloudinary } from '@/config/cloudinary.js';
 import { emailService, emailTemplates } from './email.service.js';
-import { Settings } from '@/models/Settings.js';
+import { env } from '@/config/env.js';
 
 export interface JobApplicationData {
     id: string;
@@ -25,9 +27,11 @@ export interface JobApplicationData {
 
 export class JobApplicationService {
     private repository: JobApplicationRepository;
+    private settingsRepository: SettingsRepository;
 
     constructor() {
         this.repository = new JobApplicationRepository();
+        this.settingsRepository = new SettingsRepository();
     }
 
     async createJobApplication(data: Omit<JobApplicationData, 'id' | 'submittedAt'>): Promise<JobApplicationData> {
@@ -48,9 +52,9 @@ export class JobApplicationService {
 
         // Send Admin Notification
         try {
-            const settings = await Settings.findOne();
-            if (settings?.emailNotifications && settings?.notificationAlerts.jobApplications) {
-                const adminEmail = settings.contactEmail || process.env['CONTACT_EMAIL'];
+            const settings = await this.settingsRepository.getSettings();
+            if (settings?.emailNotifications && (settings?.notificationAlerts as any)?.jobApplications) {
+                const adminEmail = settings.contactEmail || env.CONTACT_EMAIL;
                 if (adminEmail) {
                     const emailData = emailTemplates.newJobApplication({
                         fullName: applicant.fullName,
@@ -68,7 +72,7 @@ export class JobApplicationService {
                 }
             }
         } catch (error) {
-            console.error('Failed to send job application notification email:', error);
+            logger.error(`Failed to send job application notification email: ${error}`);
             // Fail silently
         }
 
@@ -122,7 +126,7 @@ export class JobApplicationService {
                 const filePath = path.join(process.cwd(), applicant.resumePath);
                 await fs.unlink(filePath);
             } catch (error) {
-                console.error('Error deleting local resume file:', error);
+                logger.error(`Error deleting local resume file: ${error}`);
             }
         } else if (applicant.resumePublicId) {
             // Optional: Delete from Cloudinary using public_id
@@ -194,7 +198,7 @@ export class JobApplicationService {
 
                 return url;
             } catch (error) {
-                console.warn('Failed to generate signed Cloudinary URL, falling back to stored URL:', error);
+                logger.warn(`Failed to generate signed Cloudinary URL, falling back to stored URL: ${error}`);
                 if (applicant.resumeUrl) return applicant.resumeUrl;
                 if (applicant.resumePath && applicant.resumePath.startsWith('http')) return applicant.resumePath;
             }

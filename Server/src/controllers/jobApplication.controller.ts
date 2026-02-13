@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
+import logger from '@/utils/logger.js';
 import { asyncHandler, createError } from '@/utils/helpers.js';
-import { sendSuccess } from '@/utils/response.utils.js';
+import { sendSuccess, sendError } from '@/utils/response.utils.js';
 import path from 'path';
 import { JobApplicationService } from '@/services/jobApplication.service.js';
 
@@ -75,9 +76,9 @@ export const submitJobApplication = asyncHandler(async (req: Request, res: Respo
       email: application.email,
       phone: application.phone,
       experience: application.experience,
-    }).catch(err => console.error('Notification error:', err));
+    }).catch(err => logger.error(`Notification error: ${err}`));
   } catch (notifError) {
-    console.error('Failed to send notification:', notifError);
+    logger.error(`Failed to send notification: ${notifError}`);
   }
 
   return sendSuccess(res, 'Job application submitted successfully! Our HR team will review your details and contact you soon.', {
@@ -160,12 +161,7 @@ export const exportApplications = asyncHandler(async (_req: Request, res: Respon
  */
 export const getJobApplicationById = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-
-  if (!id) {
-    throw createError('ID is required', 400);
-  }
-
-  const application = await jobApplicationService.getJobApplicationById(id);
+  const application = await jobApplicationService.getJobApplicationById(id!);
   return sendSuccess(res, 'Job application retrieved successfully', application);
 });
 
@@ -200,12 +196,7 @@ export const getJobApplicationStats = asyncHandler(async (_req: Request, res: Re
  */
 export const downloadResume = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-
-  if (!id) {
-    throw createError('ID is required', 400);
-  }
-
-  const filePath = await jobApplicationService.getResumePath(id);
+  const filePath = await jobApplicationService.getResumePath(id!);
   const fileName = path.basename(filePath);
 
   if (filePath.startsWith('http')) {
@@ -213,11 +204,10 @@ export const downloadResume = asyncHandler(async (req: Request, res: Response) =
   } else {
     res.download(filePath, fileName, (err) => {
       if (err) {
-        console.error('Error downloading file:', err);
-        res.status(500).json({
-          success: false,
-          message: 'Error downloading resume',
-        });
+        logger.error(`Error downloading file: ${err}`);
+        if (!res.headersSent) {
+          sendError(res, 'Error downloading resume', err, 500);
+        }
       }
     });
   }
@@ -237,12 +227,7 @@ export const downloadResume = asyncHandler(async (req: Request, res: Response) =
  */
 export const deleteJobApplication = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-
-  if (!id) {
-    throw createError('ID is required', 400);
-  }
-
-  await jobApplicationService.deleteJobApplication(id);
+  await jobApplicationService.deleteJobApplication(id!);
   return sendSuccess(res, 'Job application deleted successfully');
 });
 
@@ -270,10 +255,6 @@ export const deleteJobApplication = asyncHandler(async (req: Request, res: Respo
  */
 export const bulkDeleteJobApplications = asyncHandler(async (req: Request, res: Response) => {
   const { ids } = req.body;
-  if (!ids || !Array.isArray(ids) || ids.length === 0) {
-    throw createError('IDs array is required', 400);
-  }
-
   const count = await jobApplicationService.bulkDeleteJobApplications(ids);
   return sendSuccess(res, `Deleted ${count} job applications successfully`, { count });
 });

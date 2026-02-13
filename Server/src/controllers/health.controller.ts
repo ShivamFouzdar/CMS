@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { asyncHandler } from '@/utils/helpers.js';
 import { sendSuccess } from '@/utils/response.utils.js';
+import { env } from '@/config/env.js';
 
 /**
  * Health Controller
@@ -26,7 +27,7 @@ export const healthCheck = asyncHandler(async (_req: Request, res: Response) => 
   const data = {
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    environment: process.env['NODE_ENV'] || 'development',
+    environment: env.NODE_ENV,
     version: process.env['npm_package_version'] || '1.0.0',
   };
 
@@ -59,7 +60,7 @@ export const detailedHealthCheck = asyncHandler(async (_req: Request, res: Respo
       seconds: uptime,
       formatted: formatUptime(uptime),
     },
-    environment: process.env['NODE_ENV'] || 'development',
+    environment: env.NODE_ENV,
     version: process.env['npm_package_version'] || '1.0.0',
     memory: {
       rss: `${Math.round(memoryUsage.rss / 1024 / 1024)} MB`,

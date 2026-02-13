@@ -1,4 +1,5 @@
 import { ContactRepository } from '@/repositories/contact.repository.js';
+import logger from '@/utils/logger.js';
 import { ReviewRepository } from '@/repositories/review.repository.js';
 import { ServiceRepository } from '@/repositories/service.repository.js';
 import { UserRepository } from '@/repositories/user.repository.js';
@@ -7,7 +8,6 @@ import * as os from 'os';
 import mongoose from 'mongoose';
 import { emailService } from '@/services/email.service.js';
 import { auditService } from '@/services/audit.service.js';
-import AuditLog from '@/models/AuditLog.js';
 
 interface SystemHealth {
     status: string;
@@ -278,7 +278,7 @@ export class AdminService {
                 }
             }
         } catch (error) {
-            console.error('Disk usage check failed:', error);
+            logger.error(`Disk usage check failed: ${error}`);
         }
 
         return health;
@@ -320,10 +320,10 @@ export class AdminService {
      */
     async clearSystemLogs() {
         try {
-            await AuditLog.deleteMany({});
+            await auditService.clearLogs();
             return true;
         } catch (error) {
-            console.error('Error clearing logs:', error);
+            logger.error(`Error clearing logs: ${error}`);
             throw new Error('Failed to clear logs');
         }
     }

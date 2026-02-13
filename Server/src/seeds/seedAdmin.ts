@@ -1,4 +1,6 @@
 import { User } from '@/models/index.js';
+import logger from '@/utils/logger.js';
+import { env } from '@/config/env.js';
 
 /**
  * Seed admin user
@@ -6,11 +8,11 @@ import { User } from '@/models/index.js';
  */
 export const seedAdminUser = async () => {
   try {
-    const adminEmail = process.env['ADMIN_INITIAL_EMAIL'] || 'admin@careermapsolutions.com';
+    const adminEmail = env.ADMIN_INITIAL_EMAIL;
     const adminExists = await User.findByEmail(adminEmail);
 
     if (adminExists) {
-      console.log('✅ Admin user already exists');
+      logger.info('Admin user already exists');
       return;
     }
 
@@ -18,7 +20,7 @@ export const seedAdminUser = async () => {
       firstName: 'Admin',
       lastName: 'User',
       email: adminEmail,
-      password: process.env['ADMIN_INITIAL_PASSWORD'] || 'Admin@123', // Default only if env missing
+      password: env.ADMIN_INITIAL_PASSWORD,
       role: 'admin',
       isActive: true,
       isEmailVerified: true,
@@ -43,14 +45,13 @@ export const seedAdminUser = async () => {
       },
     });
 
-    console.log('✅ Admin user created successfully!');
-    console.log(`📧 Email: ${adminEmail}`);
-    console.log(`🔑 Password: ${process.env['ADMIN_INITIAL_PASSWORD'] || 'Admin@123'}`);
-    console.log('⚠️  Please change the password after first login!');
+    logger.info('Admin user created successfully!');
+    logger.info(`Email: ${adminEmail}`);
+    logger.info('Please change the password after first login!');
 
     return admin;
   } catch (error) {
-    console.error('❌ Error creating admin user:', error);
+    logger.error(`Error creating admin user: ${error}`);
     throw error;
   }
 };
@@ -90,13 +91,13 @@ export const seedTestUsers = async () => {
             department: userData.role === 'moderator' ? 'HR' : 'Content',
           },
         });
-        console.log(`✅ Created ${userData.role} user: ${userData.email}`);
+        logger.info(`Created ${userData.role} user: ${userData.email}`);
       }
     }
 
-    console.log('✅ Test users created successfully!');
+    logger.info('Test users created successfully!');
   } catch (error) {
-    console.error('❌ Error creating test users:', error);
+    logger.error(`Error creating test users: ${error}`);
     throw error;
   }
 };

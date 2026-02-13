@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import logger from '@/utils/logger.js';
 import { asyncHandler, createError } from '@/utils/helpers.js';
 import { sendSuccess } from '@/utils/response.utils.js';
 import { User } from '@/models/index.js';
@@ -89,7 +90,7 @@ export const enableTwoFactor = asyncHandler(async (req: Request, res: Response) 
       backupCodes: setup.backupCodes,
     });
   } catch (error) {
-    console.error('Error in enableTwoFactor:', error);
+    logger.error(`Error in enableTwoFactor: ${error}`);
     throw createError(error instanceof Error ? error.message : 'Failed to enable 2FA', 500);
   }
 });

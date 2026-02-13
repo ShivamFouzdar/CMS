@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
+import logger from '@/utils/logger.js';
 import { asyncHandler, createError } from '@/utils/helpers.js';
+import { sendSuccess } from '@/utils/response.utils.js';
 import Media from '@/models/Media.js';
 import { auditService } from '@/services/audit.service.js';
 import { configureCloudinary } from '@/config/cloudinary.js';
@@ -49,9 +51,7 @@ export const getMedia = asyncHandler(async (req: Request, res: Response) => {
 
     const total = await Media.countDocuments(query);
 
-    res.json({
-        success: true,
-        data: media,
+    return sendSuccess(res, `Retrieved ${total} media files`, media, 200, {
         pagination: {
             total,
             pages: Math.ceil(total / limit),
@@ -109,10 +109,7 @@ export const uploadMedia = asyncHandler(async (req: Request, res: Response) => {
         url: media.url
     });
 
-    res.status(201).json({
-        success: true,
-        data: media
-    });
+    return sendSuccess(res, 'File uploaded successfully', media, 201);
 });
 
 /**
@@ -144,7 +141,7 @@ export const deleteMedia = asyncHandler(async (req: Request, res: Response) => {
     try {
         await cloudinary.uploader.destroy(media.publicId);
     } catch (error) {
-        console.error('Failed to delete from Cloudinary:', error);
+        logger.error(`Failed to delete from Cloudinary: ${error}`);
         // Continue to delete from DB even if Cloudinary fails (orphan cleanup)
     }
 
@@ -155,8 +152,5 @@ export const deleteMedia = asyncHandler(async (req: Request, res: Response) => {
         publicId: media.publicId
     });
 
-    res.json({
-        success: true,
-        message: 'Media deleted successfully'
-    });
+    return sendSuccess(res, 'Media deleted successfully');
 });

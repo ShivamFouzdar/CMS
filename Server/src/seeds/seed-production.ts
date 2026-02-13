@@ -1,30 +1,25 @@
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
+import { env } from '@/config/env.js';
+import logger from '@/utils/logger.js';
 import { seedReviews } from './seedReviews.js';
 
-dotenv.config();
 
-const MONGODB_URI = process.env['MONGODB_URI'];
-
-if (!MONGODB_URI) {
-    console.error('❌ MONGODB_URI environment variable is not defined');
-    process.exit(1);
-}
+const MONGODB_URI = env.MONGODB_URI;
 
 const runSeed = async () => {
     try {
-        console.log('🚀 Starting production seeding...');
+        logger.info('Starting production seeding...');
         await mongoose.connect(MONGODB_URI);
-        console.log('📦 Connected to MongoDB');
+        logger.info('Connected to MongoDB');
 
         // Run the specific review seeder which uses upsert logic
         // This ensures new reviews are added without duplicate errors or data loss
         await seedReviews();
 
-        console.log('✅ Production seeding completed successfully');
+        logger.info('Production seeding completed successfully');
         process.exit(0);
     } catch (error) {
-        console.error('❌ Seeding failed:', error);
+        logger.error(`Seeding failed: ${error}`);
         process.exit(1);
     }
 };

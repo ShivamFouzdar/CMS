@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { getSystemSettings } from '@/services/settings.service.js';
+import logger from '@/utils/logger.js';
 
 /**
  * Maintenance Mode Middleware
@@ -43,7 +44,7 @@ export const checkMaintenanceMode = async (
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Error checking maintenance mode:', error);
+    logger.error(`Error checking maintenance mode: ${error}`);
     // On error, allow request to proceed (fail open)
     next();
   }

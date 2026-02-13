@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { env } from '@/config/env.js';
 
 /**
  * Standard API Response Interface
@@ -53,7 +54,7 @@ export const sendError = (
     const response: ApiResponse = {
         success: false,
         message,
-        error: process.env['NODE_ENV'] === 'development' ? error : undefined,
+        error: env.NODE_ENV === 'development' ? error : undefined,
         timestamp: new Date().toISOString(),
     };
 

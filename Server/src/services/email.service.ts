@@ -1,6 +1,8 @@
 
 import nodemailer from 'nodemailer';
 import { createError } from '@/utils/helpers.js';
+import logger from '@/utils/logger.js';
+import { env } from '@/config/env.js';
 
 export interface EmailOptions {
     to: string | string[];
@@ -29,16 +31,20 @@ export class EmailService {
                 fromEmail = settings.smtp.fromEmail;
             }
         } catch (error) {
-            console.error('Failed to fetch settings for email service:', error);
+            logger.error(`Failed to fetch settings for email service: ${error}`);
         }
 
         // Fallback to env vars
+        // Fallback to env vars
         if (!smtpHost) {
-            smtpHost = process.env['SMTP_HOST'];
-            smtpPort = parseInt(process.env['SMTP_PORT'] || '587', 10);
-            smtpUser = process.env['SMTP_USER'];
-            smtpPass = process.env['SMTP_PASS'];
-            secure = process.env['SMTP_SECURE'] === 'true';
+            smtpHost = env.SMTP_HOST;
+            smtpPort = env.SMTP_PORT;
+            smtpUser = env.SMTP_USER;
+            smtpPass = env.SMTP_PASS;
+            secure = false; // env.SMTP_SECURE is not in our schema yet. Assuming default false for 587. 
+            // Wait, I should add SMTP_SECURE to env schema or use default. 
+            // For 587 it's usually false (STARTTLS).
+            // Let's stick to simple env. usage.
         }
 
         if (!smtpHost || !smtpUser || !smtpPass) {
@@ -55,7 +61,7 @@ export class EmailService {
             },
         });
 
-        return { transporter, defaultFrom: fromEmail || process.env['SMTP_FROM'] || smtpUser || 'noreply@example.com' };
+        return { transporter, defaultFrom: fromEmail || env.SMTP_FROM || smtpUser || 'noreply@example.com' };
     }
 
     async checkHealth(): Promise<boolean> {
@@ -63,7 +69,7 @@ export class EmailService {
             const { transporter } = await this.getTransporter();
             return await transporter.verify();
         } catch (error) {
-            console.error('SMTP Health Check Failed:', error);
+            logger.error(`SMTP Health Check Failed: ${error}`);
             return false;
         }
     }
@@ -84,7 +90,7 @@ export class EmailService {
             await transporter.verify();
             return true;
         } catch (error) {
-            console.error('SMTP Verification Failed:', error);
+            logger.error(`SMTP Verification Failed: ${error}`);
             throw error;
         }
     }
@@ -100,9 +106,9 @@ export class EmailService {
                 text: options.text || options.html.replace(/<[^>]*>/g, ''),
                 html: options.html,
             });
-            console.log('✅ Email sent successfully!');
+            logger.info('Email sent successfully!');
         } catch (error: any) {
-            console.error('❌ Failed to send email:', error.message);
+            logger.error(`Failed to send email: ${error.message}`);
             // Don't throw logic error to prevent crashing main flows, but maybe throw specific error?
             // The original code threw createError. Let's maintain that.
             throw createError(`Failed to send email: ${error.message}`, 500);

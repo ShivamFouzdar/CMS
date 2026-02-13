@@ -26,28 +26,32 @@ import apiRoutes from '@/routes/api.js';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from '@/config/swagger.js';
 
+import { env } from '@/config/env.js';
+
 const app = express();
-const isDev = process.env['NODE_ENV'] === 'development';
+const isDev = env.NODE_ENV === 'development';
 
-import fs from 'fs';
-import path from 'path';
+// Setup for later manual logging if needed, or other static paths.
+// import { fileURLToPath } from 'url';
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
 
-import { fileURLToPath } from 'url';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Logger stream import
+import { stream } from '@/utils/logger.js';
 
-// Ensure logs directory exists
-const logDirectory = path.join(__dirname, '../logs');
-if (!fs.existsSync(logDirectory)) {
-    fs.mkdirSync(logDirectory);
+// Logging middleware
+// Console logging for dev only, skip health checks to keep console clean
+if (isDev) {
+    app.use(morgan('dev', {
+        skip: (req) => req.url === '/health' || req.originalUrl === '/health'
+    }));
 }
 
-// Create a write stream (in append mode)
-const accessLogStream = fs.createWriteStream(path.join(logDirectory, 'access.log'), { flags: 'a' });
-
-// Logging middleware (log to console in dev, log to file in all environments)
-app.use(morgan(isDev ? 'dev' : 'combined'));
-app.use(morgan('combined', { stream: accessLogStream }));
+// File logging for all environments, skip health checks to avoid bloating logs
+app.use(morgan('combined', {
+    stream,
+    skip: (req) => req.url === '/health' || req.originalUrl === '/health'
+}));
 
 // Security middleware
 app.use(helmet(helmetConfig));

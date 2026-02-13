@@ -1,5 +1,7 @@
 
 import { Service, Review, Settings } from '@/models/index.js';
+import logger from '@/utils/logger.js';
+import { env } from '@/config/env.js';
 import { seedAdminUser, seedTestUsers } from '@/seeds/seedAdmin.js';
 
 /**
@@ -144,7 +146,7 @@ export const seedDatabase = async (): Promise<void> => {
             }));
 
             await Review.insertMany(reviewsWithDates);
-            console.log('✅ Reviews seeded successfully');
+            logger.info('Reviews seeded successfully');
         }
 
         // Check if services already exist
@@ -449,14 +451,14 @@ export const seedDatabase = async (): Promise<void> => {
             ];
 
             await Service.insertMany(services);
-            console.log('✅ Services seeded successfully');
+            logger.info('Services seeded successfully');
         }
 
         // Seed admin users
         await seedAdminUser();
 
         // Seed test users in development
-        if (process.env['NODE_ENV'] === 'development') {
+        if (env.NODE_ENV === 'development') {
             await seedTestUsers();
         }
 
@@ -464,12 +466,12 @@ export const seedDatabase = async (): Promise<void> => {
         const existingSettings = await Settings.countDocuments();
         if (existingSettings === 0) {
             await Settings.create({});
-            console.log('✅ Default settings initialized');
+            logger.info('Default settings initialized');
         }
 
-        console.log('✅ Database seeding process completed');
+        logger.info('Database seeding process completed');
     } catch (error) {
-        console.error('❌ Database seeding failed:', error);
+        logger.error(`Database seeding failed: ${error}`);
         throw error;
     }
 };

@@ -1,5 +1,6 @@
 import multer from 'multer';
 import path from 'path';
+import logger from '@/utils/logger.js';
 import { configureCloudinary, cloudinaryFolderNames } from '@/config/cloudinary.js';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
 
@@ -8,8 +9,8 @@ let cloudinary;
 try {
   cloudinary = configureCloudinary();
 } catch (error) {
-  console.error('❌ Cloudinary configuration failed:', error instanceof Error ? error.message : error);
-  console.error('⚠️  Please ensure CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET are set in your .env file');
+  logger.error(`Cloudinary configuration failed: ${error instanceof Error ? error.message : error}`);
+  logger.warn('Please ensure CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET are set in your .env file');
   throw error;
 }
 

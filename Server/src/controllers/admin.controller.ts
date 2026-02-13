@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import logger from '@/utils/logger.js';
 import { asyncHandler } from '@/utils/helpers.js';
 import { sendSuccess } from '@/utils/response.utils.js';
 import { adminService } from '@/services/admin.service.js';
@@ -368,7 +369,7 @@ export const getDatabaseStats = asyncHandler(async (_req: Request, res: Response
         estimatedSize += count * 1024;
       }
     } catch (error) {
-      console.error(`Failed to get stats for model ${name}:`, error);
+      logger.error(`Failed to get stats for model ${name}: ${error}`);
       // Continue to next model instead of failing entire request
     }
   }

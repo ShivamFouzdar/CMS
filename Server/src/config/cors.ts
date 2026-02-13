@@ -1,4 +1,5 @@
 import { CorsOptions } from 'cors';
+import { env } from '@/config/env.js';
 
 const defaultAllowedOrigins = [
   'http://localhost:3000',
@@ -14,18 +15,12 @@ const productionOrigins = [
   'https://www.careermapsolution.com',
 ];
 
-const envOrigins = (process.env['ALLOWED_ORIGINS'] || '')
-  .split(',')
-  .map(o => o.trim())
-  .filter(Boolean);
-
-const clientUrl = process.env['CLIENT_URL'] || '';
+const envOrigins = env.CLIENT_URL.split(',').map(o => o.trim()).filter(Boolean);
 
 const allowedOrigins = Array.from(new Set([
   ...defaultAllowedOrigins,
-  ...(process.env['NODE_ENV'] === 'production' ? productionOrigins : []),
+  ...(env.NODE_ENV === 'production' ? productionOrigins : []),
   ...envOrigins,
-  clientUrl,
 ])).filter(Boolean);
 
 export const corsConfig: CorsOptions = {

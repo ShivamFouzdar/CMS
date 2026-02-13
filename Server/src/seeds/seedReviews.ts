@@ -1,10 +1,9 @@
 
 
-import dotenv from 'dotenv';
-import { Review } from '../models/Review.js';
 
-// Load env
-dotenv.config();
+
+import { Review } from '../models/Review.js';
+import logger from '@/utils/logger.js';
 
 const genuineReviews = [
     {
@@ -71,7 +70,7 @@ const genuineReviews = [
 
 export const seedReviews = async () => {
     try {
-        console.log('Syncing genuine reviews...');
+        logger.info('Syncing genuine reviews...');
 
         for (const review of genuineReviews) {
             // Generate a consistent pseudo-email
@@ -90,11 +89,11 @@ export const seedReviews = async () => {
                 },
                 { upsert: true, new: true }
             );
-            console.log(`✅ Synced review from: ${review.name} [${review.category}]`);
+            logger.info(`Synced review from: ${review.name} [${review.category}]`);
         }
 
-        console.log('🎉 Reviews Seeded Successfully');
+        logger.info('Reviews Seeded Successfully');
     } catch (error) {
-        console.error('❌ Error seeding reviews:', error);
+        logger.error(`Error seeding reviews: ${error}`);
     }
 };

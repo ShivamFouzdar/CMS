@@ -1,5 +1,7 @@
 import apiClient from './api';
+import axios from 'axios';
 import { ApiResponse, JobApplication } from '@/types';
+import { API_BASE_URL } from '@/config/api';
 
 export type { JobApplication };
 
@@ -64,16 +66,33 @@ export const jobApplicationService = {
    * Download candidate resume (Admin)
    */
   async downloadResume(id: string): Promise<void> {
-    const response = await apiClient.get(`/api/job-application/submissions/${id}/resume`, {
-      responseType: 'blob'
+    const token = localStorage.getItem('accessToken');
+
+    // Use raw axios to bypass the response interceptor in apiClient
+    // that unwraps response.data (which corrupts blob responses)
+    const response = await axios.get(`${API_BASE_URL}/api/job-application/submissions/${id}/resume`, {
+      responseType: 'blob',
+      headers: {
+        Authorization: token ? `Bearer ${token}` : '',
+        Accept: 'application/pdf,application/octet-stream,*/*',
+      },
     });
 
-    // Handle the blob download
-    const blob = new Blob([response as unknown as BlobPart]);
+    // Extract filename from Content-Disposition header if available
+    const contentDisposition = response.headers['content-disposition'];
+    let fileName = `resume-${id}.pdf`;
+    if (contentDisposition) {
+      const match = contentDisposition.match(/filename[^;=\n]*=(['"]?)([^'"\n;]*)\1/);
+      if (match && match[2]) {
+        fileName = match[2];
+      }
+    }
+
+    const blob = new Blob([response.data], { type: response.headers['content-type'] || 'application/pdf' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `resume-${id}.pdf`;
+    a.download = fileName;
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);

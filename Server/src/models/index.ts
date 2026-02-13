@@ -3,6 +3,7 @@
  * Central export point for all database models
  */
 
+import logger from '@/utils/logger.js';
 export { Contact, type IContact } from './Contact.js';
 export { Review, type IReview } from './Review.js';
 export { Service, type IService, type IServiceProcess, type IServicePricing } from './Service.js';
@@ -40,7 +41,7 @@ export const connectDatabase = async (uri: string) => {
     await mongoose.connect(uri);
     return mongoose.connection;
   } catch (error) {
-    console.error('❌ Database connection failed:', error);
+    logger.error(`Database connection failed: ${error}`);
     throw error;
   }
 };
@@ -51,9 +52,9 @@ export const disconnectDatabase = async () => {
 
   try {
     await mongoose.disconnect();
-    console.log('✅ Database disconnected successfully');
+    logger.info('Database disconnected successfully');
   } catch (error) {
-    console.error('❌ Database disconnection failed:', error);
+    logger.error(`Database disconnection failed: ${error}`);
     throw error;
   }
 };

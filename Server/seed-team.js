@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import { TeamMember } from './dist/models/TeamMember.js';
+import logger from './dist/utils/logger.js';
 
 // Load env
 dotenv.config();
@@ -66,23 +67,22 @@ async function seed() {
             throw new Error('MONGODB_URI is missing from environment');
         }
 
-        console.log('Connecting to MongoDB...');
+        logger.info('Connecting to MongoDB...');
         await mongoose.connect(process.env.MONGODB_URI);
-        console.log('Connected!');
+        logger.info('Connected!');
 
-        console.log('Clearing existing team members...');
+        logger.info('Clearing existing team members...');
         await TeamMember.deleteMany({});
 
-        console.log('Seeding team members...');
+        logger.info('Seeding team members...');
         for (const member of teamMembers) {
             await TeamMember.create(member);
-            console.log(`✅ Seeded: ${member.name}`);
+            logger.info(`Seeded: ${member.name}`);
         }
-
-        console.log('🎉 Team Seeding Complete!');
+        logger.info('Team Seeding Complete!');
         process.exit(0);
     } catch (error) {
-        console.error('❌ Error seeding:', error);
+        logger.error(`Error seeding: ${error}`);
         process.exit(1);
     }
 }

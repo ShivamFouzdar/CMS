@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
 import app from '../src/app';
 import path from 'path';
+import logger from '../src/utils/logger';
 
 // Hoist mocks to be available inside vi.mock factory
 const mocks = vi.hoisted(() => ({
@@ -81,7 +82,7 @@ describe('Submission Endpoints', () => {
                 });
 
             if (res.status !== 201) {
-                console.log('Contact Error Body:', JSON.stringify(res.body, null, 2));
+                logger.error(`Contact Error Body: ${JSON.stringify(res.body, null, 2)}`);
             }
 
             expect(res.status).toBe(201);
@@ -116,7 +117,7 @@ describe('Submission Endpoints', () => {
                 });
 
             if (res.status !== 201) {
-                console.log('Job App Error Body:', JSON.stringify(res.body, null, 2));
+                logger.error(`Job App Error Body: ${JSON.stringify(res.body, null, 2)}`);
             }
 
             expect(res.status).toBe(201);

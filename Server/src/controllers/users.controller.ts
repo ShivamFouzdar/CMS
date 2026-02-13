@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import logger from '@/utils/logger.js';
 import { asyncHandler, createError } from '@/utils/helpers.js';
 import { sendSuccess } from '@/utils/response.utils.js';
 import { UserService } from '@/services/user.service.js';
@@ -256,7 +257,7 @@ export const getUserById = asyncHandler(async (req: Request, res: Response) => {
  */
 export const updateUser = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  console.log(`[DEBUG] updateUser called for ID: ${id}, Body keys:`, Object.keys(req.body));
+  logger.debug(`updateUser called for ID: ${id}, Body keys: ${Object.keys(req.body).join(', ')}`);
   if (!id) throw createError('ID is required', 400);
   const user = await userService.updateUser(id, req.body);
 

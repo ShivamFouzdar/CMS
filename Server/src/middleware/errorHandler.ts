@@ -1,4 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
+import logger from '@/utils/logger.js';
+import { env } from '@/config/env.js';
 
 export interface AppError extends Error {
   statusCode?: number;
@@ -34,15 +36,16 @@ export const errorHandler = (
     return;
   }
 
-  // silence error logs to keep terminal minimal
+  // Logger
+  logger.error(error);
 
   res.status(statusCode).json({
     success: false,
     error: {
-      message: process.env['NODE_ENV'] === 'production'
+      message: env.NODE_ENV === 'production'
         ? 'Something went wrong!'
         : message,
-      ...(process.env['NODE_ENV'] === 'development' && { stack: error.stack }),
+      ...(env.NODE_ENV === 'development' && { stack: error.stack }),
     },
   });
 };

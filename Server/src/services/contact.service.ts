@@ -1,10 +1,12 @@
 
 import { ContactFormData } from '@/types/index.js';
+import logger from '@/utils/logger.js';
 import { createError, sanitizeInput } from '@/utils/helpers.js';
 import { ContactRepository } from '@/repositories/contact.repository.js';
+import { SettingsRepository } from '@/repositories/settings.repository.js';
 import { IContact } from '@/models/index.js';
 import { emailService, emailTemplates } from './email.service.js';
-import { Settings } from '@/models/Settings.js';
+import { env } from '@/config/env.js';
 
 /**
  * Contact Service
@@ -12,9 +14,11 @@ import { Settings } from '@/models/Settings.js';
  */
 export class ContactService {
   private repository: ContactRepository;
+  private settingsRepository: SettingsRepository;
 
   constructor() {
     this.repository = new ContactRepository();
+    this.settingsRepository = new SettingsRepository();
   }
 
   /**
@@ -41,13 +45,13 @@ export class ContactService {
 
     const contact = await this.repository.create(sanitizedData as any);
 
-    console.log('✅ Contact form submission saved to database:', contact._id);
+    logger.info(`Contact form submission saved to database: ${contact._id}`);
 
     // Send Admin Notification
     try {
-      const settings = await Settings.findOne();
-      if (settings?.emailNotifications && settings?.notificationAlerts.inquiries) {
-        const adminEmail = settings.contactEmail || process.env['CONTACT_EMAIL'];
+      const settings = await this.settingsRepository.getSettings();
+      if (settings?.emailNotifications && (settings?.notificationAlerts as any)?.inquiries) {
+        const adminEmail = settings.contactEmail || env.CONTACT_EMAIL;
         if (adminEmail) {
           const emailData = emailTemplates.newLead({
             name: sanitizedData.name,
@@ -65,7 +69,7 @@ export class ContactService {
         }
       }
     } catch (error) {
-      console.error('Failed to send contact notification email:', error);
+      logger.error(`Failed to send contact notification email: ${error}`);
       // Fail silently to not block the submission response
     }
 

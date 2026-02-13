@@ -1,9 +1,10 @@
 
 
 import { sendNotificationEmail, emailTemplates } from './email.service.js';
+import logger from '@/utils/logger.js';
 import { UserRepository } from '@/repositories/user.repository.js';
-import { Settings as modelSettings } from '@/models/Settings.js';
-import Notification from '@/models/Notification.js';
+import { SettingsRepository } from '@/repositories/settings.repository.js';
+import { NotificationRepository } from '@/repositories/notification.repository.js';
 
 export type NotificationType = 'new-leads' | 'job-applications' | 'reviews' | 'system-alerts';
 
@@ -13,9 +14,13 @@ export type NotificationType = 'new-leads' | 'job-applications' | 'reviews' | 's
  */
 export class NotificationService {
   private userRepository: UserRepository;
+  private settingsRepository: SettingsRepository;
+  private notificationRepository: NotificationRepository;
 
   constructor() {
     this.userRepository = new UserRepository();
+    this.settingsRepository = new SettingsRepository();
+    this.notificationRepository = new NotificationRepository();
   }
 
   /**
@@ -24,7 +29,7 @@ export class NotificationService {
   private async getNotificationRecipients(notificationType: NotificationType): Promise<string[]> {
     try {
       // 1. Check if notifications are enabled globally for this type
-      const settingsRes = await modelSettings.getSettings();
+      const settingsRes = await this.settingsRepository.getSettings();
       const globalEnabled = settingsRes.emailNotifications !== false;
 
       // Map dynamic NotificationType string to schema field
@@ -38,7 +43,7 @@ export class NotificationService {
       const specificGlobalEnabled = (settingsRes.notificationAlerts as any)?.[alertMap[notificationType]] !== false;
 
       if (!globalEnabled || !specificGlobalEnabled) {
-        console.log(`Global notifications disabled for ${notificationType}`);
+        logger.info(`Global notifications disabled for ${notificationType}`);
         return [];
       }
 
@@ -62,10 +67,10 @@ export class NotificationService {
         }
       }
 
-      console.log(`📧 Found ${recipients.length} notification recipient(s) for ${notificationType}`);
+      logger.info(`Found ${recipients.length} notification recipient(s) for ${notificationType}`);
       return recipients;
     } catch (error) {
-      console.error('❌ Error fetching notification recipients:', error);
+      logger.error(`Error fetching notification recipients: ${error}`);
       return [];
     }
   }
@@ -82,7 +87,7 @@ export class NotificationService {
   }): Promise<void> {
     try {
       // Persist to DB
-      await Notification.create({
+      await this.notificationRepository.create({
         type: 'job-application',
         title: 'New Job Application',
         message: `${applicationData.fullName} applied for ${applicationData.position || 'Open Position'}`,
@@ -90,7 +95,7 @@ export class NotificationService {
           email: applicationData.email,
           experience: applicationData.experience
         }
-      });
+      } as any);
 
       const recipients = await this.getNotificationRecipients('job-applications');
 
@@ -105,9 +110,9 @@ export class NotificationService {
       });
 
       await sendNotificationEmail(recipients, template.subject, template.html);
-      console.log(`✅ Job application notification sent successfully to ${recipients.length} admin(s)`);
+      logger.info(`Job application notification sent successfully to ${recipients.length} admin(s)`);
     } catch (error) {
-      console.error('❌ Failed to send job application notification:', error);
+      logger.error(`Failed to send job application notification: ${error}`);
     }
   }
 
@@ -123,7 +128,7 @@ export class NotificationService {
   }): Promise<void> {
     try {
       // Persist to DB
-      await Notification.create({
+      await this.notificationRepository.create({
         type: 'new-lead',
         title: 'New Inquiry',
         message: `${leadData.name} is interested in ${leadData.service}`,
@@ -131,7 +136,7 @@ export class NotificationService {
           email: leadData.email,
           service: leadData.service
         }
-      });
+      } as any);
 
       const recipients = await this.getNotificationRecipients('new-leads');
 
@@ -146,9 +151,9 @@ export class NotificationService {
       });
 
       await sendNotificationEmail(recipients, template.subject, template.html);
-      console.log(`✅ Lead notification sent successfully to ${recipients.length} admin(s)`);
+      logger.info(`Lead notification sent successfully to ${recipients.length} admin(s)`);
     } catch (error) {
-      console.error('❌ Failed to send lead notification:', error);
+      logger.error(`Failed to send lead notification: ${error}`);
     }
   }
 
@@ -163,7 +168,7 @@ export class NotificationService {
   }): Promise<void> {
     try {
       // Persist to DB
-      await Notification.create({
+      await this.notificationRepository.create({
         type: 'review',
         title: 'New Review Received',
         message: `${reviewData.reviewerName} rated us ${reviewData.rating}/5 stars`,
@@ -171,7 +176,7 @@ export class NotificationService {
           company: reviewData.company,
           category: reviewData.category
         }
-      });
+      } as any);
 
       const recipients = await this.getNotificationRecipients('reviews');
 
@@ -185,9 +190,9 @@ export class NotificationService {
       });
 
       await sendNotificationEmail(recipients, template.subject, template.html);
-      console.log(`✅ Review notification sent successfully to ${recipients.length} admin(s)`);
+      logger.info(`Review notification sent successfully to ${recipients.length} admin(s)`);
     } catch (error) {
-      console.error('❌ Failed to send review notification:', error);
+      logger.error(`Failed to send review notification: ${error}`);
     }
   }
 
@@ -201,12 +206,12 @@ export class NotificationService {
   }): Promise<void> {
     try {
       // Persist to DB
-      await Notification.create({
+      await this.notificationRepository.create({
         type: 'system-alert',
         title: alertData.title,
         message: alertData.message,
         data: { severity: alertData.severity }
-      });
+      } as any);
 
       const recipients = await this.getNotificationRecipients('system-alerts');
 
@@ -219,9 +224,9 @@ export class NotificationService {
       });
 
       await sendNotificationEmail(recipients, template.subject, template.html);
-      console.log(`✅ System alert notification sent to ${recipients.length} admin(s)`);
+      logger.info(`System alert notification sent to ${recipients.length} admin(s)`);
     } catch (error) {
-      console.error('Failed to send system alert notification:', error);
+      logger.error(`Failed to send system alert notification: ${error}`);
     }
   }
 }
