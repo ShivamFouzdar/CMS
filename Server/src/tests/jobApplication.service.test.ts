@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { JobApplicationService } from '../services/jobApplication.service.js';
 import { JobApplicationRepository } from '../repositories/jobApplication.repository.js';
+import { SettingsRepository } from '../repositories/settings.repository.js'; // Import SettingsRepository
 import { emailService } from '../services/email.service.js';
-import { Settings } from '../models/Settings.js';
 
 // Mock dependencies
 vi.mock('../repositories/jobApplication.repository');
+vi.mock('../repositories/settings.repository'); // Mock SettingsRepository
 vi.mock('../models/Settings');
 vi.mock('../config/cloudinary', () => ({
     configureCloudinary: vi.fn().mockReturnValue({
@@ -31,6 +32,7 @@ vi.mock('../services/email.service', () => ({
 describe('JobApplicationService', () => {
     let jobApplicationService: JobApplicationService;
     let mockRepo: any;
+    let mockSettingsRepo: any; // Define mockSettingsRepo
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -45,9 +47,17 @@ describe('JobApplicationService', () => {
             deleteMany: vi.fn()
         };
 
+        mockSettingsRepo = { // Initialize mockSettingsRepo
+            getSettings: vi.fn(),
+            updateSettings: vi.fn()
+        };
+
         (JobApplicationRepository as any).mockImplementation(() => mockRepo);
+        (SettingsRepository as any).mockImplementation(() => mockSettingsRepo); // Mock implementation
+
         jobApplicationService = new JobApplicationService();
         (jobApplicationService as any).repository = mockRepo;
+        (jobApplicationService as any).settingsRepository = mockSettingsRepo; // Inject mock
     });
 
     describe('createJobApplication', () => {
@@ -72,7 +82,7 @@ describe('JobApplicationService', () => {
             };
 
             mockRepo.create.mockResolvedValue(mockCreated);
-            (Settings.findOne as any).mockResolvedValue(null);
+            mockSettingsRepo.getSettings.mockResolvedValue(null); // Use mockSettingsRepo
 
             const result = await jobApplicationService.createJobApplication(input);
 
@@ -85,7 +95,7 @@ describe('JobApplicationService', () => {
         });
 
         it('should send notification email if settings enabled', async () => {
-            (Settings.findOne as any).mockResolvedValue({
+            mockSettingsRepo.getSettings.mockResolvedValue({ // Use mockSettingsRepo
                 emailNotifications: true,
                 notificationAlerts: { jobApplications: true },
                 contactEmail: 'admin@example.com'
