@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ContactService } from '../services/contact.service.js';
 import { ContactRepository } from '../repositories/contact.repository.js';
+import { SettingsRepository } from '../repositories/settings.repository.js'; // Import SettingsRepository
 import { emailService } from '../services/email.service.js';
-import { Settings } from '../models/Settings.js';
 
 // Mock dependencies
 vi.mock('../repositories/contact.repository');
+vi.mock('../repositories/settings.repository'); // Mock SettingsRepository
 vi.mock('../models/Settings');
 
 // Explicitly mock email service and templates
@@ -24,6 +25,7 @@ vi.mock('../services/email.service', () => ({
 describe('ContactService', () => {
     let contactService: ContactService;
     let mockRepo: any;
+    let mockSettingsRepo: any; // Define mockSettingsRepo
 
     beforeEach(() => {
         // Reset mocks
@@ -37,17 +39,24 @@ describe('ContactService', () => {
             findById: vi.fn(),
             update: vi.fn(),
             delete: vi.fn(),
-            deleteMany: vi.fn()
+            deleteMany: vi.fn(),
+            getStats: vi.fn().mockResolvedValue({ total: 10 }), // Mock getStats
+            getByService: vi.fn().mockResolvedValue([]) // Mock getByService
         };
 
-        // Inject mock repo (casting as any to bypass private property access if needed, or by constructor if possible)
-        // Since repo is private and instantiated in constructor, we might need to mock the module or prototype.
-        // For simplicity in this environment, let's mock the class constructor
+        mockSettingsRepo = { // Initialize mockSettingsRepo
+            getSettings: vi.fn(),
+            updateSettings: vi.fn()
+        };
+
+        // Inject mock repo
         (ContactRepository as any).mockImplementation(() => mockRepo);
+        (SettingsRepository as any).mockImplementation(() => mockSettingsRepo); // Mock SettingsRepository
 
         contactService = new ContactService();
-        // Force replace repo if constructor logic makes it hard
+        // Force replace repo
         (contactService as any).repository = mockRepo;
+        (contactService as any).settingsRepository = mockSettingsRepo; // Inject mockSettingsRepo
     });
 
     it('should create a contact submission', async () => {
@@ -67,7 +76,7 @@ describe('ContactService', () => {
         };
 
         mockRepo.create.mockResolvedValue(mockCreated);
-        (Settings.findOne as any).mockResolvedValue(null); // No settings, no email
+        mockSettingsRepo.getSettings.mockResolvedValue(null); // Use mockSettingsRepo
 
         const result = await contactService.submitContactForm(input);
 
@@ -91,7 +100,7 @@ describe('ContactService', () => {
 
     it('should send notification email if settings enabled', async () => {
         // Mock Settings
-        (Settings.findOne as any).mockResolvedValue({
+        mockSettingsRepo.getSettings.mockResolvedValue({ // Use mockSettingsRepo
             emailNotifications: true,
             notificationAlerts: { inquiries: true },
             contactEmail: 'admin@example.com'
