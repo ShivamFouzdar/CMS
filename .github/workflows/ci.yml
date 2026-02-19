@@ -20,7 +20,13 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x]
-        mongodb-version: ['6.0']
+
+
+    services:
+      mongodb:
+        image: mongo:6.0
+        ports:
+          - 27017:27017
 
     steps:
     - uses: actions/checkout@v4
@@ -33,11 +39,7 @@ jobs:
         cache: 'npm'
         cache-dependency-path: '**/package-lock.json'
 
-    # Setup MongoDB (for Integration Tests)
-    - name: Start MongoDB
-      uses: supercharge/mongodb-github-action@1.11.0
-      with:
-        mongodb-version: ${{ matrix.mongodb-version }}
+
 
     # Install & Test Server
     - name: Server - Install Dependencies
