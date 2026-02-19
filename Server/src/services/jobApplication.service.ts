@@ -23,6 +23,7 @@ export interface JobApplicationData {
     resumeUrl?: string | undefined;
     resumePublicId?: string | undefined;
     submittedAt: string;
+    status: 'new' | 'reviewing' | 'shortlisted' | 'rejected' | 'hired';
 }
 
 export class JobApplicationService {
@@ -304,6 +305,7 @@ export class JobApplicationService {
             resumeUrl: applicant.resumeUrl || undefined,
             resumePublicId: applicant.resumePublicId || undefined,
             submittedAt: applicant.submittedAt.toISOString(),
+            status: applicant.status,
         };
     }
 }
