@@ -117,6 +117,35 @@ export default function JobApplicants() {
     }
   };
 
+  const handleStatusUpdate = async (id: string, newStatus: string) => {
+    try {
+      // Optimistic update
+      setApplications(prev => prev.map(app =>
+        app.id === id ? { ...app, status: newStatus as any } : app
+      ));
+
+      await jobApplicationService.updateStatus(id, newStatus);
+      // Background refresh to ensure consistency
+      fetchData();
+    } catch (error) {
+      console.error('Status update failed:', error);
+      alert('Failed to update status');
+      fetchData(); // Revert on failure
+    }
+  };
+
+  const handleBulkStatusUpdate = async (status: string) => {
+    if (selectedIds.length === 0) return;
+    try {
+      await jobApplicationService.bulkUpdateStatus(selectedIds, status);
+      setSelectedIds([]);
+      fetchData();
+    } catch (error) {
+      console.error('Bulk status update failed:', error);
+      alert('Failed to update status for selected items');
+    }
+  };
+
   const columns = [
     {
       header: 'Applicant',
@@ -147,6 +176,29 @@ export default function JobApplicants() {
           <MapPin className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
           {app.workMode}
         </span>
+      ),
+    },
+    {
+      header: 'Status',
+      accessor: (app: JobApplication) => (
+        <select
+          value={app.status || 'new'}
+          onClick={(e) => e.stopPropagation()}
+          onChange={(e) => handleStatusUpdate(app.id, e.target.value)}
+          className={`text-xs font-bold px-2 py-1 rounded-lg border-0 cursor-pointer focus:ring-2 focus:ring-indigo-500/20 capitalize
+            ${app.status === 'hired' ? 'bg-emerald-500/10 text-emerald-500' :
+              app.status === 'rejected' ? 'bg-rose-500/10 text-rose-500' :
+                app.status === 'shortlisted' ? 'bg-indigo-500/10 text-indigo-500' :
+                  app.status === 'reviewing' ? 'bg-amber-500/10 text-amber-500' :
+                    'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+            }`}
+        >
+          {['new', 'reviewing', 'shortlisted', 'rejected', 'hired'].map((s) => (
+            <option key={s} value={s} className="bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200">
+              {s.charAt(0).toUpperCase() + s.slice(1)}
+            </option>
+          ))}
+        </select>
       ),
     },
     {
@@ -205,13 +257,33 @@ export default function JobApplicants() {
               {exporting ? 'Exporting...' : 'Export CSV'}
             </button>
             {selectedIds.length > 0 && (
-              <button
-                onClick={handleBulkDelete}
-                className="flex items-center gap-2 px-4 py-2 bg-rose-500 text-white rounded-xl hover:bg-rose-600 transition-colors font-medium shadow-sm"
-              >
-                <Trash2 className="w-4 h-4" />
-                Delete Selected ({selectedIds.length})
-              </button>
+              <>
+                <div className="relative group">
+                  <button
+                    className="flex items-center gap-2 px-4 py-2 bg-indigo-500 text-white rounded-xl hover:bg-indigo-600 transition-colors font-medium shadow-sm"
+                  >
+                    Change Status
+                  </button>
+                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-gray-100 dark:border-white/10 overflow-hidden hidden group-hover:block z-50">
+                    {['new', 'reviewing', 'shortlisted', 'rejected', 'hired'].map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => handleBulkStatusUpdate(status)}
+                        className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 capitalize"
+                      >
+                        Mark as {status}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <button
+                  onClick={handleBulkDelete}
+                  className="flex items-center gap-2 px-4 py-2 bg-rose-500 text-white rounded-xl hover:bg-rose-600 transition-colors font-medium shadow-sm"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete ({selectedIds.length})
+                </button>
+              </>
             )}
           </div>
         </div>

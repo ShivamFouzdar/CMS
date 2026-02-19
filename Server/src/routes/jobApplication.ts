@@ -8,7 +8,9 @@ import {
   downloadResume,
   deleteJobApplication,
   bulkDeleteJobApplications,
-  exportApplications
+  exportApplications,
+  updateJobApplicationStatus,
+  bulkUpdateJobApplicationStatus
 } from '@/controllers/jobApplication.controller.js';
 import { authenticateToken } from '@/middleware/auth.js';
 import { validate } from '@/middleware/validate.js';
@@ -16,7 +18,9 @@ import { uploadResume } from '@/middleware/upload.js';
 import {
   createJobApplicationSchema,
   jobApplicationIdSchema,
-  bulkDeleteJobApplicationSchema
+  bulkDeleteJobApplicationSchema,
+  updateJobApplicationStatusSchema,
+  bulkUpdateJobApplicationStatusSchema
 } from '@/schemas/jobApplication.schema.js';
 
 const router = Router();
@@ -55,6 +59,16 @@ router.delete('/submissions/:id',
 router.post('/submissions/bulk-delete',
   validate(bulkDeleteJobApplicationSchema),
   bulkDeleteJobApplications
+);
+
+router.patch('/submissions/:id/status',
+  validate(updateJobApplicationStatusSchema),
+  updateJobApplicationStatus
+);
+
+router.patch('/submissions/bulk-status',
+  validate(bulkUpdateJobApplicationStatusSchema),
+  bulkUpdateJobApplicationStatus
 );
 
 // Statistics routes

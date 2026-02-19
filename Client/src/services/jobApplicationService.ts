@@ -110,6 +110,14 @@ export const jobApplicationService = {
     return apiClient.post('/api/job-application/submissions/bulk-delete', { ids });
   },
 
+  async updateStatus(id: string, status: string): Promise<ApiResponse<JobApplication>> {
+    return apiClient.patch(`/api/job-application/submissions/${id}/status`, { status });
+  },
+
+  async bulkUpdateStatus(ids: string[], status: string): Promise<ApiResponse<{ count: number }>> {
+    return apiClient.patch('/api/job-application/submissions/bulk-status', { ids, status });
+  },
+
   async exportApplications(): Promise<Blob> {
     const response = await apiClient.get('/api/job-application/export', { responseType: 'blob' });
     return response as unknown as Blob;
@@ -122,3 +130,5 @@ export const getJobApplicationById = jobApplicationService.getApplicationById;
 export const getJobApplicationStats = jobApplicationService.getStats;
 export const downloadResume = jobApplicationService.downloadResume;
 export const deleteJobApplication = jobApplicationService.deleteApplication;
+export const updateJobApplicationStatus = jobApplicationService.updateStatus;
+export const bulkUpdateJobApplicationStatus = jobApplicationService.bulkUpdateStatus;

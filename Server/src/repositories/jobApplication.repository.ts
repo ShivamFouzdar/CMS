@@ -24,4 +24,9 @@ export class JobApplicationRepository extends BaseRepository<IApplicant> {
             .sort({ submittedAt: -1 })
             .limit(limit);
     }
+
+    async updateMany(filter: any, update: any): Promise<number> {
+        const result = await this.model.updateMany(filter, update);
+        return result.modifiedCount;
+    }
 }

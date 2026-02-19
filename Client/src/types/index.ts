@@ -139,7 +139,7 @@ export interface JobApplication {
     hearAboutUs?: string;
     resumeUrl: string;
     resumePath?: string;
-    status: 'pending' | 'reviewed' | 'shortlisted' | 'rejected';
+    status: 'new' | 'reviewing' | 'shortlisted' | 'rejected' | 'hired';
     notes?: string;
     submittedAt: string;
 }

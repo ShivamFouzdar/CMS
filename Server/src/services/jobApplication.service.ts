@@ -147,6 +147,42 @@ export class JobApplicationService {
         return await this.repository.deleteMany(ids);
     }
 
+    async updateJobApplicationStatus(id: string, status: string): Promise<JobApplicationData> {
+        const applicant = await this.repository.findById(id);
+        if (!applicant) {
+            throw createError('Job application not found', 404);
+        }
+
+        const validStatuses = ['new', 'reviewing', 'shortlisted', 'rejected', 'hired'];
+        if (!validStatuses.includes(status)) {
+            throw createError('Invalid status', 400);
+        }
+
+        applicant.status = status as any;
+
+        // If status is 'reviewing' or 'shortlisted', we could track who reviewed it if we had the user context here
+        // For now, just updating the status
+
+        await applicant.save();
+        return this.mapToDTO(applicant);
+    }
+
+    async bulkUpdateJobApplicationStatus(ids: string[], status: string): Promise<number> {
+        if (!ids || ids.length === 0) return 0;
+
+        const validStatuses = ['new', 'reviewing', 'shortlisted', 'rejected', 'hired'];
+        if (!validStatuses.includes(status)) {
+            throw createError('Invalid status', 400);
+        }
+
+        const result = await this.repository.updateMany(
+            { _id: { $in: ids } },
+            { $set: { status } }
+        );
+
+        return result;
+    }
+
     async exportApplications(): Promise<string> {
         // Fetch all applications
         const applicants = await this.repository.findWithPagination({}, { submittedAt: -1 }, 0, 10000);

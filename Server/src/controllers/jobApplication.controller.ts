@@ -258,3 +258,68 @@ export const bulkDeleteJobApplications = asyncHandler(async (req: Request, res: 
   const count = await jobApplicationService.bulkDeleteJobApplications(ids);
   return sendSuccess(res, `Deleted ${count} job applications successfully`, { count });
 });
+
+/**
+ * @swagger
+ * /api/job-application/submissions/{id}/status:
+ *   patch:
+ *     summary: Update job application status (Admin)
+ *     tags: [Job Applications]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status: 
+ *                 type: string
+ *                 enum: [new, reviewing, shortlisted, rejected, hired]
+ *     responses:
+ *       200:
+ *         description: Status updated
+ */
+export const updateJobApplicationStatus = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { status } = req.body;
+  const application = await jobApplicationService.updateJobApplicationStatus(id!, status);
+  return sendSuccess(res, 'Job application status updated successfully', application);
+});
+
+/**
+ * @swagger
+ * /api/job-application/submissions/bulk-status:
+ *   patch:
+ *     summary: Bulk update job application status (Admin)
+ *     tags: [Job Applications]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               ids:
+ *                 type: array
+ *                 items: { type: string }
+ *               status:
+ *                 type: string
+ *                 enum: [new, reviewing, shortlisted, rejected, hired]
+ *     responses:
+ *       200:
+ *         description: Statuses updated
+ */
+export const bulkUpdateJobApplicationStatus = asyncHandler(async (req: Request, res: Response) => {
+  const { ids, status } = req.body;
+  const count = await jobApplicationService.bulkUpdateJobApplicationStatus(ids, status);
+  return sendSuccess(res, `Updated ${count} job applications successfully`, { count });
+});

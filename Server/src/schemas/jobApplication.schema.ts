@@ -28,3 +28,23 @@ export const bulkDeleteJobApplicationSchema = z.object({
         ids: z.array(z.string()).min(1, 'IDs array is required')
     })
 });
+
+export const updateJobApplicationStatusSchema = z.object({
+    params: z.object({
+        id: z.string().min(1, 'ID is required')
+    }),
+    body: z.object({
+        status: z.enum(['new', 'reviewing', 'shortlisted', 'rejected', 'hired'], {
+            errorMap: () => ({ message: 'Status must be one of: new, reviewing, shortlisted, rejected, hired' })
+        })
+    })
+});
+
+export const bulkUpdateJobApplicationStatusSchema = z.object({
+    body: z.object({
+        ids: z.array(z.string()).min(1, 'IDs array is required'),
+        status: z.enum(['new', 'reviewing', 'shortlisted', 'rejected', 'hired'], {
+            errorMap: () => ({ message: 'Status must be one of: new, reviewing, shortlisted, rejected, hired' })
+        })
+    })
+});
