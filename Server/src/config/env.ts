@@ -7,7 +7,7 @@ dotenv.config();
 
 const envSchema = z.object({
     // Server
-    PORT: z.string().transform(Number).default('5000'),
+    PORT: z.string().default('5000').transform(Number),
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
     CLIENT_URL: z.string().default('http://localhost:3000'), // Keep as string, let cors config handle splitting if needed
 
@@ -24,8 +24,8 @@ const envSchema = z.object({
     ADMIN_INITIAL_PASSWORD: z.string().min(1),
 
     // Rate Limiting / Security Defaults
-    MAX_LOGIN_ATTEMPTS: z.string().transform(Number).default('5'),
-    LOCKOUT_DURATION_HOURS: z.string().transform(Number).default('1'),
+    MAX_LOGIN_ATTEMPTS: z.string().default('5').transform(Number),
+    LOCKOUT_DURATION_HOURS: z.string().default('1').transform(Number),
 
     // Cloudinary
     CLOUDINARY_CLOUD_NAME: z.string().min(1),
@@ -35,11 +35,11 @@ const envSchema = z.object({
 
     // Email (SMTP)
     SMTP_HOST: z.string().min(1),
-    SMTP_PORT: z.string().transform(Number).default('587'),
+    SMTP_PORT: z.string().default('587').transform(Number),
     SMTP_USER: z.string().min(1),
     SMTP_PASS: z.string().min(1),
     SMTP_FROM: z.string().email(),
-    BCRYPT_SALT_ROUNDS: z.string().transform(Number).default('12'),
+    BCRYPT_SALT_ROUNDS: z.string().default('12').transform(Number),
     CONTACT_EMAIL: z.string().email().optional(),
 });
 

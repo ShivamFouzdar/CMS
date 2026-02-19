@@ -7,7 +7,7 @@ export const createJobApplicationSchema = z.object({
         phone: z.string().min(10, 'Valid phone number is required'),
         location: z.string().min(2, 'Location is required'),
         experience: z.string().min(1, 'Experience is required'),
-        workMode: z.enum(['remote', 'hybrid', 'onsite'], {
+        workMode: z.enum(['remote', 'hybrid', 'onsite'] as const, {
             errorMap: () => ({ message: 'Work mode must be remote, hybrid, or onsite' })
         }).optional().or(z.string()),
         skillsDescription: z.string().min(10, 'Skills description is required'),
@@ -34,7 +34,7 @@ export const updateJobApplicationStatusSchema = z.object({
         id: z.string().min(1, 'ID is required')
     }),
     body: z.object({
-        status: z.enum(['new', 'reviewing', 'shortlisted', 'rejected', 'hired'], {
+        status: z.enum(['new', 'reviewing', 'shortlisted', 'rejected', 'hired'] as const, {
             errorMap: () => ({ message: 'Status must be one of: new, reviewing, shortlisted, rejected, hired' })
         })
     })
@@ -43,7 +43,7 @@ export const updateJobApplicationStatusSchema = z.object({
 export const bulkUpdateJobApplicationStatusSchema = z.object({
     body: z.object({
         ids: z.array(z.string()).min(1, 'IDs array is required'),
-        status: z.enum(['new', 'reviewing', 'shortlisted', 'rejected', 'hired'], {
+        status: z.enum(['new', 'reviewing', 'shortlisted', 'rejected', 'hired'] as const, {
             errorMap: () => ({ message: 'Status must be one of: new, reviewing, shortlisted, rejected, hired' })
         })
     })
