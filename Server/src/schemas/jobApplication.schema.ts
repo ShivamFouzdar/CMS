@@ -7,9 +7,7 @@ export const createJobApplicationSchema = z.object({
         phone: z.string().min(10, 'Valid phone number is required'),
         location: z.string().min(2, 'Location is required'),
         experience: z.string().min(1, 'Experience is required'),
-        workMode: z.enum(['remote', 'hybrid', 'onsite'] as const, {
-            errorMap: () => ({ message: 'Work mode must be remote, hybrid, or onsite' })
-        }).optional().or(z.string()),
+        workMode: z.enum(['remote', 'hybrid', 'onsite'] as const).optional().or(z.string()),
         skillsDescription: z.string().min(10, 'Skills description is required'),
         hearAboutUs: z.string().optional(),
         // Resume file validation is handled by Multer usually, but if URL provided directly:
@@ -34,17 +32,13 @@ export const updateJobApplicationStatusSchema = z.object({
         id: z.string().min(1, 'ID is required')
     }),
     body: z.object({
-        status: z.enum(['new', 'reviewing', 'shortlisted', 'rejected', 'hired'] as const, {
-            errorMap: () => ({ message: 'Status must be one of: new, reviewing, shortlisted, rejected, hired' })
-        })
+        status: z.enum(['new', 'reviewing', 'shortlisted', 'rejected', 'hired'] as const)
     })
 });
 
 export const bulkUpdateJobApplicationStatusSchema = z.object({
     body: z.object({
         ids: z.array(z.string()).min(1, 'IDs array is required'),
-        status: z.enum(['new', 'reviewing', 'shortlisted', 'rejected', 'hired'] as const, {
-            errorMap: () => ({ message: 'Status must be one of: new, reviewing, shortlisted, rejected, hired' })
-        })
+        status: z.enum(['new', 'reviewing', 'shortlisted', 'rejected', 'hired'] as const)
     })
 });
