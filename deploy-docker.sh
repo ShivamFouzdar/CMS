@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+# Fix for older docker-compose (v1.29) compatibility
+export DOCKER_BUILDKIT=0
+export COMPOSE_DOCKER_CLI_BUILD=0
+
 echo "🐳 Starting CMS Docker deployment..."
 
 # ===== CONFIG =====
